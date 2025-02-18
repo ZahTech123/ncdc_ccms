@@ -1,7 +1,7 @@
 // src/pages/dashboardPage/TicketTable.js
 import React from "react";
 import { LuPencil } from "react-icons/lu";
-import { PiPaperPlaneTiltFill } from "react-icons/pi";
+// import { PiPaperPlaneTiltFill } from "react-icons/pi";
 import { BiExpandHorizontal, BiCollapseHorizontal } from "react-icons/bi";
 
 const TicketTable = ({
@@ -199,10 +199,10 @@ const TicketTable = ({
                     className="cursor-pointer text-base hover:text-blue-300"
                     onClick={() => handleEditClick(ticket)}
                   />
-                  <PiPaperPlaneTiltFill
+                  {/* <PiPaperPlaneTiltFill
                     className="cursor-pointer text-base hover:text-blue-300"
                     onClick={() => handleTicketTrackerClick(ticket)}
-                  />
+                  /> */}
                 </td>
                 <td className="p-2">{ticket.id}</td>
                 <td className="p-2">{ticket.issueType}</td>
