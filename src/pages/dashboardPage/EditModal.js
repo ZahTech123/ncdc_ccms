@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { MdReportProblem } from "react-icons/md";
+import {
+  FaTrash,
+  FaLightbulb,
+  FaExclamationTriangle,
+  FaTrafficLight,
+  FaHardHat,
+  FaShoppingCart,
+  FaTree,
+  FaBus,
+  FaGlassCheers,
+  FaBuilding,
+  FaProjectDiagram,
+  FaGavel,
+  FaRoad,
+  FaMapMarkedAlt,
+} from "react-icons/fa";
+import { HiOutlineQuestionMarkCircle } from "react-icons/hi2";
 
 // Constants for status options (removed "New")
 const STATUS_OPTIONS = ["In Progress", "Resolved", "Overdue", "Closed"];
@@ -11,6 +27,32 @@ const CURRENT_HANDLER_OPTIONS = [
   "Unit Manager",
   "Response Team",
 ];
+const iconSize = 50;
+// Mapping of issue types to icons
+const ISSUE_TYPE_ICONS = {
+  "Garbage and Sanitation": <FaTrash size={iconSize} className="text-gray-400" />,
+  "Street Lights": <FaLightbulb size={iconSize} className="text-gray-400" />,
+  "Crime Alert": <FaExclamationTriangle size={iconSize} className="text-gray-400" />,
+  "Traffic Lights": <FaTrafficLight size={iconSize} className="text-gray-400" />,
+  "Pothole Roads": <FaHardHat size={iconSize} className="text-gray-400" />,
+  "Urban Safety": <FaExclamationTriangle size={iconSize} className="text-gray-400" />,
+  "Waste Management": <FaTrash size={iconSize} className="text-gray-400" />,
+  Markets: <FaShoppingCart size={iconSize} className="text-gray-400" />,
+  "Parks & Gardens": <FaTree size={iconSize} className="text-gray-400" />,
+  "Eda City Bus": <FaBus size={iconSize} className="text-gray-400" />,
+  "Liquor License": <FaGlassCheers size={iconSize} className="text-gray-400" />,
+  Building: <FaBuilding size={iconSize} className="text-gray-400" />,
+  "Development Control & Physical Planning": (
+    <FaProjectDiagram size={iconSize} className="text-gray-400" />
+  ),
+  Enforcement: <FaGavel size={iconSize} className="text-gray-400" />,
+  "Streetlights & Traffic Management": (
+    <FaTrafficLight size={iconSize} className="text-gray-400" />
+  ),
+  "Road Furniture & Road Signs": <FaRoad size={iconSize} className="text-gray-400" />,
+  "Potholes & Drainage": <FaHardHat size={iconSize} className="text-gray-400" />,
+  "Strategic Planning": <FaMapMarkedAlt size={iconSize} className="text-gray-400" />,
+};
 
 const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
   // State to manage the form fields
@@ -121,20 +163,30 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
       .reverse(); // Reverse the array to show the most recent comment first
   };
 
+  // Get the icon for the current issue type
+  const issueTypeIcon =
+    ISSUE_TYPE_ICONS[formData.issueType] || (
+      <HiOutlineQuestionMarkCircle size={20} className="text-gray-400" />
+    );
+
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" // Added z-50
       onClick={onClose} // Close modal on outside click
     >
       <div
-        className="bg-gray-800 p-4 sm:p-6 rounded-lg w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 max-h-[90vh] flex flex-col" // Responsive width
+        className="bg-gray-800 p-4 sm:p-6 rounded-lg w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 max-h-[90vh] flex flex-col " // Responsive width
         onClick={(e) => e.stopPropagation()} // Prevent click from propagating to the outer div
       >
-        <div className="mb-4">
+        <div className="mb-1">
           {/* Header with Icon (Top Left) */}
-          <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
-            <MdReportProblem className="text-red-500" /> {formData.issueType}
-          </h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg sm:text-xl font-semibold">
+              {formData.issueType}
+            </h2>
+            {/* Icon on the right side */}
+            <div className="mr-6"  >{issueTypeIcon}</div>
+          </div>
 
           {/* Column Layout for Team and Location */}
           <div className="flex flex-col">
