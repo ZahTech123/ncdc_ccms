@@ -1,0 +1,240 @@
+/* Navbar container */
+nav {
+    background-color: #333;
+    overflow: visible; /* Changed from hidden to visible */
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 10 !important;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    position: relative;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    position: relative;
+    padding-bottom: 4px; /* Extra padding to avoid underline overlap */
+}
+
+.nav-link:hover {
+    color: #fbbf24; /* Tailwind yellow-400 */
+}
+
+.active-link {
+    color: #fbbf24;
+    font-weight: bold;
+}
+
+.underline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background-color: #fbbf24; /* Tailwind yellow-400 */
+    transition: all 0.2s ease-in-out;
+    width: 0;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+}
+
+.material-icons {
+    font-size: 20px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.right-section .material-icons {
+    font-size: 24px; /* Slightly larger for better visibility */
+    cursor: pointer;
+}
+
+/* User Icon Container */
+.user-icon-container {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 2000; /* Ensure it appears above the navbar */
+    padding: 1rem;
+    min-width: 200px; /* Ensure the dropdown has a minimum width */
+}
+
+.dropdown-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.dropdown-email {
+    font-size: 0.875rem;
+    color: #1a1a1a;
+    margin: 0;
+    padding: 0.5rem 1rem;
+}
+
+.logout-button {
+    background-color: #ec2d2d;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    text-align: left;
+}
+
+.logout-button:hover {
+    background-color: #d42a2a;
+}
+
+/* Notification Modal Overlay */
+.notification-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Notification Modal Content */
+.notification-modal-content {
+    background-color: #2d3748; /* Match the theme */
+    color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 90%;
+    width: 400px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Notification Modal Header */
+.notification-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.notification-modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.notification-modal-close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #718096;
+}
+
+.notification-modal-close-button:hover {
+    color: #cbd5e0;
+}
+
+/* Notification Modal Body */
+.notification-modal-body {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Notification Modal Item */
+.notification-modal-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #4a5568;
+}
+
+.notification-modal-description {
+    margin: 0;
+    font-size: 0.875rem;
+    color: white;
+}
+
+.notification-modal-date {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #a0aec0;
+}
+
+/* Notification Modal Empty State */
+.notification-modal-empty {
+    text-align: center;
+    color: #a0aec0;
+    font-size: 0.875rem;
+}
+
+/* Right Section */
+.right-section {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    padding-left: 1.5rem; /* Move icons to the right */
+    gap: 1rem; /* Add spacing between the icons */
+}
+
+/* Notification Icon Container */
+.notification-icon-container {
+    position: relative;
+    margin-right: 1rem; /* Add spacing between the icons */
+    cursor: pointer;
+}
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -10px; /* Adjust to position the badge slightly above the icon */
+    right: -15px; /* Adjust to position the badge slightly to the right of the icon */
+    color: #ffffff; /* White text for contrast with red */
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px; /* Ensure the badge has a minimum width */
+    height: 20px; /* Ensure the badge has a consistent height */
+    background-color: #ec2d2d; /* Dark background for contrast */
+    border-radius: 50%; /* Make the badge circular */
+    padding: 2px; /* Add padding to make it look a bit more balanced */
+}
+
+/* Notification Modal Divider */
+.notification-modal-divider {
+    border: 0;
+    height: 1px;
+    background-color: #4a5568; /* Match the theme */
+    margin: 0.5rem 0;
+}

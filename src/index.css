@@ -1,0 +1,297 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Set global backdrop color */
+body {
+    @apply bg-[#111827] text-white; /* Dark gray background with white text */
+  }
+
+/* Base container styling */
+.custom-scrollbar {
+  height: 80vh !important; /* Adjust height as needed */
+  overflow-y: auto !important;
+  padding: 16px !important;
+  position: relative !important;
+  scrollbar-width: thin !important; /* Firefox */
+  scrollbar-color: #4a5568 #2d3748 !important; /* Thumb and track color */
+}
+
+/* Webkit (Chrome, Safari, Edge, newer Opera) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px !important; /* Slightly wider for visibility */
+  border-radius: 10px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4a5568 !important; /* Thumb color */
+  border-radius: 10px !important;
+  border: 3px solid #2d3748 !important; /* Adds space for enhanced roundness */
+  transition: background-color 0.3s ease, transform 0.2s ease-in-out !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #2c5282 !important; /* Darker thumb on hover */
+  transform: scale(1.05) !important; /* Slightly enlarge on hover */
+}
+.custom-scrollbar {
+  height: 80vh !important; /* Adjust height as needed */
+  overflow-y: auto !important;
+  padding: 16px !important;
+  position: relative !important;
+  scrollbar-width: thin !important; /* Firefox */
+  scrollbar-color: #4a5568 #2d3748 !important; /* Thumb and track color */
+}
+
+/* Webkit (Chrome, Safari, Edge, newer Opera) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px !important; /* Slightly wider for better visibility of rounded edges */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4a5568 !important; /* Thumb color */
+  border-radius: 10px !important; /* Rounded edges */
+  border: 3px solid transparent !important; /* Adds space for enhanced roundness */
+  background-clip: content-box; /* Ensures the border doesn't overlap the background */
+  transition: background-color 0.3s ease, transform 0.2s ease-in-out !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #2c5282 !important; /* Darker thumb on hover */
+  transform: scale(1.05) !important; /* Slightly enlarge on hover */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #2d3748 !important; /* Track color */
+  border-radius: 10px !important; /* Rounded edges */
+  margin: 4px 0 !important; /* Ensure full visibility of round edges */
+}
+
+/* Edge & Internet Explorer */
+.custom-scrollbar {
+  -ms-overflow-style: -ms-autohiding-scrollbar !important;
+}
+
+/* Custom Mapbox Popup Styling */
+.mapboxgl-popup {
+  max-width: 300px !important;
+}
+
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 16px !important; /* Increased border radius */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden;
+  background: white !important;
+}
+
+.mapboxgl-popup-close-button {
+  right: 8px !important;
+  top: 8px !important;
+  color: #9CA3AF !important; /* Lighter gray color */
+  font-size: 18px !important;
+  padding: 4px !important;
+  border-radius: 50% !important;
+  z-index: 1;
+  background: transparent !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #4B5563 !important;
+}
+
+/* Additional popup styling for message-like appearance */
+.mapboxgl-popup-tip {
+  border-top-color: white !important; /* Make the popup tip match the white background */
+  border-bottom-color: white !important;
+}
+
+.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: white !important;
+}
+
+.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: white !important;
+}
+
+.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: white !important;
+}
+
+.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: white !important;
+}
+
+
+
+.mapboxgl-popup-content {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+
+.status-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 8px 16px;
+  border-radius: 20px; /* Rounded badge */
+  font-size: 10px;
+  font-weight: bold;
+  color: rgb(22, 85, 3);
+  text-transform: uppercase;
+  display: inline-block;
+  min-width: 90px;
+  text-align: center;
+  white-space: nowrap;
+  
+}
+
+
+
+
+
+/* Ensure the modal is on top with a higher z-index */
+/* Modal styling */
+.modal {
+  position: fixed; /* Fixed positioning */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999; /* Higher value than other elements */
+  background-color: rgba(0, 0, 0, 0.5); /* Optional backdrop */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Card styling */
+.ticket-card {
+  background-color: #1f2937; /* Match your card background color */
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1000px; /* Increased width */
+  position: relative;
+}
+
+/* Close button */
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Flex container for alignment */
+.ticket-tracker-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  gap: 1rem; /* Equal spacing between elements */
+}
+
+/* Ensure buttons and circles are aligned */
+.ticket-button, .icon-container, .user-container {
+  position: relative;
+  z-index: 2; /* Ensure they are above the connecting line */
+  flex: 1; /* Equal distribution */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Connecting line */
+.connecting-line {
+  position: absolute;
+  height: 8px;
+  width: calc(100% - 240px); /* Adjust width dynamically */
+  background: linear-gradient(to right, #facc22, #f83600);
+  top: 50%;
+  left: 120px; /* Start after the first button */
+  transform: translateY(-50%);
+  z-index: 0; /* Ensure it's behind the circles and buttons */
+}
+
+/* Dashed line with gradient */
+.dashed-line {
+  background: linear-gradient(to right, #f59e0b, #6b7280);
+  height: 2px;
+  width: 1.5rem;
+  border: none;
+  border-top: 2px dashed #6b7280;
+  margin: 0 10px; /* Add spacing between circles */
+}
+
+/* Button Styling */
+.ticket-button .btn {
+  width: 120px; /* Make buttons consistent */
+  height: 40px; /* Make buttons consistent */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 30px; /* Same rounded shape for all buttons */
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Icon container */
+.icon-container {
+  position: relative;
+  width: 100px; /* Same size for all icons */
+  height: 100px; /* Same size for all icons */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: linear-gradient(to right, #e65100, #ffeb3b); /* Gradient border */
+  padding: 6px;
+  z-index: 1; /* Ensure it's not on top of modals */
+}
+
+/* Spacer */
+.spacer {
+  width: 88px; /* Adjusted to maintain gap */
+  height: 88px; /* Adjusted to maintain gap */
+  background-color: #1f2937; /* Match background color for spacing effect */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Inner circle */
+.inner-circle {
+  width: 80px; /* Adjusted to maintain gap */
+  height: 80px; /* Adjusted to maintain gap */
+  background-color: #d0d0d0; /* Inner gray circle */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.5); /* Stronger shadow to pop out */
+}
+
+/* Gradient for Supervisor icon */
+.user-container {
+  position: relative;
+  width: 100px; /* Same size for all icons */
+  height: 100px; /* Same size for all icons */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: conic-gradient(#e65100 70%, #1f2937 70%);
+  padding: 6px;
+}

@@ -1,0 +1,36 @@
+/* Smooth transition for the table container */
+.table-container {
+    transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  }
+  
+  /* When expanded */
+  .table-expanded {
+    width: 100%;
+    opacity: 1;
+  }
+  
+  /* When collapsed */
+  .table-collapsed {
+    width: 75%; /* Adjust based on your layout */
+    opacity: 1; /* Keep opacity at 1 to avoid flickering */
+  }
+  
+  /* Smooth transition for the form container */
+  .ticket-form-container {
+    transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    overflow: hidden; /* Prevent content from overflowing during transition */
+  }
+  
+  /* When expanded */
+  .ticket-form-expanded {
+    width: 25%; /* Adjust based on your layout */
+    opacity: 1;
+  }
+  
+  /* When collapsed */
+  .ticket-form-collapsed {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+  }
