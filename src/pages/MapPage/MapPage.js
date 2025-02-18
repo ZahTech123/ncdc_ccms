@@ -49,7 +49,7 @@ const MapPage = () => {
       center: [147.15144455964452, -9.478037785341655],
       zoom: 16, // Set initial zoom level to ensure 3D buildings are visible
       pitch: 0,
-      bearing: 90,
+      bearing: 30,
     });
 
     mapInstance.addControl(new mapboxgl.NavigationControl(), "top-right");
