@@ -8,7 +8,7 @@ import MapPagePopUpModal from "./MapPagePopUpModal";
 import DynamicCards from "./DynamicCards2";
 import Filters from "./Filters";
 import { easeQuadInOut } from "d3-ease";
-import MapControls from "./MapControls"; // Import the MapControls component
+// import MapControls from "./MapControls"; // Import the MapControls component
 
 // Set Mapbox access token
 mapboxgl.accessToken =
@@ -275,7 +275,7 @@ const MapPage = () => {
       <div className="w-3/5 bg-gray-800 p-6 rounded-lg space-y-6 relative">
         <div id="map" className="w-full h-[500px] rounded-lg"></div>
         {/* Add MapControls here */}
-        {map && <MapControls map={map} />}
+        {/* {map && <MapControls map={map} />} */}
       </div>
 
       {/* Right Section (Filters Form) */}
