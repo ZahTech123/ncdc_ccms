@@ -61,11 +61,11 @@ const Navbar = ({ newTickets, clearNotifications }) => {
           />
 
           <NavLink to="/dashboard" className="nav-link">
-            <MdSpaceDashboard className="icon" /> Dashboard
+            <LuTickets className="icon" /> Tickets
           </NavLink>
 
           <NavLink to="/reportsAndAnalysis" className="nav-link">
-            <LuTickets className="icon" /> Tickets
+            <MdSpaceDashboard  className="icon" /> Dashboard
           </NavLink>
 
           <NavLink to="/mapPage" className="nav-link">
