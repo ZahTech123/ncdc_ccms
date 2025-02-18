@@ -61,7 +61,7 @@ const Filters = ({
 
       {/* Category Dropdown */}
       <div className="space-y-2">
-        <label className="text-sm text-white">Category:</label>
+        <label className="text-sm text-white">Issue Type:</label>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}

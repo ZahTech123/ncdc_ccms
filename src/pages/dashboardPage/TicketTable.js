@@ -1,7 +1,5 @@
-// src/pages/dashboardPage/TicketTable.js
 import React from "react";
 import { LuPencil } from "react-icons/lu";
-// import { PiPaperPlaneTiltFill } from "react-icons/pi";
 import { BiExpandHorizontal, BiCollapseHorizontal } from "react-icons/bi";
 
 const TicketTable = ({
@@ -27,6 +25,12 @@ const TicketTable = ({
         isExpanded ? "table-expanded" : "table-collapsed"
       } bg-gray-800 p-6 rounded-lg space-y-6`}
     >
+      <style jsx>{`
+        .status-column {
+          min-width: 120px; /* Adjust the width as needed */
+        }
+      `}</style>
+
       {/* Filters */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-6">
@@ -55,11 +59,19 @@ const TicketTable = ({
             <option value="" disabled className="text-gray-500">
               Filter by Issue Type
             </option>
-            <option value="">All</option>
-            <option value="Garbage">Garbage</option>
-            <option value="Crime Alert">Crime Alert</option>
-            <option value="Traffic Lights">Traffic Lights</option>
-            <option value="Pothole">Pothole</option>
+            <option value="Urban Safety">Urban Safety</option>
+            <option value="Waste Management">Waste Management</option>
+            <option value="Markets">Markets</option>
+            <option value="Parks & Gardens">Parks & Gardens</option>
+            <option value="Eda City Bus">Eda City Bus</option>
+            <option value="Liquor License">Liquor License</option>
+            <option value="Building">Building</option>
+            <option value="Development Control & Physical Planning">Development Control & Physical Planning</option>
+            <option value="Enforcement">Enforcement</option>
+            <option value="Streetlights & Traffic Management">Streetlights & Traffic Management</option>
+            <option value="Road Furniture & Road Signs">Road Furniture & Road Signs</option>
+            <option value="Potholes & Drainage">Potholes & Drainage</option>
+            <option value="Strategic Planning">Strategic Planning</option>
           </select>
 
           <div className="relative">
@@ -176,7 +188,7 @@ const TicketTable = ({
               <th className="p-2 text-left">Issue Type</th>
               <th className="p-2 text-left">Assigned to</th>
               <th className="p-2 text-left">Priority</th>
-              <th className="p-2 text-left">Status</th>
+              <th className="p-2 text-left status-column">Status</th>
               <th className="p-2 text-left">Current Handler</th>
               <th className="p-2 text-left">Submission Date</th>
               {/* New Columns */}
@@ -204,7 +216,9 @@ const TicketTable = ({
                     onClick={() => handleTicketTrackerClick(ticket)}
                   /> */}
                 </td>
-                <td className="p-2">{ticket.id}</td>
+                <td className="p-2">
+                  {ticket.id.length > 15 ? ticket.id.substring(0, 15) + '...' : ticket.id}
+                </td>
                 <td className="p-2">{ticket.issueType}</td>
                 <td className="p-2">{ticket.team}</td>
                 <td className="p-2">{ticket.priority}</td>
@@ -226,8 +240,7 @@ const TicketTable = ({
                 <td className="p-2">{ticket.currentHandler}</td>
                 <td className="p-2">
                   {(() => {
-                    let dateString =
-                      ticket.dateSubmitted || ticket.submissionDate;
+                    let dateString = ticket.dateSubmitted || ticket.submissionDate;
                     if (dateString && !dateString.includes("T")) {
                       const [day, month, year] = dateString.split("/");
                       dateString = `20${year}-${month}-${day}`;
