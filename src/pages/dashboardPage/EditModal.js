@@ -22,10 +22,11 @@ const STATUS_OPTIONS = ["In Progress", "Resolved", "Overdue", "Closed"];
 
 // Constants for current handler options (in hierarchical order)
 const CURRENT_HANDLER_OPTIONS = [
-  "Operator",
+  "Controls Operator",
   "Supervisor",
-  "Unit Manager",
-  "Response Team",
+  "BU Admin",
+  "BU Supervisor",
+  "BU Director",
 ];
 const iconSize = 50;
 // Mapping of issue types to icons
