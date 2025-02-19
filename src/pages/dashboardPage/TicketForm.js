@@ -496,7 +496,7 @@ const TicketForm = ({ onSubmit }) => {
     // Send email
     try {
       await emailjs.send("service_jlnl89i", "template_4xwuhsk", {
-        to_email: "sarwomjohn@gmail.com",
+        to_email: "Heni.sarwom@qrfpng.com",
         recipient_name: "Recipient Name", // Replace with dynamic data if available
         ticket_id: ticketId,
         issue_type: issueType,

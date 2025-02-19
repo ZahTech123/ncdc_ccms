@@ -27,17 +27,26 @@ const Dashboard = ({ onSubmit }) => {
 
   const { userPermissions } = usePermissions();
 
-  // Fetch real-time updates from Firestore
+  // Fetch real-time updates from Firestore and filter based on user role
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "complaints"), (snapshot) => {
       const ticketData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setTickets(ticketData);
+
+      // Filter tickets based on user role
+      const filteredTickets = ticketData.filter((ticket) => {
+        if (userPermissions.role === "bU_C_admin") {
+          return ticket.directorate === "Compliance"; // Only show Compliance tickets for bU_C_admin
+        }
+        return true; // Show all tickets for other roles
+      });
+
+      setTickets(filteredTickets); // Set the filtered tickets to state
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [userPermissions.role]); // Add userPermissions.role as a dependency
 
-  // Memoize filtered tickets
+  // Memoize filtered tickets (only for status, issueType, and keyword search)
   const filteredTickets = useMemo(() => {
     return tickets.filter((ticket) => {
       const matchesStatus = statusFilter ? ticket.status === statusFilter : true;
@@ -204,7 +213,8 @@ const Dashboard = ({ onSubmit }) => {
           onClose={handleCloseModal}
           onSave={handleSave}
           onDelete={handleDelete}
-          z-30 />
+          z-30
+        />
       )}
 
       {/* Ticket Tracker Modal */}
