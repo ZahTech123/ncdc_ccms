@@ -9,6 +9,7 @@ import ReportsAndAnalysis from "./pages/reportsAnalysisPage/ReportsAndAnalysis";
 import HelpAndSupport from "./pages/HelpAndSupport";
 import Login from "./pages/loginPage/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";  // Import ProtectedRoute component
+import { PermissionsProvider } from "./context/PermissionsContext"; // Import PermissionsProvider
 import './styles/scrollbar.css';
 
 const App = () => {
@@ -19,7 +20,9 @@ const App = () => {
 
   return (
     <Router>
-      <AppContent />
+      <PermissionsProvider> {/* Wrap the app in PermissionsProvider */}
+        <AppContent />
+      </PermissionsProvider>
     </Router>
   );
 };

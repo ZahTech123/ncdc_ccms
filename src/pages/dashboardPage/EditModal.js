@@ -16,9 +16,7 @@ import {
   FaMapMarkedAlt,
 } from "react-icons/fa";
 import { HiOutlineQuestionMarkCircle } from "react-icons/hi2";
-
-// Constants for status options (removed "New")
-const STATUS_OPTIONS = ["In Progress", "Resolved", "Overdue", "Closed"];
+import { usePermissions } from "../../context/PermissionsContext";
 
 // Constants for current handler options (in hierarchical order)
 const CURRENT_HANDLER_OPTIONS = [
@@ -28,7 +26,9 @@ const CURRENT_HANDLER_OPTIONS = [
   "BU Supervisor",
   "BU Director",
 ];
+
 const iconSize = 50;
+
 // Mapping of issue types to icons
 const ISSUE_TYPE_ICONS = {
   "Garbage and Sanitation": <FaTrash size={iconSize} className="text-gray-400" />,
@@ -56,6 +56,17 @@ const ISSUE_TYPE_ICONS = {
 };
 
 const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
+  const { userPermissions } = usePermissions(); // Use the hook inside the component
+
+  // Constants for status options (removed "New")
+  const STATUS_OPTIONS = [
+    "In Progress",
+    "Resolved",
+    "Overdue",
+    "Closed",
+    ...(userPermissions.role === "supervisorC" ? ["Verified"] : []),
+  ];
+
   // State to manage the form fields
   const [formData, setFormData] = useState({
     issueType: ticket.issueType, // Read-only

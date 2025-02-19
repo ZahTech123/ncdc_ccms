@@ -21,6 +21,9 @@ export const CreatePopupContent = (complaint) => {
   const popupContent = document.createElement("div");
   popupContent.className = "custom-popup";
 
+  // Log the incoming description
+  console.log("Incoming Description:", complaint.description);
+
   // Create and style the icon container
   const iconContainer = document.createElement("div");
   iconContainer.style.width = "24px";
@@ -133,14 +136,44 @@ export const CreatePopupContent = (complaint) => {
   popupInner.appendChild(locationText);
 
   // Add description
-  const descriptionText = document.createElement("p");
+  const descriptionText = document.createElement("div");
   descriptionText.style.color = "#4b5563";
   descriptionText.style.fontSize = "14px";
   descriptionText.style.marginBottom = "16px";
-  descriptionText.textContent =
-    complaint.description?.length > 100
-      ? `${complaint.description.substring(0, 100)}...`
-      : complaint.description || "No description provided.";
+  descriptionText.style.whiteSpace = "nowrap"; // Prevent text wrapping
+  descriptionText.style.overflow = "hidden"; // Hide overflow
+  descriptionText.style.textOverflow = "ellipsis"; // Add ellipsis for overflow
+
+  if (complaint.description) {
+    // Split the description into individual comments
+    const comments = complaint.description.split('\n').map(comment => comment.trim());
+
+    // Get the latest comment (last entry in the array)
+    const latestComment = comments[comments.length - 1];
+
+    // Split the latest comment into parts using the pipe (|) delimiter
+    const parts = latestComment.split('|').map(part => part.trim());
+
+    // Extract the current handler (first part)
+    const currentHandler = parts[0];
+
+    // Extract the comment (fourth part)
+    const comment = parts[3];
+
+    // Combine the current handler and comment with a dash
+    const formattedDescription = `${currentHandler} - ${comment}`;
+
+    // Truncate the description if it exceeds 100 characters
+    let truncatedDescription = formattedDescription;
+    if (truncatedDescription.length > 100) {
+      truncatedDescription = truncatedDescription.substring(0, 97) + '...';
+    }
+
+    descriptionText.textContent = truncatedDescription;
+  } else {
+    descriptionText.textContent = "No description provided.";
+  }
+
   popupInner.appendChild(descriptionText);
 
   // Add "See More" button

@@ -8,11 +8,9 @@ import MapPagePopUpModal from "./MapPagePopUpModal";
 import DynamicCards from "./DynamicCards2";
 import Filters from "./Filters";
 import { easeQuadInOut } from "d3-ease";
-// import MapControls from "./MapControls"; // Import the MapControls component
 
 // Set Mapbox access token
-mapboxgl.accessToken =
-  "pk.eyJ1Ijoiam9obnNraXBvbGkiLCJhIjoiY201c3BzcDYxMG9neDJscTZqeXQ4MGk4YSJ9.afrO8Lq1P6mIUbSyQ6VCsQ";
+mapboxgl.accessToken = "pk.eyJ1Ijoiam9obnNraXBvbGkiLCJhIjoiY201c3BzcDYxMG9neDJscTZqeXQ4MGk4YSJ9.afrO8Lq1P6mIUbSyQ6VCsQ";
 
 // Main MapPage component
 const MapPage = () => {
@@ -45,9 +43,9 @@ const MapPage = () => {
   useEffect(() => {
     const mapInstance = new mapboxgl.Map({
       container: "map",
-      style: "mapbox://styles/mapbox/streets-v12", // Ensure this style supports 3D buildings
+      style: "mapbox://styles/mapbox/streets-v12",
       center: [147.15144455964452, -9.478037785341655],
-      zoom: 16, // Set initial zoom level to ensure 3D buildings are visible
+      zoom: 16,
       pitch: 0,
       bearing: 30,
     });
@@ -64,7 +62,6 @@ const MapPage = () => {
         }
       }
 
-      // Add 3D buildings layer
       if (mapInstance.getLayer("3d-buildings")) {
         mapInstance.removeLayer("3d-buildings");
       }
@@ -75,7 +72,7 @@ const MapPage = () => {
           source: "composite",
           "source-layer": "building",
           type: "fill-extrusion",
-          minzoom: 15, // Adjust minzoom to ensure buildings appear at lower zoom levels
+          minzoom: 15,
           paint: {
             "fill-extrusion-color": "#aaa",
             "fill-extrusion-height": [
@@ -96,13 +93,12 @@ const MapPage = () => {
 
     setMap(mapInstance);
 
-    // Cleanup function
     return () => {
       if (mapInstance && mapInstance.remove) {
         mapInstance.remove();
       }
     };
-  }, []); // Empty dependency array ensures this runs only once
+  }, []);
 
   // Filter complaints based on selected filters
   const filteredComplaints = useMemo(() => {
@@ -146,15 +142,15 @@ const MapPage = () => {
         }
       });
       const offsetLatitude = latitude - 0.0009; 
-      //Marker Click and Card Click Fly to marker location Animation
       map.flyTo({
         center: [longitude, offsetLatitude],
-        zoom: 18,//18
+        zoom: 18,
         pitch: 60,
         bearing: 0,
-        speed: 0.8,
-        curve: 1.2,
+        speed: 0.8, // Adjust speed for smoother animation
+        curve: 1.2, // Adjust curve for smoother transitions
         essential: true,
+        easing: easeQuadInOut, // Add easing for smooth in-and-out animation
       });
 
       if (marker) {
@@ -177,12 +173,11 @@ const MapPage = () => {
     });
 
     map.fitBounds(bounds, {
-      zoom: 12,//Map Intialization zoom
-      padding: 120, // Add some padding around the bounds
-      pitch: 0, // Reset pitch to 0 for a top-down view
-      speed: 0.9, // Adjust the speed of the zoom animation
+      padding: { top: 50, bottom: 50, left: 50, right: 50 }, // Add padding to ensure markers are not at the edge
+      maxZoom: 12, // Set a max zoom level to ensure markers are not too close to the edge
+      speed: 0.9, // Adjust speed for smoother animation
       essential: true,
-      easing: easeQuadInOut, // Ensure the map always zooms to the bounds
+      easing: easeQuadInOut, // Add easing for smooth in-and-out animation
     });
   }, [map, filteredComplaints]);
 
@@ -199,7 +194,6 @@ const MapPage = () => {
     setLocationKeyword("");
     setPriority("");
 
-    // Zoom to bounds of all complaints
     zoomToBounds();
   }, [zoomToBounds]);
 
@@ -207,11 +201,9 @@ const MapPage = () => {
   useEffect(() => {
     if (!map) return;
 
-    // Clean up existing markers
     markersRef.current.forEach((marker) => marker && marker.remove());
     markersRef.current = [];
 
-    // Add new markers
     const newMarkers = filteredComplaints
       .map((complaint) => {
         if (!complaint.latitude || !complaint.longitude) return null;
@@ -249,36 +241,30 @@ const MapPage = () => {
   const getMarkerColor = (status) => {
     switch (status) {
       case "New":
-        return "#10B981"; // green
+        return "#10B981";
       case "In Progress":
-        return "#FBBF24"; // yellow
+        return "#FBBF24";
       case "Resolved":
-        return "#6B7280"; // gray
+        return "#6B7280";
       case "Overdue":
-        return "#EF4444"; // red
+        return "#EF4444";
       default:
-        return "#3B82F6"; // blue
+        return "#3B82F6";
     }
   };
 
   return (
     <div className="flex mt-2 p-8 space-x-6">
-      {/* Left Section (Dynamic Cards) */}
       <DynamicCards
         filteredComplaints={filteredComplaints}
         markersRef={markersRef}
         flyToLocation={flyToLocation}
-        setSelectedComplaint={setSelectedComplaint} // Passing setSelectedComplaint
-        setShowModal={setShowModal} // Passing setShowModal
+        setSelectedComplaint={setSelectedComplaint}
+        setShowModal={setShowModal}
       />
-      {/* Center Section (Map) */}
       <div className="w-3/5 bg-gray-800 p-6 rounded-lg space-y-6 relative">
         <div id="map" className="w-full h-[500px] rounded-lg"></div>
-        {/* Add MapControls here */}
-        {/* {map && <MapControls map={map} />} */}
       </div>
-
-      {/* Right Section (Filters Form) */}
       <Filters
         selectedCity={selectedCity}
         setSelectedCity={setSelectedCity}
@@ -292,8 +278,6 @@ const MapPage = () => {
         setPriority={setPriority}
         resetFiltersAndZoom={resetFiltersAndZoom}
       />
-
-      {/* Modal */}
       {showModal && (
         <MapPagePopUpModal
           selectedComplaint={selectedComplaint}

@@ -1,6 +1,7 @@
 import React from "react";
 import { LuPencil } from "react-icons/lu";
 import { BiExpandHorizontal, BiCollapseHorizontal } from "react-icons/bi";
+import { usePermissions } from "../../context/PermissionsContext";
 
 const TicketTable = ({
   filteredTickets,
@@ -19,10 +20,15 @@ const TicketTable = ({
   setShowSuggestions,
   resetFilters,
 }) => {
+  const { userPermissions } = usePermissions();
+
+  // Force the table to be expanded for roles that are not admin or operator
+  const isTableExpanded = userPermissions.role !== "admin" && userPermissions.role !== "operator" ? true : isExpanded;
+
   return (
     <div
       className={`table-container ${
-        isExpanded ? "table-expanded" : "table-collapsed"
+        isTableExpanded ? "table-expanded" : "table-collapsed"
       } bg-gray-800 p-6 rounded-lg space-y-6`}
     >
       <style jsx>{`
@@ -66,10 +72,16 @@ const TicketTable = ({
             <option value="Eda City Bus">Eda City Bus</option>
             <option value="Liquor License">Liquor License</option>
             <option value="Building">Building</option>
-            <option value="Development Control & Physical Planning">Development Control & Physical Planning</option>
+            <option value="Development Control & Physical Planning">
+              Development Control & Physical Planning
+            </option>
             <option value="Enforcement">Enforcement</option>
-            <option value="Streetlights & Traffic Management">Streetlights & Traffic Management</option>
-            <option value="Road Furniture & Road Signs">Road Furniture & Road Signs</option>
+            <option value="Streetlights & Traffic Management">
+              Streetlights & Traffic Management
+            </option>
+            <option value="Road Furniture & Road Signs">
+              Road Furniture & Road Signs
+            </option>
             <option value="Potholes & Drainage">Potholes & Drainage</option>
             <option value="Strategic Planning">Strategic Planning</option>
           </select>
@@ -162,20 +174,22 @@ const TicketTable = ({
           </span>
         </span>
 
-        {/* Expand/Collapse Icon */}
-        <div className="absolute right-0">
-          {isExpanded ? (
-            <BiCollapseHorizontal
-              className="text-xl text-gray-400 cursor-pointer hover:text-blue-300"
-              onClick={() => setIsExpanded(false)}
-            />
-          ) : (
-            <BiExpandHorizontal
-              className="text-xl text-gray-400 cursor-pointer hover:text-blue-300"
-              onClick={() => setIsExpanded(true)}
-            />
-          )}
-        </div>
+        {/* Expand/Collapse Icon - Conditionally Rendered for Admin and Operator Roles */}
+        {(userPermissions.role === "admin" || userPermissions.role === "operator") && (
+          <div className="absolute right-0">
+            {isTableExpanded ? (
+              <BiCollapseHorizontal
+                className="text-xl text-gray-400 cursor-pointer hover:text-blue-300"
+                onClick={() => setIsExpanded(false)}
+              />
+            ) : (
+              <BiExpandHorizontal
+                className="text-xl text-gray-400 cursor-pointer hover:text-blue-300"
+                onClick={() => setIsExpanded(true)}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Ticket Table */}
@@ -183,7 +197,7 @@ const TicketTable = ({
         <table className="w-full table-auto text-sm">
           <thead>
             <tr className="border-b border-gray-600">
-              <th className="p-2 text-left">Actions</th>
+               {userPermissions.canEditTicket && userPermissions.role !== "operator" && (<th className="p-2 text-left">Actions</th>)}
               <th className="p-2 text-left">Ticket ID</th>
               <th className="p-2 text-left">Issue Type</th>
               <th className="p-2 text-left">Assigned to</th>
@@ -192,7 +206,7 @@ const TicketTable = ({
               <th className="p-2 text-left">Current Handler</th>
               <th className="p-2 text-left">Submission Date</th>
               {/* New Columns */}
-              {isExpanded && (
+              {isTableExpanded && (
                 <>
                   <th className="p-2 text-left">Location Suburb</th>
                   <th className="p-2 text-left">Comment</th>
@@ -206,18 +220,18 @@ const TicketTable = ({
                 key={index}
                 className="border-b border-gray-600 hover:bg-gray-700"
               >
-                <td className="p-2 flex items-center gap-2">
-                  <LuPencil
-                    className="cursor-pointer text-base hover:text-blue-300"
-                    onClick={() => handleEditClick(ticket)}
-                  />
-                  {/* <PiPaperPlaneTiltFill
-                    className="cursor-pointer text-base hover:text-blue-300"
-                    onClick={() => handleTicketTrackerClick(ticket)}
-                  /> */}
-                </td>
+                 {userPermissions.canEditTicket && userPermissions.role !== "operator" && (<td className="p-2 flex items-center gap-2">
+                  {/* Edit Button - Conditionally Rendered for Roles with canEditTicket Permission */}
+  <LuPencil
+    className="cursor-pointer text-base hover:text-blue-300"
+    onClick={() => handleEditClick(ticket)}
+  />
+
+                </td>)}
                 <td className="p-2">
-                  {ticket.id.length > 15 ? ticket.id.substring(0, 15) + '...' : ticket.id}
+                  {ticket.id.length > 15
+                    ? ticket.id.substring(0, 15) + "..."
+                    : ticket.id}
                 </td>
                 <td className="p-2">{ticket.issueType}</td>
                 <td className="p-2">{ticket.team}</td>
@@ -240,7 +254,8 @@ const TicketTable = ({
                 <td className="p-2">{ticket.currentHandler}</td>
                 <td className="p-2">
                   {(() => {
-                    let dateString = ticket.dateSubmitted || ticket.submissionDate;
+                    let dateString =
+                      ticket.dateSubmitted || ticket.submissionDate;
                     if (dateString && !dateString.includes("T")) {
                       const [day, month, year] = dateString.split("/");
                       dateString = `20${year}-${month}-${day}`;
@@ -259,7 +274,7 @@ const TicketTable = ({
                   })()}
                 </td>
                 {/* New Columns */}
-                {isExpanded && (
+                {isTableExpanded && (
                   <>
                     <td className="p-2">{ticket.suburb}</td>
                     <td className="p-2">{ticket.newComment}</td>

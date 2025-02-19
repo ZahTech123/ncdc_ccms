@@ -1,12 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function MapPagePopUpModal({ selectedComplaint, setShowModal, setSelectedComplaint }) {
+  const [isAnimating, setIsAnimating] = useState(true);
+
+  // Function to handle card click
+  const handleCardClick = () => {
+    // You can add additional logic here if needed
+    console.log('Card clicked');
+  };
+
+  // Effect to reset animation after the initial render
+  useEffect(() => {
+    // Set isAnimating to false after a short delay to allow the initial animation to play
+    const timer = setTimeout(() => {
+      setIsAnimating(false);
+    }, 300); // 300ms matches the duration of the animation
+
+    // Cleanup the timer on component unmount
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div
       className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center"
       style={{ zIndex: 10000 }}
     >
-      <div className="bg-white shadow-lg rounded-2xl p-6 max-w-2xl" style={{ width: "400px", maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
+      <div
+        className={`bg-white shadow-lg rounded-2xl p-6 max-w-2xl ${isAnimating ? 'animate-slide-down' : ''}`}
+        style={{ width: "400px", maxHeight: "80vh", display: "flex", flexDirection: "column" }}
+        onClick={handleCardClick}
+      >
         {selectedComplaint && (
           <>
             {/* Header */}
@@ -156,7 +179,7 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
   );
 }
 
-// Add custom styles for the scrollbar
+// Add custom styles for the scrollbar and animation
 const styles = `
 .map-modal-scrollbar::-webkit-scrollbar {
   width: 8px;
@@ -176,6 +199,21 @@ const styles = `
 .map-modal-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(85, 85, 85, 0.2); /* Slightly less transparent thumb on hover */
 }
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-in-out forwards;
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 `;
 
 // Inject the custom styles into the document
@@ -185,9 +223,6 @@ if (typeof document !== 'undefined') {
   styleSheet.innerText = styles;
   document.head.appendChild(styleSheet);
 }
-
-
-
 
 
 
