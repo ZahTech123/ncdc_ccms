@@ -189,6 +189,11 @@ const DynamicCards = ({
                           marginLeft: "-40px",
                         }
                       : {}),
+                      ...(complaint.status === "Verified"
+                        ? {
+                            marginLeft: "-40px",
+                          }
+                        : {}),
                     ...(complaint.status === "Closed"
                       ? {
                           marginLeft: "-30px",
