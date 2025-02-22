@@ -13,7 +13,7 @@ const defaultImages = {
   "Road Furniture and Road Signs": "/assets/images/Road Furniture and Road Signs.jpg",
   "T Street Lights and Traffic Managment": "/assets/images/T Street Lights and Traffic Managment.jpg",
   "T Stretegic Planning": "/assets/images/T Stretegic Planning.jpg",
-  "Waste Managment": "/assets/images/Waste Managment.jpg",
+  "Waste Management": "/assets/images/Waste Management.jpg",
 };
 
 export default function MapPagePopUpModal({ selectedComplaint, setShowModal, setSelectedComplaint }) {
