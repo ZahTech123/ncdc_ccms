@@ -23,7 +23,15 @@ const TicketTable = ({
   const { userPermissions } = usePermissions();
 
   // Force the table to be expanded for roles that are not admin or operator
-  const isTableExpanded = userPermissions.role !== "admin" && userPermissions.role !== "operator" ? true : isExpanded;
+  const isTableExpanded =
+    userPermissions.role !== "admin" && userPermissions.role !== "operator" ? true : isExpanded;
+
+  // Sort the tickets by submission date in descending order
+  const sortedTickets = [...filteredTickets].sort((a, b) => {
+    const dateA = new Date(a.dateSubmitted || a.submissionDate);
+    const dateB = new Date(b.dateSubmitted || b.submissionDate);
+    return dateB - dateA;
+  });
 
   return (
     <div
@@ -197,7 +205,10 @@ const TicketTable = ({
         <table className="w-full table-auto text-sm">
           <thead>
             <tr className="border-b border-gray-600">
-               {userPermissions.canEditTicket && userPermissions.role !== "operator" && (<th className="p-2 text-left">Actions</th>)}
+              {/* Conditionally render the Actions column */}
+              {userPermissions.canEditTicket && userPermissions.role !== "operator" && (
+                <th className="p-2 text-left">Actions</th>
+              )}
               <th className="p-2 text-left">Ticket ID</th>
               <th className="p-2 text-left">Issue Type</th>
               <th className="p-2 text-left">Assigned to</th>
@@ -215,19 +226,20 @@ const TicketTable = ({
             </tr>
           </thead>
           <tbody>
-            {filteredTickets.map((ticket, index) => (
+            {sortedTickets.map((ticket, index) => (
               <tr
                 key={index}
                 className="border-b border-gray-600 hover:bg-gray-700"
               >
-                 {userPermissions.canEditTicket && userPermissions.role !== "operator" && (<td className="p-2 flex items-center gap-2">
-                  {/* Edit Button - Conditionally Rendered for Roles with canEditTicket Permission */}
-  <LuPencil
-    className="cursor-pointer text-base hover:text-blue-300"
-    onClick={() => handleEditClick(ticket)}
-  />
-
-                </td>)}
+                {/* Conditionally render the Edit button */}
+                {userPermissions.canEditTicket && userPermissions.role !== "operator" && (
+                  <td className="p-2 flex items-center gap-2">
+                    <LuPencil
+                      className="cursor-pointer text-base hover:text-blue-300"
+                      onClick={() => handleEditClick(ticket)}
+                    />
+                  </td>
+                )}
                 <td className="p-2">
                   {ticket.id.length > 15
                     ? ticket.id.substring(0, 15) + "..."

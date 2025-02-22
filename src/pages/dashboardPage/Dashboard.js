@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { db } from "../../firebaseConfig"; // Firestore instance
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from "firebase/firestore"; // Import deleteDoc
 import TicketForm from "./TicketForm";
@@ -7,9 +7,13 @@ import TicketTracker from "./TicketTracker";
 import "../../styles/tableCollapsAnimation.css"; // Import the CSS file
 import TicketTable from "./TicketTable"; // Import the new TicketTable component
 import { usePermissions } from "../../context/PermissionsContext";
+import emailjs from "emailjs-com";
+import NotificationModal from "../../components/NotificationModal"; // Import the NotificationModal component
 
-const Dashboard = ({ onSubmit }) => {
-  // State for tickets and filters
+// Initialize EmailJS with your Public Key
+emailjs.init("SimW6urql2il_yFhB"); // Replace with your Public Key
+
+const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
   const [tickets, setTickets] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
   const [issueTypeFilter, setIssueTypeFilter] = useState("");
@@ -17,10 +21,13 @@ const Dashboard = ({ onSubmit }) => {
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // State for modal and selected ticket
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Separate states for each modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+
+  // State for selected ticket
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [openModalType, setOpenModalType] = useState(null); // 'edit' or 'tracker'
 
   // State for expanded view
   const [isExpanded, setIsExpanded] = useState(false);
@@ -61,6 +68,63 @@ const Dashboard = ({ onSubmit }) => {
     });
   }, [tickets, statusFilter, issueTypeFilter, keywordSearch]);
 
+  // Memoize unread tickets
+  const unreadTickets = useMemo(() => tickets.filter((ticket) => !ticket.isRead), [tickets]);
+
+  // Monitor tickets for pending status and operator handler
+  useEffect(() => {
+    const timers = tickets
+      .filter((ticket) => ticket.currentHandler === "operator" && ticket.status === "pending")
+      .map((ticket) => {
+        return setTimeout(async () => {
+          // Send email
+          try {
+            await emailjs.send("service_jlnl89i", "template_gohitig", {
+              to_email: "Heni.sarwom@qrfpng.com",
+              recipient_name: "Recipient Name",
+              ticket_id: ticket.id,
+              issue_type: ticket.issueType,
+              status: ticket.status,
+              date_submitted: ticket.dateSubmitted,
+              location: ticket.suburb,
+              assigned_to: ticket.team,
+              priority: ticket.priority,
+              resolution_progress: "Initial Status",
+              escalation_info: "N/A",
+              completion_date: "N/A",
+              resident_feedback: "N/A",
+              electorate: ticket.electorate,
+              coordinates: `${ticket.latitude}, ${ticket.longitude}`,
+              description: ticket.description,
+              contact_information: "NCDC CCMS Response Team | contact@ncdc.gov.pg",
+            });
+            console.log("Email sent successfully");
+          } catch (error) {
+            console.error("Failed to send email:", error);
+          }
+
+          // Update ticket data
+          const updatedData = {
+            currentHandler: "Supervisor",
+            description: `${ticket.description}\nOperator | ${new Date().toLocaleString()} | Overdue | Ticket overdue - Forwarded to Supervisor`,
+            status: "Overdue",
+          };
+
+          const ticketRef = doc(db, "complaints", ticket.id);
+          await setDoc(ticketRef, updatedData, { merge: true });
+
+          // Update local state
+          setTickets((prevTickets) =>
+            prevTickets.map((t) =>
+              t.id === ticket.id ? { ...t, ...updatedData } : t
+            )
+          );
+        }, 24000); // 24 seconds
+      });
+
+    return () => timers.forEach((timer) => clearTimeout(timer));
+  }, [tickets]);
+
   // Update search suggestions based on keyword search
   useEffect(() => {
     if (keywordSearch) {
@@ -78,54 +142,49 @@ const Dashboard = ({ onSubmit }) => {
   }, [keywordSearch, filteredTickets]);
 
   // Reset all filters
-  const resetFilters = () => {
+  const resetFilters = useCallback(() => {
     setStatusFilter("");
     setIssueTypeFilter("");
     setKeywordSearch("");
-  };
+  }, []);
 
   // Log new ticket to Firestore
-  const logToComplaints = async (ticket) => {
+  const logToComplaints = useCallback(async (ticket) => {
     const ticketId = `ticketId_${new Date().getTime()}`;
-    const ticketWithId = { ...ticket, id: ticketId };
+    const ticketWithId = { ...ticket, id: ticketId, isRead: false }; // Initialize isRead to false
 
     const complaintsRef = doc(db, "complaints", ticketId);
 
     try {
       await setDoc(complaintsRef, ticketWithId, { merge: true });
       console.log(`Logged/Updated ticket ${ticketId} in complaints collection`);
-
-      // Notify the parent component (App.js) about the new ticket
-      if (onSubmit) {
-        onSubmit(ticketWithId);
-      }
     } catch (error) {
       console.error("Error logging to complaints collection:", error);
     }
-  };
+  }, []);
 
   // Handle edit button click
-  const handleEditClick = (ticket) => {
+  const handleEditClick = useCallback((ticket) => {
     setSelectedTicket(ticket);
-    setOpenModalType("edit");
-    setIsModalOpen(true);
-  };
+    setIsEditModalOpen(true); // Open the EditModal
+  }, []);
 
   // Handle ticket tracker button click
-  const handleTicketTrackerClick = (ticket) => {
+  const handleTicketTrackerClick = useCallback((ticket) => {
     setSelectedTicket(ticket);
-    setOpenModalType("tracker");
-    setIsModalOpen(true);
-  };
+    setIsTrackerModalOpen(true); // Open the TicketTracker modal
+  }, []);
 
   // Handle closing the modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setOpenModalType(null); // Reset the modal type
-  };
+  const handleCloseModal = useCallback(() => {
+    setIsEditModalOpen(false);
+    setIsTrackerModalOpen(false);
+    setIsNotificationModalOpen(false);
+    setSelectedTicket(null); // Reset the selected ticket
+  }, []);
 
   // Handle saving updated ticket data
-  const handleSave = async (ticketId, updatedData) => {
+  const handleSave = useCallback(async (ticketId, updatedData) => {
     try {
       // Update Firebase
       const ticketRef = doc(db, "complaints", ticketId);
@@ -142,10 +201,10 @@ const Dashboard = ({ onSubmit }) => {
     } catch (error) {
       console.error("Error updating ticket:", error);
     }
-  };
+  }, []);
 
   // Handle deleting a ticket
-  const handleDelete = async (ticketId) => {
+  const handleDelete = useCallback(async (ticketId) => {
     try {
       const ticketRef = doc(db, "complaints", ticketId);
       await deleteDoc(ticketRef); // Delete the document from Firestore
@@ -159,10 +218,18 @@ const Dashboard = ({ onSubmit }) => {
     } catch (error) {
       console.error("Error deleting ticket:", error);
     }
-  };
+  }, []);
 
   // Determine if the form should be visible based on the user's role
   const isFormVisible = userPermissions.role === "admin" || userPermissions.role === "operator";
+
+  // Pass unreadTickets to App.js
+  useEffect(() => {
+    if (setNewTickets) {
+      console.log("Calling setNewTickets with:", unreadTickets); // Debug log
+      setNewTickets(unreadTickets);
+    }
+  }, [unreadTickets, setNewTickets]);
 
   return (
     <div className="p-8">
@@ -207,23 +274,45 @@ const Dashboard = ({ onSubmit }) => {
       </div>
 
       {/* Edit Modal */}
-      {isModalOpen && openModalType === "edit" && (
+      {isEditModalOpen && (
         <EditModal
           ticket={selectedTicket}
           onClose={handleCloseModal}
           onSave={handleSave}
           onDelete={handleDelete}
-          z-30
         />
       )}
 
       {/* Ticket Tracker Modal */}
-      {isModalOpen && openModalType === "tracker" && (
+      {isTrackerModalOpen && (
         <TicketTracker
           ticket={selectedTicket}
           onClose={handleCloseModal}
         />
       )}
+
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={isNotificationModalOpen}
+        onClose={async () => {
+          console.log("Closing modal and marking tickets as read...");
+
+          // Mark all unread tickets as read
+          for (const ticket of unreadTickets) {
+            console.log(`Marking ticket ${ticket.id} as read...`);
+            await updateTicketAsRead(ticket.id); // Await each update
+          }
+
+          // Close the modal
+          setIsNotificationModalOpen(false);
+
+          // Clear notifications after all tickets are marked as read
+          if (setNewTickets) {
+            setNewTickets([]); // Clear the newTickets array
+          }
+        }}
+        newTickets={unreadTickets} // Pass unread tickets
+      />
     </div>
   );
 };

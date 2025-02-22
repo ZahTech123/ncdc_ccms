@@ -11,12 +11,20 @@ import { LuTickets } from "react-icons/lu";
 import { auth } from "../firebaseConfig";
 import { signOut } from "firebase/auth";
 import NotificationModal from "./NotificationModal";
+import { usePermissions } from "../context/PermissionsContext";
 import "./Navbar.css";
 
-const Navbar = ({ newTickets, clearNotifications }) => {
+const Navbar = ({ unreadTickets = [], clearNotifications, updateTicketAsRead }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const dropdownRef = useRef(null); // Ref for the dropdown
+  const dropdownRef = useRef(null);
+  const { userPermissions } = usePermissions();
+  const { role, user } = userPermissions;
+
+  // Filter tickets based on role and isRead status
+  const filteredTickets = unreadTickets.filter((ticket) => {
+    return role === "supervisorC" && !ticket.isRead; // Only show if role is supervisorC and isRead is false
+  });
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -36,7 +44,6 @@ const Navbar = ({ newTickets, clearNotifications }) => {
       });
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -65,7 +72,7 @@ const Navbar = ({ newTickets, clearNotifications }) => {
           </NavLink>
 
           <NavLink to="/reportsAndAnalysis" className="nav-link">
-            <MdSpaceDashboard  className="icon" /> Dashboard
+            <MdSpaceDashboard className="icon" /> Dashboard
           </NavLink>
 
           <NavLink to="/mapPage" className="nav-link">
@@ -78,15 +85,25 @@ const Navbar = ({ newTickets, clearNotifications }) => {
         </div>
 
         <div className="right-section">
-          {/* Notification Icon Container */}
-          <div className="notification-icon-container" onClick={toggleNotification}>
-            <FaBell className="icon" />
-            {newTickets.length > 0 && (
-              <span className="notification-badge">{newTickets.length}</span>
+          <div className="user-info">
+            {user && (
+              <>
+                <span className="user-name">{user.name}</span>
+                <span className="user-role">{role}</span>
+              </>
             )}
           </div>
 
-          {/* User Icon */}
+          <div
+            className="notification-icon-container"
+            onClick={toggleNotification}
+          >
+            <FaBell className="icon" />
+            {filteredTickets.length > 0 && ( // Show badge only if there are filtered tickets
+              <span className="notification-badge">{filteredTickets.length}</span>
+            )}
+          </div>
+
           <div className="user-icon-container" ref={dropdownRef}>
             <FaUserCircle
               className="icon cursor-pointer"
@@ -95,13 +112,8 @@ const Navbar = ({ newTickets, clearNotifications }) => {
             {isDropdownOpen && (
               <div className="dropdown-menu">
                 <div className="dropdown-content">
-                  <p className="dropdown-email">
-                    {auth.currentUser?.email}
-                  </p>
-                  <button
-                    onClick={handleLogout}
-                    className="logout-button"
-                  >
+                  <p className="dropdown-email">{auth.currentUser?.email}</p>
+                  <button onClick={handleLogout} className="logout-button">
                     Logout
                   </button>
                 </div>
@@ -114,11 +126,24 @@ const Navbar = ({ newTickets, clearNotifications }) => {
       {/* Notification Modal */}
       <NotificationModal
         isOpen={isNotificationOpen}
-        onClose={() => {
+        onClose={async () => {
+          console.log("Closing modal and marking tickets as read...");
+
+          // Mark all filtered tickets as read
+          for (const ticket of filteredTickets) {
+            console.log(`Marking ticket ${ticket.id} as read...`);
+            await updateTicketAsRead(ticket.id); // Await each update
+          }
+
+          // Close the modal
           setIsNotificationOpen(false);
-          clearNotifications();
+
+          // Clear notifications after all tickets are marked as read
+          if (clearNotifications) {
+            clearNotifications(); // Clear the newTickets array
+          }
         }}
-        newTickets={newTickets}
+        newTickets={filteredTickets} // Pass filtered tickets
       />
     </>
   );

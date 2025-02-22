@@ -18,15 +18,6 @@ import {
 import { HiOutlineQuestionMarkCircle } from "react-icons/hi2";
 import { usePermissions } from "../../context/PermissionsContext";
 
-// Constants for current handler options (in hierarchical order)
-const CURRENT_HANDLER_OPTIONS = [
-  "Controls Operator",
-  "Supervisor",
-  "BU Admin",
-  "BU Supervisor",
-  "BU Director",
-];
-
 const iconSize = 50;
 
 // Mapping of issue types to icons
@@ -58,14 +49,87 @@ const ISSUE_TYPE_ICONS = {
 const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
   const { userPermissions } = usePermissions(); // Use the hook inside the component
 
-  // Constants for status options (removed "New")
-  const STATUS_OPTIONS = [
-    "In Progress",
-    "Resolved",
-    "Overdue",
-    "Closed",
-    ...(userPermissions.role === "supervisorC" ? ["Verified"] : []),
-  ];
+  // Determine CURRENT_HANDLER_OPTIONS based on role
+  const getCurrentHandlerOptions = (role) => {
+    switch (role) {
+      case "supervisorC":
+        return [
+          { label: "Controls Operator", disabled: true },
+          { label: "Supervisor", disabled: true },
+          { label: "BU Admin", disabled: false },
+          { label: "BU Supervisor", disabled: true },
+          { label: "BU Manager", disabled: true },
+          { label: "BU Director", disabled: true },
+        ];
+      case "admin":
+        return [
+          { label: "Controls Operator", disabled: false },
+          { label: "Supervisor", disabled: false },
+          { label: "BU Admin", disabled: false },
+          { label: "BU Supervisor", disabled: false },
+          { label: "BU Manager", disabled: false },
+          { label: "BU Director", disabled: false },
+        ];
+      case "bU_C_admin":
+        return [
+          { label: "Controls Operator", disabled: true },
+          { label: "Supervisor", disabled: true },
+          { label: "BU Admin", disabled: true },
+          { label: "BU Supervisor", disabled: false },
+          { label: "BU Manager", disabled: false },
+          { label: "BU Director", disabled: false },
+        ];
+      case "bU_C_supervisor":
+        return [
+          { label: "Controls Operator", disabled: true },
+          { label: "Supervisor", disabled: true },
+          { label: "BU Admin", disabled: true },
+          { label: "BU Supervisor", disabled: true },
+          { label: "BU Manager", disabled: false },
+          { label: "BU Director", disabled: false },
+        ];
+      case "bU_C_manager":
+        return [
+          { label: "Controls Operator", disabled: true },
+          { label: "Supervisor", disabled: true },
+          { label: "BU Admin", disabled: true },
+          { label: "BU Supervisor", disabled: true },
+          { label: "BU Manager", disabled: true },
+          { label: "BU Director", disabled: false },
+        ];
+      case "bU_C_director":
+        return [
+          { label: "Controls Operator", disabled: true },
+          { label: "Supervisor", disabled: true },
+          { label: "BU Admin", disabled: true },
+          { label: "BU Supervisor", disabled: true },
+          { label: "BU Manager", disabled: true },
+          { label: "BU Director", disabled: true },
+        ];
+      default:
+        return [];
+    }
+  };
+
+  // Determine STATUS_OPTIONS based on role
+  const getStatusOptions = (role) => {
+    switch (role) {
+      case "supervisorC":
+        return ["In Progress", "Verified"];
+      case "admin":
+        return ["In Progress", "Resolved", "Overdue", "Closed", "Verified"];
+      case "bU_C_admin":
+      case "bU_C_supervisor":
+      case "bU_C_manager":
+      case "bU_C_director":
+        return ["In Progress", "Resolved", "Overdue", "Closed", "Verified"];
+      default:
+        return ["In Progress", "Resolved", "Overdue", "Closed"];
+    }
+  };
+
+  const CURRENT_HANDLER_OPTIONS = getCurrentHandlerOptions(userPermissions.role);
+  const STATUS_OPTIONS = getStatusOptions(userPermissions.role);
 
   // State to manage the form fields
   const [formData, setFormData] = useState({
@@ -156,10 +220,10 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
 
   // Function to determine if an option should be disabled
   const isOptionDisabled = (handler) => {
-    const currentHandlerIndex = CURRENT_HANDLER_OPTIONS.indexOf(
-      ticket.currentHandler // Use the current handler from the ticket prop
+    const currentHandlerIndex = CURRENT_HANDLER_OPTIONS.findIndex(
+      (option) => option.label === ticket.currentHandler // Use the current handler from the ticket prop
     );
-    const optionIndex = CURRENT_HANDLER_OPTIONS.indexOf(handler);
+    const optionIndex = CURRENT_HANDLER_OPTIONS.findIndex((option) => option.label === handler);
     return optionIndex <= currentHandlerIndex; // Disable options lower or equal in the hierarchy
   };
 
@@ -245,7 +309,7 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
             {/* Current Handler Field */}
             <div>
               <label className="block text-sm sm:text-base font-medium mb-1">
-                Current Handler
+                Assigned to
               </label>
               <select
                 name="currentHandler"
@@ -260,11 +324,11 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
                 </option>
                 {CURRENT_HANDLER_OPTIONS.map((handler) => (
                   <option
-                    key={handler}
-                    value={handler}
-                    disabled={isOptionDisabled(handler)} // Disable based on hierarchy
+                    key={handler.label}
+                    value={handler.label}
+                    disabled={handler.disabled || isOptionDisabled(handler.label)} // Disable based on hierarchy
                   >
-                    {handler}
+                    {handler.label}
                   </option>
                 ))}
               </select>

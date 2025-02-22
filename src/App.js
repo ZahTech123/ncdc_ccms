@@ -1,75 +1,123 @@
-// src/App.js
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions
+import { db } from "./firebaseConfig"; // Import Firestore instance
 import Navbar from "./components/Navbar";
-import Dashboard from "./pages/dashboardPage/Dashboard";  // Import Dashboard component
+import Dashboard from "./pages/dashboardPage/Dashboard";
 import MapPage from "./pages/MapPage/MapPage";
-import Modal from "react-modal";  // Import Modal from react-modal
+import Modal from "react-modal";
 import ReportsAndAnalysis from "./pages/reportsAnalysisPage/ReportsAndAnalysis";
 import HelpAndSupport from "./pages/HelpAndSupport";
 import Login from "./pages/loginPage/LoginPage";
-import ProtectedRoute from "./components/ProtectedRoute";  // Import ProtectedRoute component
-import { PermissionsProvider } from "./context/PermissionsContext"; // Import PermissionsProvider
-import './styles/scrollbar.css';
+import ProtectedRoute from "./components/ProtectedRoute";
+import { PermissionsProvider } from "./context/PermissionsContext";
+import { NotificationsProvider, useNotifications } from "./context/NotificationsContext";
+import "./styles/scrollbar.css";
 
 const App = () => {
   useEffect(() => {
-    // Set the app element for Modal to avoid the warning
-    Modal.setAppElement('#root');
+    Modal.setAppElement("#root");
   }, []);
 
   return (
     <Router>
-      <PermissionsProvider> {/* Wrap the app in PermissionsProvider */}
-        <AppContent />
+      <PermissionsProvider>
+        <NotificationsProvider>
+          <AppContent />
+        </NotificationsProvider>
       </PermissionsProvider>
     </Router>
   );
 };
 
 const AppContent = () => {
-  const location = useLocation(); // Get the current location
-  const [newTickets, setNewTickets] = useState([]); // State to track new tickets
+  const location = useLocation();
+  const { newTickets, setNewTickets, clearNotifications } = useNotifications(); // Destructure clearNotifications
 
-  // Function to handle new ticket submissions
-  const handleTicketSubmit = (ticket) => {
-    setNewTickets((prevTickets) => [...prevTickets, ticket]);  // Add the new ticket to the list
-    console.log("New ticket added to newTickets:", ticket);  // Debugging
-  };
+  // Define updateTicketAsRead function
+  const updateTicketAsRead = useCallback(async (ticketId) => {
+    try {
+      // Log the ticket before updating
+      const ticketBeforeUpdate = newTickets.find((ticket) => ticket.id === ticketId);
+      console.log("Before Update - Ticket:", ticketBeforeUpdate);
 
-  // Function to clear notifications
-  const clearNotifications = () => {
-    setNewTickets([]);  // Clear the list of new tickets
-    console.log("Notifications cleared");  // Debugging
-  };
+      // Update Firestore
+      const ticketRef = doc(db, "complaints", ticketId);
+      await setDoc(
+        ticketRef,
+        {
+          isRead: true,
+          closedTime: new Date().toLocaleTimeString(), // Update closedTime
+        },
+        { merge: true }
+      );
 
-  // Conditionally render the Navbar based on the route
+      // Log Firestore update
+      console.log(`Firestore updated for ticket ${ticketId}`);
+
+      // Update local state
+      setNewTickets((prevTickets) =>
+        prevTickets.map((ticket) =>
+          ticket.id === ticketId
+            ? {
+                ...ticket,
+                isRead: true,
+                closedTime: new Date().toLocaleTimeString(), // Update closedTime
+              }
+            : ticket
+        )
+      );
+
+      // Log the ticket after updating
+      const ticketAfterUpdate = newTickets.find((ticket) => ticket.id === ticketId);
+      console.log("After Update - Ticket:", ticketAfterUpdate);
+
+      console.log(`Ticket ${ticketId} marked as read.`);
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+    }
+  }, [newTickets, setNewTickets]);
+
+  // Log newTickets whenever it changes
+  useEffect(() => {
+    console.log("newTickets in App.js:", newTickets);
+  }, [newTickets]);
+
+  // Log clearNotifications to confirm it's being passed correctly
+  useEffect(() => {
+    console.log("clearNotifications function in App.js:", clearNotifications);
+  }, [clearNotifications]);
+
   const showNavbar = location.pathname !== "/login";
 
   return (
     <>
       {showNavbar && (
-        <Navbar newTickets={newTickets} clearNotifications={clearNotifications} />
-      )} {/* Render Navbar only if showNavbar is true */}
-      <main className={showNavbar ? "pt-20 px-4" : ""}> {/* Adjust padding if Navbar is not shown */}
+        <Navbar
+          unreadTickets={newTickets} // Pass unreadTickets
+          clearNotifications={clearNotifications} // Pass clearNotifications
+          updateTicketAsRead={updateTicketAsRead} // Pass updateTicketAsRead
+        />
+      )}
+      <main className={showNavbar ? "pt-20 px-4" : ""}>
         <Routes>
-          <Route path="/login" element={<Login />} />  {/* Login Page */}
+          <Route path="/login" element={<Login />} />
           <Route
             path="/"
             element={
               <ProtectedRoute>
-                <Dashboard onSubmit={handleTicketSubmit} />
+                <Dashboard setNewTickets={setNewTickets} updateTicketAsRead={updateTicketAsRead} />
               </ProtectedRoute>
             }
-          />  {/* Default route loads Dashboard */}
+          />
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard onSubmit={handleTicketSubmit} />
+                <Dashboard setNewTickets={setNewTickets} updateTicketAsRead={updateTicketAsRead} />
               </ProtectedRoute>
             }
-          />  {/* Dashboard Page */}
+          />
           <Route
             path="/reportsAndAnalysis"
             element={
@@ -77,7 +125,7 @@ const AppContent = () => {
                 <ReportsAndAnalysis />
               </ProtectedRoute>
             }
-          />  {/* Reports & Analysis Page */}
+          />
           <Route
             path="/mapPage"
             element={
@@ -85,7 +133,7 @@ const AppContent = () => {
                 <MapPage />
               </ProtectedRoute>
             }
-          />  {/* Map Page */}
+          />
           <Route
             path="/helpAndSupport"
             element={
@@ -93,7 +141,7 @@ const AppContent = () => {
                 <HelpAndSupport />
               </ProtectedRoute>
             }
-          />  {/* Help & Support */}
+          />
         </Routes>
       </main>
     </>
@@ -101,53 +149,3 @@ const AppContent = () => {
 };
 
 export default App;
-// // src/App.js
-// import React, { useEffect } from "react";
-// import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-// import Navbar from "./components/Navbar";
-// import Dashboard from "./pages/dashboardPage/Dashboard";  // Import Dashboard component
-// import MapPage from "./pages/MapPage/MapPage";
-// import Modal from "react-modal";  // Import Modal from react-modal
-// import ReportsAndAnalysis from "./pages/reportsAnalysisPage/ReportsAndAnalysis";
-// import HelpAndSupport from "./pages/HelpAndSupport";
-// import Login from "./pages/loginPage/LoginPage";
-// import ProtectedRoute from "./components/ProtectedRoute";  // Import ProtectedRoute component
-// import './styles/scrollbar.css';
-
-// const App = () => {
-//   useEffect(() => {
-//     // Set the app element for Modal to avoid the warning
-//     Modal.setAppElement('#root');
-//   }, []);
-
-//   return (
-//     <Router>
-//       <AppContent />
-//     </Router>
-//   );
-// };
-
-// const AppContent = () => {
-//   const location = useLocation(); // Get the current location
-
-//   // Conditionally render the Navbar based on the route
-//   const showNavbar = location.pathname !== "/login";
-
-//   return (
-//     <>
-//       {showNavbar && <Navbar />} {/* Render Navbar only if showNavbar is true */}
-//       <main className={showNavbar ? "pt-20 px-4" : ""}> {/* Adjust padding if Navbar is not shown */}
-//         <Routes>
-//           <Route path="/login" element={<Login />} />  {/* Login Page */}
-//           <Route path="/" element={<ProtectedRoute><ReportsAndAnalysis /></ProtectedRoute>} />  {/* Default route loads Dashboard */}
-//           <Route path="/dashboard" element={<ProtectedRoute><ReportsAndAnalysis  /></ProtectedRoute>} />  {/* Dashboard Page */}
-//           <Route path="/reportsAndAnalysis" element={<ProtectedRoute><Dashboard/></ProtectedRoute>} />  {/* Reports & Analysis Page */}
-//           <Route path="/mapPage" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />  {/* Map Page */}
-//           <Route path="/helpAndSupport" element={<ProtectedRoute><HelpAndSupport /></ProtectedRoute>} />  {/* Help & Support */}
-//         </Routes>
-//       </main>
-//     </>
-//   );
-// };
-
-// export default App;

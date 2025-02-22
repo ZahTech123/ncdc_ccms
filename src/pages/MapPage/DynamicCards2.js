@@ -199,6 +199,11 @@ const DynamicCards = ({
                           marginLeft: "-30px",
                         }
                       : {}),
+                      ...(complaint.status === "Overdue"
+                        ? {
+                            marginLeft: "-30px",
+                          }
+                        : {}),
                     ...(complaint.status === "Resolved"
                       ? {
                           backgroundColor: "#E5E7EB",
