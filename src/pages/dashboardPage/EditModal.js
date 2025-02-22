@@ -422,13 +422,18 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
                 Cancel
               </button>
               <button
-                type="submit"
-                className="bg-yellow-400 hover:bg-yellow-500 p-2 rounded-md transition-colors text-black w-full sm:w-auto"
-                aria-label="Save Changes"
-                disabled={isLoading}
-              >
-                {isLoading ? "Saving..." : "Save Changes"}
-              </button>
+  type="submit"
+  className="bg-yellow-400 hover:bg-yellow-500 p-2 rounded-md transition-colors text-black w-full sm:w-auto"
+  aria-label="Save Changes"
+  disabled={isLoading}
+>
+  {isLoading
+    ? "Saving..."
+    : userPermissions.role === "supervisorC"
+    ? "Verify"
+    : "Save Changes"}
+</button>
+
             </div>
           </div>
         </form>

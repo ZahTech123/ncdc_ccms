@@ -14,17 +14,16 @@ import NotificationModal from "./NotificationModal";
 import { usePermissions } from "../context/PermissionsContext";
 import "./Navbar.css";
 
-const Navbar = ({ unreadTickets = [], clearNotifications, updateTicketAsRead }) => {
+const Navbar = ({
+  unreadTickets = [],
+  clearNotifications,
+  updateTicketAsRead,
+}) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { userPermissions } = usePermissions();
-  const { role, user } = userPermissions;
-
-  // Filter tickets based on role and isRead status
-  const filteredTickets = unreadTickets.filter((ticket) => {
-    return role === "supervisorC" && !ticket.isRead; // Only show if role is supervisorC and isRead is false
-  });
+  const { role } = userPermissions; // Extract the role from userPermissions
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -85,42 +84,38 @@ const Navbar = ({ unreadTickets = [], clearNotifications, updateTicketAsRead }) 
         </div>
 
         <div className="right-section">
-          <div className="user-info">
-            {user && (
-              <>
-                <span className="user-name">{user.name}</span>
-                <span className="user-role">{role}</span>
-              </>
-            )}
-          </div>
+  {/* Bell Icon */}
+  <div className="notification-icon-container" onClick={toggleNotification}>
+    <FaBell className="icon" />
+    {unreadTickets.length > 0 && (
+      <span className="notification-badge">{unreadTickets.length}</span>
+    )}
+  </div>
 
-          <div
-            className="notification-icon-container"
-            onClick={toggleNotification}
-          >
-            <FaBell className="icon" />
-            {filteredTickets.length > 0 && ( // Show badge only if there are filtered tickets
-              <span className="notification-badge">{filteredTickets.length}</span>
-            )}
-          </div>
+  {/* Vertical Separator */}
+  <span className="separator">|</span>
 
-          <div className="user-icon-container" ref={dropdownRef}>
-            <FaUserCircle
-              className="icon cursor-pointer"
-              onClick={toggleDropdown}
-            />
-            {isDropdownOpen && (
-              <div className="dropdown-menu">
-                <div className="dropdown-content">
-                  <p className="dropdown-email">{auth.currentUser?.email}</p>
-                  <button onClick={handleLogout} className="logout-button">
-                    Logout
-                  </button>
-                </div>
-              </div>
-            )}
+  {/* User Icon and Role */}
+  <div className="user-info">
+    <div className="user-icon-container" ref={dropdownRef}>
+      <FaUserCircle
+        className="icon cursor-pointer"
+        onClick={toggleDropdown}
+      />
+      {isDropdownOpen && (
+        <div className="dropdown-menu">
+          <div className="dropdown-content">
+            <p className="dropdown-email">{auth.currentUser?.email}</p>
+            <button onClick={handleLogout} className="logout-button">
+              Logout
+            </button>
           </div>
         </div>
+      )}
+    </div>
+    <span className="user-role">{role}</span>
+  </div>
+</div>
       </nav>
 
       {/* Notification Modal */}
@@ -129,8 +124,8 @@ const Navbar = ({ unreadTickets = [], clearNotifications, updateTicketAsRead }) 
         onClose={async () => {
           console.log("Closing modal and marking tickets as read...");
 
-          // Mark all filtered tickets as read
-          for (const ticket of filteredTickets) {
+          // Mark all unread tickets as read
+          for (const ticket of unreadTickets) {
             console.log(`Marking ticket ${ticket.id} as read...`);
             await updateTicketAsRead(ticket.id); // Await each update
           }
@@ -143,7 +138,7 @@ const Navbar = ({ unreadTickets = [], clearNotifications, updateTicketAsRead }) 
             clearNotifications(); // Clear the newTickets array
           }
         }}
-        newTickets={filteredTickets} // Pass filtered tickets
+        newTickets={unreadTickets} // Pass unread tickets
       />
     </>
   );

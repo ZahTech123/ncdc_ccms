@@ -1,0 +1,65 @@
+/* Base container styling */
+.custom-scrollbar {
+    height: 80vh !important; /* Adjust height as needed */
+    overflow-y: auto !important;
+    padding: 16px !important;
+    position: relative !important;
+    scrollbar-width: thin !important; /* Firefox */
+    scrollbar-color: #4a5568 #2d3748 !important; /* Thumb and track color */
+  }
+  
+  /* Webkit (Chrome, Safari, Edge, newer Opera) */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 10px !important; /* Slightly wider for visibility */
+    border-radius: 10px !important;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #4a5568 !important; /* Thumb color */
+    border-radius: 10px !important;
+    border: 3px solid #2d3748 !important; /* Adds space for enhanced roundness */
+    transition: background-color 0.3s ease, transform 0.2s ease-in-out !important;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #2c5282 !important; /* Darker thumb on hover */
+    transform: scale(1.05) !important; /* Slightly enlarge on hover */
+  }
+  .custom-scrollbar {
+    height: 80vh !important; /* Adjust height as needed */
+    overflow-y: auto !important;
+    padding: 16px !important;
+    position: relative !important;
+    scrollbar-width: thin !important; /* Firefox */
+    scrollbar-color: #4a5568 #2d3748 !important; /* Thumb and track color */
+  }
+  
+  /* Webkit (Chrome, Safari, Edge, newer Opera) */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px !important; /* Slightly wider for better visibility of rounded edges */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #4a5568 !important; /* Thumb color */
+    border-radius: 10px !important; /* Rounded edges */
+    border: 3px solid transparent !important; /* Adds space for enhanced roundness */
+    background-clip: content-box; /* Ensures the border doesn't overlap the background */
+    transition: background-color 0.3s ease, transform 0.2s ease-in-out !important;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #2c5282 !important; /* Darker thumb on hover */
+    transform: scale(1.05) !important; /* Slightly enlarge on hover */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background-color: #2d3748 !important; /* Track color */
+    border-radius: 10px !important; /* Rounded edges */
+    margin: 4px 0 !important; /* Ensure full visibility of round edges */
+  }
+  
+  /* Edge & Internet Explorer */
+  .custom-scrollbar {
+    -ms-overflow-style: -ms-autohiding-scrollbar !important;
+  }
+  
