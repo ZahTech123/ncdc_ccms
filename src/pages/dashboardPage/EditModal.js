@@ -100,7 +100,7 @@ const getCurrentHandlerOptions = (role) => {
 const getStatusOptions = (role) => {
   switch (role) {
     case "supervisorC":
-      return ["In Progress", "Verified"];
+      return ["Invalid", "Verified"];
     case "admin":
       return ["In Progress", "Resolved", "Overdue", "Closed", "Verified"];
     case "bU_C_admin":

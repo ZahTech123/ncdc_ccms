@@ -7,7 +7,6 @@ import "../../styles/tableCollapsAnimation.css"; // Import the CSS file
 import TicketTable from "./TicketTable"; // Import the new TicketTable component
 import { usePermissions } from "../../context/PermissionsContext";
 import emailjs from "emailjs-com";
-import NotificationModal from "../../components/NotificationModal"; // Import the NotificationModal component
 import { useTickets } from "../../context/TicketsContext";
 import { filterTickets, filterUnreadTickets } from "../../utils/ticketFilters"; // Import the filtering functions
 
@@ -24,7 +23,6 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
 
   // Separate states for each modal
   const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
-  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   // State for selected ticket
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -154,19 +152,8 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
   // Handle closing the modal
   const handleCloseModal = useCallback(() => {
     setIsTrackerModalOpen(false);
-    setIsNotificationModalOpen(false);
     setSelectedTicket(null); // Reset the selected ticket
   }, []);
-
-  // Handle saving updated ticket data
-  const handleDashboardSave = useCallback(async (ticketId, updatedData) => {
-    try {
-      console.log("handleDashboardSave called with:", ticketId, updatedData);
-      await updateTicket(ticketId, updatedData);
-    } catch (error) {
-      console.error("Error updating ticket:", error);
-    }
-  }, [updateTicket]);
 
   // Determine if the form should be visible based on the user's role
   const isFormVisible = role === "admin" || role === "operator";
@@ -226,23 +213,6 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
           onClose={handleCloseModal}
         />
       )}
-
-      {/* Notification Modal */}
-      <NotificationModal
-        isOpen={isNotificationModalOpen}
-        onClose={async () => {
-          // Mark all unread tickets as read
-          for (const ticket of unreadTickets) {
-            await updateTicketAsRead(ticket.id);
-          }
-          setIsNotificationModalOpen(false);
-          if (setNewTickets) {
-            setNewTickets([]);
-          }
-        }}
-        newTickets={unreadTickets}
-        onSave={handleDashboardSave}
-      />
     </div>
   );
 };
