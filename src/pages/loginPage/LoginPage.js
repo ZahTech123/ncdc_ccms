@@ -12,9 +12,9 @@ const Login = () => {
   const [isAllowed] = useState(true); // Allow all users for now
   const [loading, setLoading] = useState(false); // Prevent multiple clicks
   const navigate = useNavigate();
+  const { updatePermissions } = usePermissions(); // Use the updatePermissions function from context
 
   const db = getFirestore();
-  const { updatePermissions } = usePermissions(); // Use the updatePermissions function from context
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -58,6 +58,7 @@ const Login = () => {
               updatePermissions(userData.role, permissions);
 
               // Redirect all users to the same dashboard
+              console.log("Navigating to /dashboard"); // Debug log
               navigate("/dashboard");
             }
           });

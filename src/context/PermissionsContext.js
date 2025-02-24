@@ -1,12 +1,13 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 
 // Create the context
-const PermissionsContext = createContext();
+export const PermissionsContext = createContext();
 
 // Create the provider component
 export const PermissionsProvider = ({ children }) => {
+  // Initialize role from localStorage
   const [userPermissions, setUserPermissions] = useState({
-    role: "", // Current user role
+    role: localStorage.getItem("userRole") || null,
     buttons: [], // List of buttons the user can see
     dropdowns: [], // List of dropdown options the user can see
     canView: [], // Pages or sections the user can view
@@ -15,6 +16,20 @@ export const PermissionsProvider = ({ children }) => {
     canExpandCollapse: false, // Whether the user can expand/collapse the table
     canEditTicket: false, // Whether the user can edit tickets
   });
+
+  // Log the role when it changes
+  useEffect(() => {
+    console.log("Role updated:", userPermissions.role);
+  }, [userPermissions.role]);
+
+  // Update localStorage whenever the role changes
+  useEffect(() => {
+    if (userPermissions.role) {
+      localStorage.setItem("userRole", userPermissions.role);
+    } else {
+      localStorage.removeItem("userRole");
+    }
+  }, [userPermissions.role]);
 
   // Function to update permissions based on role
   const updatePermissions = (role, permissions) => {
@@ -37,7 +52,6 @@ export const PermissionsProvider = ({ children }) => {
     </PermissionsContext.Provider>
   );
 };
-
 
 // Custom hook to access permissions
 export const usePermissions = () => useContext(PermissionsContext);
@@ -71,14 +85,14 @@ export const UI_PERMISSIONS = {
     canExpandCollapse: false, // Cannot expand/collapse the table
     canEditTicket: true, // Cannot edit tickets
   },
-  bU_C_admin: {
+  bU_adminC: {
     canView: ["dashboard", "reports", "tickets"],
     canEdit: [],
     canDelete: [],
     dropdowns: [],
     buttons: [],
     canExpandCollapse: false, // Cannot expand/collapse the table
-    canEditTicket: false, // Cannot edit tickets
+    canEditTicket: true, // Cannot edit tickets
   },
   bU_SL_admin: {
     canView: ["dashboard", "reports", "tickets"],
@@ -189,3 +203,5 @@ export const UI_PERMISSIONS = {
     canEditTicket: false, // Cannot edit tickets
   },
 };
+
+export default PermissionsProvider;

@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
-const Section2 = () => {
-    // References for the line chart canvas and instance
+const Section2 = ({ tickets = [] }) => {
     const lineChartRef = useRef(null);
     const lineChartInstance = useRef(null);
 

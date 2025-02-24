@@ -1,6 +1,6 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions
+import { doc, setDoc, onSnapshot, collection } from "firebase/firestore"; // Import Firestore functions
 import { db } from "./firebaseConfig"; // Import Firestore instance
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/dashboardPage/Dashboard";
@@ -10,9 +10,10 @@ import ReportsAndAnalysis from "./pages/reportsAnalysisPage/ReportsAndAnalysis";
 import HelpAndSupport from "./pages/HelpAndSupport";
 import Login from "./pages/loginPage/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { PermissionsProvider } from "./context/PermissionsContext";
+import { PermissionsProvider, usePermissions } from "./context/PermissionsContext";
 import { NotificationsProvider, useNotifications } from "./context/NotificationsContext";
 import "./styles/scrollbar.css";
+import { TicketsProvider } from "./context/TicketsContext";
 
 const App = () => {
   useEffect(() => {
@@ -23,7 +24,9 @@ const App = () => {
     <Router>
       <PermissionsProvider>
         <NotificationsProvider>
-          <AppContent />
+          <TicketsProvider>
+            <AppContent />
+          </TicketsProvider>
         </NotificationsProvider>
       </PermissionsProvider>
     </Router>
@@ -32,61 +35,73 @@ const App = () => {
 
 const AppContent = () => {
   const location = useLocation();
-  const { newTickets, setNewTickets, clearNotifications } = useNotifications(); // Destructure clearNotifications
+  const { newTickets, setNewTickets } = useNotifications();
+  const [submissionsCount, setSubmissionsCount] = useState(0);
+  const { userPermissions } = usePermissions();
+  const { role } = userPermissions;
 
-  // Define updateTicketAsRead function
-  const updateTicketAsRead = useCallback(async (ticketId) => {
-    try {
-      // Log the ticket before updating
-      const ticketBeforeUpdate = newTickets.find((ticket) => ticket.id === ticketId);
-      console.log("Before Update - Ticket:", ticketBeforeUpdate);
+  useEffect(() => {
+    console.log("User:", role);
+  }, [role]);
 
-      // Update Firestore
-      const ticketRef = doc(db, "complaints", ticketId);
-      await setDoc(
-        ticketRef,
-        {
-          isRead: true,
-          closedTime: new Date().toLocaleTimeString(), // Update closedTime
-        },
-        { merge: true }
-      );
+  // Fetch tickets from Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "complaints"), (snapshot) => {
+      const tickets = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-      // Log Firestore update
-      console.log(`Firestore updated for ticket ${ticketId}`);
+      // Filter tickets based on role
+      const filteredTickets = tickets.filter((ticket) => {
+        if (role === "bU_adminC") {
+          // For bU_adminC, show only Compliance and Verified tickets that are unread
+          return (
+            ticket.directorate === "Compliance" &&
+            ticket.status === "Verified" &&
+            ticket.isRead?.bU_adminC === false // Ensure isRead for bU_adminC is false
+          );
+        } else {
+          // For other roles, use the default filtering logic (based on isRead)
+          if (typeof ticket.isRead === 'object' && ticket.isRead !== null) {
+            return !ticket.isRead[role]; // Return true if the ticket is unread for the current role
+          }
+          return !ticket.isRead; // Fallback for boolean isRead
+        }
+      });
 
-      // Update local state
-      setNewTickets((prevTickets) =>
-        prevTickets.map((ticket) =>
-          ticket.id === ticketId
-            ? {
-                ...ticket,
-                isRead: true,
-                closedTime: new Date().toLocaleTimeString(), // Update closedTime
-              }
-            : ticket
-        )
-      );
+      setNewTickets(filteredTickets); // Pass the filtered tickets to Navbar
+    });
 
-      // Log the ticket after updating
-      const ticketAfterUpdate = newTickets.find((ticket) => ticket.id === ticketId);
-      console.log("After Update - Ticket:", ticketAfterUpdate);
+    return () => unsubscribe();
+  }, [role, setNewTickets]);
 
-      console.log(`Ticket ${ticketId} marked as read.`);
-    } catch (error) {
-      console.error("Error updating ticket:", error);
-    }
-  }, [newTickets, setNewTickets]);
+  const updateTicketAsRead = useCallback(
+    async (ticketId, role) => {
+      try {
+        const ticketRef = doc(db, "complaints", ticketId);
+        await setDoc(
+          ticketRef,
+          {
+            isRead: {
+              admin: role === 'admin' ? true : false,
+              operator: role === 'operator' ? true : false,
+              supervisorC: role === 'supervisorC' ? true : false,
+              bU_adminC: role === 'bU_adminC' ? true : false, // Add bU_adminC to isRead
+            }
+          },
+          { merge: true }
+        );
+      } catch (error) {
+        console.error("Error updating ticket:", error);
+      }
+    },
+    []
+  );
 
-  // Log newTickets whenever it changes
   useEffect(() => {
     console.log("newTickets in App.js:", newTickets);
   }, [newTickets]);
-
-  // Log clearNotifications to confirm it's being passed correctly
-  useEffect(() => {
-    console.log("clearNotifications function in App.js:", clearNotifications);
-  }, [clearNotifications]);
 
   const showNavbar = location.pathname !== "/login";
 
@@ -94,9 +109,9 @@ const AppContent = () => {
     <>
       {showNavbar && (
         <Navbar
-          unreadTickets={newTickets} // Pass unreadTickets
-          clearNotifications={clearNotifications} // Pass clearNotifications
-          updateTicketAsRead={updateTicketAsRead} // Pass updateTicketAsRead
+          unreadTickets={newTickets}
+          updateTicketAsRead={updateTicketAsRead}
+          submissionsCount={submissionsCount}
         />
       )}
       <main className={showNavbar ? "pt-20 px-4" : ""}>
@@ -106,7 +121,11 @@ const AppContent = () => {
             path="/"
             element={
               <ProtectedRoute>
-                <Dashboard setNewTickets={setNewTickets} updateTicketAsRead={updateTicketAsRead} />
+                <Dashboard 
+                  setNewTickets={setNewTickets}
+                  updateTicketAsRead={updateTicketAsRead}
+                  setSubmissionsCount={setSubmissionsCount}
+                />
               </ProtectedRoute>
             }
           />
@@ -114,7 +133,10 @@ const AppContent = () => {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard setNewTickets={setNewTickets} updateTicketAsRead={updateTicketAsRead} />
+                <Dashboard 
+                  setNewTickets={setNewTickets}
+                  setSubmissionsCount={setSubmissionsCount}
+                />
               </ProtectedRoute>
             }
           />

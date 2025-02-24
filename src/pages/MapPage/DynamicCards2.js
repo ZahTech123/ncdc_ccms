@@ -1,5 +1,5 @@
 // DynamicCards.js
-import React from "react";
+import React, {  } from "react";
 import {
   FaTrash,
   FaLightbulb,
@@ -89,6 +89,8 @@ const DynamicCards = ({
                     marker
                   );
                 }
+                setSelectedComplaint(complaint);
+                setShowModal(true);
               }}
             >
               {/* Icon in the top-right corner */}
@@ -223,13 +225,13 @@ const DynamicCards = ({
             {/* See More Button with Bounce Effect */}
             <div
               className="mt-2 px-3 py-2 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative flex items-center justify-center text-black text-center border border-gray-300 transform active:scale-95"
-              onClick={() => {
-                setSelectedComplaint(complaint); // Set the selected complaint to trigger modal content
-                setShowModal(true); // Show the modal
-              }}
               style={{
                 transition: "transform 0.1s ease-in-out, box-shadow 0.2s ease",
                 transformOrigin: "center",
+              }}
+              onClick={() => {
+                setSelectedComplaint(complaint);
+                setShowModal(true);
               }}
             >
               See More

@@ -1,0 +1,23 @@
+export const useTickets = (userRole) => {
+  const [tickets, setTickets] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "complaints"), (snapshot) => {
+      const ticketData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      // Filter tickets based on user role
+      const filteredTickets = ticketData.filter((ticket) => {
+        if (userRole === "bU_C_admin") {
+          return ticket.directorate === "Compliance";
+        }
+        return true;
+      });
+
+      setTickets(filteredTickets);
+    });
+
+    return () => unsubscribe();
+  }, [userRole]);
+
+  return tickets;
+};

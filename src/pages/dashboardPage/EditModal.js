@@ -47,89 +47,76 @@ const ISSUE_TYPE_ICONS = {
 };
 
 const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
-  const { userPermissions } = usePermissions(); // Use the hook inside the component
+  const { userPermissions } = usePermissions();
+  const { role } = userPermissions;
 
   // Determine CURRENT_HANDLER_OPTIONS based on role
-  const getCurrentHandlerOptions = (role) => {
-    switch (role) {
-      case "supervisorC":
-        return [
-          { label: "Controls Operator", disabled: true },
-          { label: "Supervisor", disabled: true },
-          { label: "BU Admin", disabled: false },
-          { label: "BU Supervisor", disabled: true },
-          { label: "BU Manager", disabled: true },
-          { label: "BU Director", disabled: true },
-        ];
-      case "admin":
-        return [
-          { label: "Controls Operator", disabled: false },
-          { label: "Supervisor", disabled: false },
-          { label: "BU Admin", disabled: false },
-          { label: "BU Supervisor", disabled: false },
-          { label: "BU Manager", disabled: false },
-          { label: "BU Director", disabled: false },
-        ];
-      case "bU_C_admin":
-        return [
-          { label: "Controls Operator", disabled: true },
-          { label: "Supervisor", disabled: true },
-          { label: "BU Admin", disabled: true },
-          { label: "BU Supervisor", disabled: false },
-          { label: "BU Manager", disabled: false },
-          { label: "BU Director", disabled: false },
-        ];
-      case "bU_C_supervisor":
-        return [
-          { label: "Controls Operator", disabled: true },
-          { label: "Supervisor", disabled: true },
-          { label: "BU Admin", disabled: true },
-          { label: "BU Supervisor", disabled: true },
-          { label: "BU Manager", disabled: false },
-          { label: "BU Director", disabled: false },
-        ];
-      case "bU_C_manager":
-        return [
-          { label: "Controls Operator", disabled: true },
-          { label: "Supervisor", disabled: true },
-          { label: "BU Admin", disabled: true },
-          { label: "BU Supervisor", disabled: true },
-          { label: "BU Manager", disabled: true },
-          { label: "BU Director", disabled: false },
-        ];
-      case "bU_C_director":
-        return [
-          { label: "Controls Operator", disabled: true },
-          { label: "Supervisor", disabled: true },
-          { label: "BU Admin", disabled: true },
-          { label: "BU Supervisor", disabled: true },
-          { label: "BU Manager", disabled: true },
-          { label: "BU Director", disabled: true },
-        ];
-      default:
-        return [];
-    }
-  };
+// Determine CURRENT_HANDLER_OPTIONS based on role
+const getCurrentHandlerOptions = (role) => {
+  switch (role) {
+    case "supervisorC":
+      return [
+        { label: "City Planning & Infrastructure", disabled: true },
+        { label: "Compliance", disabled: true },
+        { label: "Sustainability & Lifestyle", disabled: true },
+      ];
+    case "admin":
+      return [
+        { label: "City Planning & Infrastructure", disabled: false },
+        { label: "Compliance", disabled: false },
+        { label: "Sustainability & Lifestyle", disabled: false },
+      ];
+    case "bU_adminC":
+      return [
+        { label: "Compliance Supervisor", disabled: false },
+        { label: "Compliance Manager", disabled: false },
+        { label: "Compliance Director", disabled: false },
+        { label: "Response Team", disabled: false },
+      ];
+    case "bU_C_supervisor":
+      return [
+        { label: "City Planning & Infrastructure", disabled: true },
+        { label: "Compliance", disabled: true },
+        { label: "Sustainability & Lifestyle", disabled: true },
+      ];
+    case "bU_C_manager":
+      return [
+        { label: "City Planning & Infrastructure", disabled: true },
+        { label: "Compliance", disabled: true },
+        { label: "Sustainability & Lifestyle", disabled: true },
+      ];
+    case "bU_C_director":
+      return [
+        { label: "City Planning & Infrastructure", disabled: true },
+        { label: "Compliance", disabled: true },
+        { label: "Sustainability & Lifestyle", disabled: true },
+      ];
+    default:
+      return [];
+  }
+};
 
-  // Determine STATUS_OPTIONS based on role
-  const getStatusOptions = (role) => {
-    switch (role) {
-      case "supervisorC":
-        return ["In Progress", "Verified"];
-      case "admin":
-        return ["In Progress", "Resolved", "Overdue", "Closed", "Verified"];
-      case "bU_C_admin":
-      case "bU_C_supervisor":
-      case "bU_C_manager":
-      case "bU_C_director":
-        return ["In Progress", "Resolved", "Overdue", "Closed", "Verified"];
-      default:
-        return ["In Progress", "Resolved", "Overdue", "Closed"];
-    }
-  };
+// Determine STATUS_OPTIONS based on role
+const getStatusOptions = (role) => {
+  switch (role) {
+    case "supervisorC":
+      return ["In Progress", "Verified"];
+    case "admin":
+      return ["In Progress", "Resolved", "Overdue", "Closed", "Verified"];
+    case "bU_C_admin":
+    case "bU_C_supervisor":
+    case "bU_C_manager":
+    case "bU_C_director":
+      return ["In Progress", "Resolved", "Overdue", "Closed", "Verified"];
+    case "bU_adminC":
+      return ["In Progress", "Closed"];
+    default:
+      return ["In Progress", "Resolved", "Overdue", "Closed"];
+  }
+};
 
-  const CURRENT_HANDLER_OPTIONS = getCurrentHandlerOptions(userPermissions.role);
-  const STATUS_OPTIONS = getStatusOptions(userPermissions.role);
+  const CURRENT_HANDLER_OPTIONS = getCurrentHandlerOptions(role);
+  const STATUS_OPTIONS = getStatusOptions(role);
 
   // State to manage the form fields
   const [formData, setFormData] = useState({
@@ -142,20 +129,23 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
 
   // Reset form data when the ticket prop changes
   useEffect(() => {
+    // Determine the initial status based on the role
+    const initialStatus = role === "supervisorC" ? "Verified" : ticket.status;
+
+    // Determine the initial current handler based on the ticket's directorate
+    const initialCurrentHandler = ticket.directorate || "";
+
     setFormData({
       issueType: ticket.issueType,
-      status: "", // Reset to empty to show placeholder
-      currentHandler: ticket.currentHandler === "Response Team" ? "Response Team" : "", // Preserve Response Team
+      status: initialStatus, // Set initial status based on role
+      currentHandler: initialCurrentHandler, // Set initial current handler based on directorate
       description: ticket.description,
       newComment: "",
     });
-  }, [ticket]);
+  }, [ticket, role]);
 
   // State to manage delete confirmation
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-
-  // State to manage form errors
-  const [errors, setErrors] = useState({});
 
   // State to manage loading state
   const [isLoading, setIsLoading] = useState(false);
@@ -167,43 +157,72 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
       ...prev,
       [name]: value,
     }));
-    // Clear errors when the user starts typing
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
-
-  // Validate form fields
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.status.trim()) newErrors.status = "Status is required";
-    if (!formData.currentHandler.trim() && ticket.currentHandler !== "Response Team")
-      newErrors.currentHandler = "Current Handler is required";
-    if (!formData.newComment.trim())
-      newErrors.newComment = "Comment is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setIsLoading(true);
+    setIsLoading(true);
 
-      // Append the new comment to the description with a timestamp, handler name, and current status
-      const timestamp = new Date().toLocaleString();
-      const updatedDescription = `${formData.description}\n${formData.currentHandler}|${timestamp}|${formData.status}|${formData.newComment}`;
-
-      // Save the updated description and other fields
-      await onSave(ticket.id, {
-        ...formData,
-        description: updatedDescription, // Updated description with status included
-      });
-
+    // Add check for onSave existence
+    if (!onSave) {
+      console.error("onSave function is undefined");
       setIsLoading(false);
-      onClose(); // Close the modal
+      return;
     }
+  
+    // Log the onSave function to inspect its definition
+    console.log("onSave function:", onSave.toString()); // This will show the function's code
+  
+    // Function to map directorate to the corresponding admin handler
+    const getAdminHandler = (directorate) => {
+      switch (directorate) {
+        case "Compliance":
+          return "Compliance Admin";
+        case "City Planning & Infrastructure":
+          return "C&L Admin";
+        case "Sustainability & Lifestyle":
+          return "S&L Admin";
+        default:
+          return directorate; // Fallback to the original value
+      }
+    };
+  
+    // Update the currentHandler for supervisorC
+    let updatedCurrentHandler = formData.currentHandler;
+    if (role === "supervisorC") {
+      updatedCurrentHandler = getAdminHandler(ticket.directorate);
+      console.log("Updated currentHandler:", updatedCurrentHandler); // Debug log
+    }
+  
+    // Use pre-filled or user-selected values
+    const updatedStatus = formData.status || (role === "supervisorC" ? "Verified" : ticket.status); // Use pre-filled "Verified" for supervisorC if not changed
+    const updatedNewComment = formData.newComment || ""; // Use empty string if no new comment
+  
+    // Append the new comment to the description with a timestamp, handler name, and current status
+    const timestamp = new Date().toLocaleString();
+    const updatedDescription = updatedNewComment
+      ? `${formData.description}\n${updatedCurrentHandler}|${timestamp}|${updatedStatus}|${updatedNewComment}`
+      : formData.description; // Only append if there's a new comment
+  
+    // Prepare the updated data
+    const updatedData = {
+      status: updatedStatus, // Use updated status
+      currentHandler: updatedCurrentHandler, // Use updated handler
+      description: updatedDescription, // Updated description with status included
+    };
+  
+    console.log("Calling onSave with:", ticket.id, updatedData);
+  
+    try {
+      await onSave(ticket.id, updatedData);
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+    }
+  
+    setIsLoading(false);
+    onClose();
   };
-
   // Handle delete button click (show confirmation modal)
   const handleDeleteClick = () => {
     setShowConfirmDelete(true);
@@ -212,7 +231,13 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
   // Handle actual delete action
   const confirmDelete = async () => {
     setIsLoading(true);
-    await onDelete(ticket.id); // Pass the ticket ID to the parent component
+    try {
+      await onDelete(ticket.id); // This will call the handleDelete function
+      // Optionally add a success message or state update here
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      // Optionally add an error message here
+    }
     setIsLoading(false);
     setShowConfirmDelete(false);
     onClose(); // Close the modal
@@ -247,11 +272,11 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" // Added z-50
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
       onClick={onClose} // Close modal on outside click
     >
       <div
-        className="bg-gray-800 p-4 sm:p-6 rounded-lg w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 max-h-[90vh] flex flex-col " // Responsive width
+        className="bg-gray-800 p-4 sm:p-6 rounded-lg w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()} // Prevent click from propagating to the outer div
       >
         <div className="mb-1">
@@ -261,7 +286,7 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
               {formData.issueType}
             </h2>
             {/* Icon on the right side */}
-            <div className="mr-6"  >{issueTypeIcon}</div>
+            <div className="mr-6">{issueTypeIcon}</div>
           </div>
 
           {/* Column Layout for Team and Location */}
@@ -278,7 +303,7 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
         <form
           onSubmit={handleSubmit}
           className="flex-1 flex flex-col overflow-hidden"
-        >
+         >
           <div className="space-y-4 flex-1 overflow-hidden">
             {/* Status Field */}
             <div>
@@ -301,9 +326,6 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
                   </option>
                 ))}
               </select>
-              {errors.status && (
-                <p className="text-red-500 text-sm mt-1">{errors.status}</p>
-              )}
             </div>
 
             {/* Current Handler Field */}
@@ -313,7 +335,7 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
               </label>
               <select
                 name="currentHandler"
-                value={ticket.currentHandler === "Response Team" ? "Response Team" : formData.currentHandler}
+                value={formData.currentHandler}
                 onChange={handleChange}
                 className="bg-gray-700 text-sm sm:text-base p-2 rounded-md w-full"
                 aria-label="Current Handler"
@@ -332,11 +354,6 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
                   </option>
                 ))}
               </select>
-              {errors.currentHandler && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.currentHandler}
-                </p>
-              )}
             </div>
 
             {/* Description Field */}
@@ -391,49 +408,65 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
                   rows={3}
                   placeholder="Add a new comment..."
                 />
-                {errors.newComment && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.newComment}
-                  </p>
-                )}
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <button
-              type="button"
-              onClick={handleDeleteClick}
-              className="bg-red-500 hover:bg-red-600 p-2 rounded-md transition-colors w-full sm:w-auto"
-              aria-label="Delete"
-              disabled={isLoading}
-            >
-              Delete
-            </button>
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+            {/* Conditionally render Delete button */}
+            {role !== "supervisorC" && (
               <button
                 type="button"
-                onClick={onClose}
-                className="p-2 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600 border border-gray-100 border-opacity-30 w-full sm:w-auto"
-                aria-label="Cancel"
+                onClick={handleDeleteClick}
+                className="bg-red-500 hover:bg-red-600 p-2 rounded-md transition-colors w-full sm:w-auto"
+                aria-label="Delete"
                 disabled={isLoading}
               >
-                Cancel
+                {isLoading ? "Deleting..." : "Delete"}
               </button>
-              <button
-  type="submit"
-  className="bg-yellow-400 hover:bg-yellow-500 p-2 rounded-md transition-colors text-black w-full sm:w-auto"
-  aria-label="Save Changes"
-  disabled={isLoading}
->
-  {isLoading
-    ? "Saving..."
-    : userPermissions.role === "supervisorC"
-    ? "Verify"
-    : "Save Changes"}
-</button>
+            )}
 
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+              {/* Move Cancel button to the left if role is supervisorC */}
+              {role === "supervisorC" && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="p-2 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600 border border-gray-100 border-opacity-30 w-full sm:w-auto"
+                  aria-label="Cancel"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+              )}
+
+              {/* Save/Verify button */}
+              <button
+                type="submit"
+                className="bg-yellow-400 hover:bg-yellow-500 p-2 rounded-md transition-colors text-black w-full sm:w-auto"
+                aria-label="Save Changes"
+                disabled={isLoading}
+              >
+                {isLoading
+                  ? "Saving..."
+                  : userPermissions.role === "supervisorC"
+                  ? "Verify"
+                  : "Save Changes"}
+              </button>
+
+              {/* Keep Cancel button in its original position for other roles */}
+              {role !== "supervisorC" && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="p-2 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600 border border-gray-100 border-opacity-30 w-full sm:w-auto"
+                  aria-label="Cancel"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
         </form>
@@ -443,28 +476,31 @@ const EditModal = ({ ticket, onClose, onSave, onDelete }) => {
       {showConfirmDelete && (
         <div
           role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" // Added z-50
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+          onClick={() => setShowConfirmDelete(false)} // Close modal on outside click
         >
-          <div className="bg-gray-800 p-6 rounded-lg w-full sm:w-3/4 md:w-1/2 lg:w-1/3 text-center">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4">
-              Are you sure you want to delete this record?
-            </h3>
-            <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+          <div
+            className="bg-gray-800 p-4 sm:p-6 rounded-lg w-full sm:w-11/12 md:w-1/3 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()} // Prevent click from propagating to the outer div
+          >
+            <h2 className="text-lg sm:text-xl font-semibold mb-4">Confirm Delete</h2>
+            <p className="mb-6">Are you sure you want to delete this ticket?</p>
+            <div className="flex justify-end space-x-4">
               <button
-                onClick={confirmDelete}
-                className="bg-red-500 p-2 rounded-md w-full sm:w-auto"
-                autoFocus // Focus on this button when the modal opens
-                disabled={isLoading}
+                type="button"
+                onClick={() => setShowConfirmDelete(false)}
+                className="p-2 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600 border border-gray-100 border-opacity-30"
+                aria-label="Cancel"
               >
-                {isLoading ? "Deleting..." : "Yes"}
+                Cancel
               </button>
               <button
-                onClick={() => setShowConfirmDelete(false)}
-                className="bg-gray-700 p-2 rounded-md w-full sm:w-auto"
-                disabled={isLoading}
+                type="button"
+                onClick={confirmDelete}
+                className="bg-red-500 hover:bg-red-600 p-2 rounded-md transition-colors"
+                aria-label="Confirm Delete"
               >
-                No
+                Delete
               </button>
             </div>
           </div>

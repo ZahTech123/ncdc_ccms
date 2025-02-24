@@ -1,4 +1,3 @@
-// Filters.js
 import React from "react";
 
 // Mapping of Directorates to their respective issue types
@@ -39,7 +38,19 @@ const Filters = ({
   priority,
   setPriority,
   resetFiltersAndZoom,
+  selectedDirectorate, // Pass selectedDirectorate
 }) => {
+  // Get issue types based on selected directorate
+  const getFilteredIssueTypes = () => {
+    if (!selectedDirectorate) {
+      console.log("No directorate selected. Showing all issue types.");
+      return allIssueTypes;
+    }
+
+    console.log(`Selected Directorate: ${selectedDirectorate}`);
+    return directorateIssueTypeMapping[selectedDirectorate] || allIssueTypes;
+  };
+
   return (
     <div className="w-1/4 bg-gray-700 p-6 rounded-lg space-y-6">
       <h2 className="text-lg font-semibold text-white">Filters</h2>
@@ -67,7 +78,10 @@ const Filters = ({
           onChange={(e) => setCategory(e.target.value)}
           className="w-full p-2 rounded-md bg-gray-600 text-white"
         >
-          {allIssueTypes.map((type) => (
+          {/* Default "Select Issue Type" option */}
+          <option value="">Select Issue Type</option>
+          {/* Dynamically populated issue types */}
+          {getFilteredIssueTypes().map((type) => (
             <option key={type} value={type}>
               {type}
             </option>

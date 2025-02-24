@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { db } from "../../firebaseConfig"; // Firestore instance
-import { collection, onSnapshot, doc, setDoc, deleteDoc } from "firebase/firestore"; // Import deleteDoc
+import { db } from "../../firebaseConfig"; // Keep only the db import
+import { doc, setDoc } from "firebase/firestore"; // Keep only what's needed
 import TicketForm from "./TicketForm";
-import EditModal from "./EditModal"; // Import the EditModal component
 import TicketTracker from "./TicketTracker";
 import "../../styles/tableCollapsAnimation.css"; // Import the CSS file
 import TicketTable from "./TicketTable"; // Import the new TicketTable component
 import { usePermissions } from "../../context/PermissionsContext";
 import emailjs from "emailjs-com";
 import NotificationModal from "../../components/NotificationModal"; // Import the NotificationModal component
+import { useTickets } from "../../context/TicketsContext";
+import { filterTickets, filterUnreadTickets } from "../../utils/ticketFilters"; // Import the filtering functions
 
 // Initialize EmailJS with your Public Key
 emailjs.init("SimW6urql2il_yFhB"); // Replace with your Public Key
 
-const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
-  const [tickets, setTickets] = useState([]);
+const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissionsCount }) => {
+  const { tickets, updateTicket } = useTickets();
   const [statusFilter, setStatusFilter] = useState("");
   const [issueTypeFilter, setIssueTypeFilter] = useState("");
   const [keywordSearch, setKeywordSearch] = useState("");
@@ -22,7 +23,6 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Separate states for each modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
@@ -33,43 +33,17 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { userPermissions } = usePermissions();
-
-  // Fetch real-time updates from Firestore and filter based on user role
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "complaints"), (snapshot) => {
-      const ticketData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-      // Filter tickets based on user role
-      const filteredTickets = ticketData.filter((ticket) => {
-        if (userPermissions.role === "bU_C_admin") {
-          return ticket.directorate === "Compliance"; // Only show Compliance tickets for bU_C_admin
-        }
-        return true; // Show all tickets for other roles
-      });
-
-      setTickets(filteredTickets); // Set the filtered tickets to state
-    });
-
-    return () => unsubscribe();
-  }, [userPermissions.role]); // Add userPermissions.role as a dependency
+  const { role } = userPermissions;
 
   // Memoize filtered tickets (only for status, issueType, and keyword search)
   const filteredTickets = useMemo(() => {
-    return tickets.filter((ticket) => {
-      const matchesStatus = statusFilter ? ticket.status === statusFilter : true;
-      const matchesIssueType = issueTypeFilter ? ticket.issueType === issueTypeFilter : true;
-      const matchesKeyword = keywordSearch
-        ? Object.values(ticket).some((value) =>
-            String(value).toLowerCase().includes(keywordSearch.toLowerCase())
-          )
-        : true;
+    return filterTickets(tickets, statusFilter, issueTypeFilter, keywordSearch, role);
+  }, [tickets, statusFilter, issueTypeFilter, keywordSearch, role]);
 
-      return matchesStatus && matchesIssueType && matchesKeyword;
-    });
-  }, [tickets, statusFilter, issueTypeFilter, keywordSearch]);
-
-  // Memoize unread tickets
-  const unreadTickets = useMemo(() => tickets.filter((ticket) => !ticket.isRead), [tickets]);
+  // Update the unreadTickets memoization
+  const unreadTickets = useMemo(() => {
+    return filterUnreadTickets(tickets, role);
+  }, [tickets, role]);
 
   // Monitor tickets for pending status and operator handler
   useEffect(() => {
@@ -98,7 +72,6 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
               description: ticket.description,
               contact_information: "NCDC CCMS Response Team | contact@ncdc.gov.pg",
             });
-            console.log("Email sent successfully");
           } catch (error) {
             console.error("Failed to send email:", error);
           }
@@ -113,17 +86,13 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
           const ticketRef = doc(db, "complaints", ticket.id);
           await setDoc(ticketRef, updatedData, { merge: true });
 
-          // Update local state
-          setTickets((prevTickets) =>
-            prevTickets.map((t) =>
-              t.id === ticket.id ? { ...t, ...updatedData } : t
-            )
-          );
+          // Update local state through context
+          updateTicket(ticket.id, updatedData); // Use updateTicket from context instead of setTickets
         }, 24000); // 24 seconds
       });
 
     return () => timers.forEach((timer) => clearTimeout(timer));
-  }, [tickets]);
+  }, [tickets, updateTicket]); // Add updateTicket to dependencies
 
   // Update search suggestions based on keyword search
   useEffect(() => {
@@ -151,82 +120,60 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
   // Log new ticket to Firestore
   const logToComplaints = useCallback(async (ticket) => {
     const ticketId = `ticketId_${new Date().getTime()}`;
-    const ticketWithId = { ...ticket, id: ticketId, isRead: false }; // Initialize isRead to false
+    const ticketWithId = { 
+      ...ticket, 
+      id: ticketId,
+      isRead: {
+        admin: false,
+        operator: false,
+        supervisor: false
+      }
+    };
 
-    const complaintsRef = doc(db, "complaints", ticketId);
-
-    try {
-      await setDoc(complaintsRef, ticketWithId, { merge: true });
-      console.log(`Logged/Updated ticket ${ticketId} in complaints collection`);
-    } catch (error) {
-      console.error("Error logging to complaints collection:", error);
+    // Update submissions count
+    if (setSubmissionsCount) {
+      setSubmissionsCount(prev => prev + 1);
     }
-  }, []);
 
-  // Handle edit button click
-  const handleEditClick = useCallback((ticket) => {
-    setSelectedTicket(ticket);
-    setIsEditModalOpen(true); // Open the EditModal
-  }, []);
+    // Add notification
+    if (setNewTickets) {
+      setNewTickets(prev => [...prev, ticketWithId]);
+    }
+
+    // Save to Firestore
+    const complaintsRef = doc(db, "complaints", ticketId);
+    await setDoc(complaintsRef, ticketWithId, { merge: true });
+  }, [setNewTickets, setSubmissionsCount]);
 
   // Handle ticket tracker button click
-  const handleTicketTrackerClick = useCallback((ticket) => {
+  const handleDashboardTrackerClick = useCallback((ticket) => {
     setSelectedTicket(ticket);
-    setIsTrackerModalOpen(true); // Open the TicketTracker modal
+    setIsTrackerModalOpen(true);
   }, []);
 
   // Handle closing the modal
   const handleCloseModal = useCallback(() => {
-    setIsEditModalOpen(false);
     setIsTrackerModalOpen(false);
     setIsNotificationModalOpen(false);
     setSelectedTicket(null); // Reset the selected ticket
   }, []);
 
   // Handle saving updated ticket data
-  const handleSave = useCallback(async (ticketId, updatedData) => {
+  const handleDashboardSave = useCallback(async (ticketId, updatedData) => {
     try {
-      // Update Firebase
-      const ticketRef = doc(db, "complaints", ticketId);
-      await setDoc(ticketRef, updatedData, { merge: true });
-
-      // Update local state
-      setTickets((prevTickets) =>
-        prevTickets.map((ticket) =>
-          ticket.id === ticketId ? { ...ticket, ...updatedData } : ticket
-        )
-      );
-
-      console.log("Ticket updated successfully!");
+      console.log("handleDashboardSave called with:", ticketId, updatedData);
+      await updateTicket(ticketId, updatedData);
     } catch (error) {
       console.error("Error updating ticket:", error);
     }
-  }, []);
-
-  // Handle deleting a ticket
-  const handleDelete = useCallback(async (ticketId) => {
-    try {
-      const ticketRef = doc(db, "complaints", ticketId);
-      await deleteDoc(ticketRef); // Delete the document from Firestore
-
-      // Update local state by removing the deleted ticket
-      setTickets((prevTickets) =>
-        prevTickets.filter((ticket) => ticket.id !== ticketId)
-      );
-
-      console.log("Ticket deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting ticket:", error);
-    }
-  }, []);
+  }, [updateTicket]);
 
   // Determine if the form should be visible based on the user's role
-  const isFormVisible = userPermissions.role === "admin" || userPermissions.role === "operator";
+  const isFormVisible = role === "admin" || role === "operator";
 
   // Pass unreadTickets to App.js
   useEffect(() => {
     if (setNewTickets) {
-      console.log("Calling setNewTickets with:", unreadTickets); // Debug log
       setNewTickets(unreadTickets);
     }
   }, [unreadTickets, setNewTickets]);
@@ -237,8 +184,7 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
         {/* Left Section - Ticket Table */}
         <TicketTable
           filteredTickets={filteredTickets}
-          handleEditClick={handleEditClick}
-          handleTicketTrackerClick={handleTicketTrackerClick}
+          handleTicketTrackerClick={handleDashboardTrackerClick}
           isExpanded={isExpanded}
           setIsExpanded={setIsExpanded}
           statusFilter={statusFilter}
@@ -273,16 +219,6 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
         )}
       </div>
 
-      {/* Edit Modal */}
-      {isEditModalOpen && (
-        <EditModal
-          ticket={selectedTicket}
-          onClose={handleCloseModal}
-          onSave={handleSave}
-          onDelete={handleDelete}
-        />
-      )}
-
       {/* Ticket Tracker Modal */}
       {isTrackerModalOpen && (
         <TicketTracker
@@ -295,23 +231,17 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead }) => {
       <NotificationModal
         isOpen={isNotificationModalOpen}
         onClose={async () => {
-          console.log("Closing modal and marking tickets as read...");
-
           // Mark all unread tickets as read
           for (const ticket of unreadTickets) {
-            console.log(`Marking ticket ${ticket.id} as read...`);
-            await updateTicketAsRead(ticket.id); // Await each update
+            await updateTicketAsRead(ticket.id);
           }
-
-          // Close the modal
           setIsNotificationModalOpen(false);
-
-          // Clear notifications after all tickets are marked as read
           if (setNewTickets) {
-            setNewTickets([]); // Clear the newTickets array
+            setNewTickets([]);
           }
         }}
-        newTickets={unreadTickets} // Pass unread tickets
+        newTickets={unreadTickets}
+        onSave={handleDashboardSave}
       />
     </div>
   );

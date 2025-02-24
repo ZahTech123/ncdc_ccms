@@ -1,43 +1,60 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { db } from "../../firebaseConfig";
-import { collection, onSnapshot } from "firebase/firestore";
 import { CreatePopupContent } from "./CreatePopupContent"; // Helper function for popup content
 import MapPagePopUpModal from "./MapPagePopUpModal";
 import DynamicCards from "./DynamicCards2";
 import Filters from "./Filters";
 import { easeQuadInOut } from "d3-ease";
+import { usePermissions } from "../../context/PermissionsContext"; // Updated import path
+import { useTickets } from "../../context/TicketsContext"; // Import useTickets
+import { filterTickets } from "../../utils/ticketFilters"; // Import filterTickets function
 
 // Set Mapbox access token
 mapboxgl.accessToken = "pk.eyJ1Ijoiam9obnNraXBvbGkiLCJhIjoiY201c3BzcDYxMG9neDJscTZqeXQ4MGk4YSJ9.afrO8Lq1P6mIUbSyQ6VCsQ";
 
 // Main MapPage component
 const MapPage = () => {
+  const { userPermissions } = usePermissions(); // Get user permissions
+  const { role } = userPermissions;
+  const { filteredTickets } = useTickets(); // Use filteredTickets from TicketsProvider
+
   // State Management
   const [selectedCity, setSelectedCity] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
   const [locationKeyword, setLocationKeyword] = useState("");
-  const [complaints, setComplaints] = useState([]);
   const [map, setMap] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [priority, setPriority] = useState("");
+  const [selectedDirectorate, setSelectedDirectorate] = useState(""); // Add selectedDirectorate state
   const markersRef = useRef([]);
 
-  // Fetch complaints data from Firebase
+  // Log the selectedDirectorate state whenever it changes
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "complaints"), (snapshot) => {
-      const complaintsData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setComplaints(complaintsData);
-    });
+    console.log("Selected Directorate (MapPage):", selectedDirectorate);
+  }, [selectedDirectorate]);
 
-    return () => unsubscribe();
-  }, []);
+  // Automatically set the selectedDirectorate based on the first complaint's directorate
+  useEffect(() => {
+    if (filteredTickets.length > 0) {
+      const firstComplaintDirectorate = filteredTickets[0].directorate;
+      setSelectedDirectorate(firstComplaintDirectorate);
+      console.log("Setting selectedDirectorate to:", firstComplaintDirectorate);
+    }
+  }, [filteredTickets]);
+
+  // Filter tickets based on selected filters and role
+  const filteredComplaints = useMemo(() => {
+    return filterTickets(
+      filteredTickets, // Use filteredTickets instead of tickets
+      priority, // statusFilter
+      category, // issueTypeFilter
+      locationKeyword, // keywordSearch
+      role // role
+    );
+  }, [filteredTickets, category, locationKeyword, priority, role]);
 
   // Initialize map with 3D buildings
   useEffect(() => {
@@ -99,37 +116,6 @@ const MapPage = () => {
       }
     };
   }, []);
-
-  // Filter complaints based on selected filters
-  const filteredComplaints = useMemo(() => {
-    return complaints.filter((complaint) => {
-      const matchesCity = selectedCity
-        ? (complaint.electorate || "").toLowerCase() === selectedCity.toLowerCase()
-        : true;
-      const matchesCategory = category
-        ? category.toLowerCase() === "all" || (complaint.issueType || "").toLowerCase() === category.toLowerCase()
-        : true;
-      const matchesDate = date
-        ? (complaint.dateSubmitted || "").split("T")[0] === date
-        : true;
-      const matchesKeyword = locationKeyword
-        ? (complaint.suburb || "")
-            .toLowerCase()
-            .includes(locationKeyword.toLowerCase())
-        : true;
-      const matchesPriority = priority
-        ? (complaint.priority || "").toLowerCase() === priority.toLowerCase()
-        : true;
-
-      return (
-        matchesCity &&
-        matchesCategory &&
-        matchesDate &&
-        matchesKeyword &&
-        matchesPriority
-      );
-    });
-  }, [complaints, selectedCity, category, date, locationKeyword, priority]);
 
   // Function to handle fly-to animation and show popup
   const flyToLocation = useCallback(
@@ -193,6 +179,7 @@ const MapPage = () => {
     setDate("");
     setLocationKeyword("");
     setPriority("");
+    setSelectedDirectorate(""); // Reset selectedDirectorate
 
     zoomToBounds();
   }, [zoomToBounds]);
@@ -277,6 +264,7 @@ const MapPage = () => {
         priority={priority}
         setPriority={setPriority}
         resetFiltersAndZoom={resetFiltersAndZoom}
+        selectedDirectorate={selectedDirectorate} // Pass selectedDirectorate
       />
       {showModal && (
         <MapPagePopUpModal

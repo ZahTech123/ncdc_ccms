@@ -7,7 +7,7 @@ import {
   FaClock, 
 } from "react-icons/fa";
 
-const Section1 = ({ tickets = [] }) => { // Provide a default value for tickets
+const Section1 = ({ tickets = [] }) => {
   const donutChartRef = useRef(null);
   const donutChartInstance = useRef(null);
 

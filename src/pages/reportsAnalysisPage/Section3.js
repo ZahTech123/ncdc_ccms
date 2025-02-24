@@ -2,11 +2,10 @@ import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto"; // Make sure to install Chart.js
 import 'chartjs-adapter-date-fns';
 
-const Section3 = () => {
-  const chartRef = useRef(null); // Use a ref to reference the canvas element
+const Section3 = ({ tickets = [] }) => {
+  const chartRef = useRef(null);
 
   useEffect(() => {
-    // Provided dataset
     const complaints = [
       { issueType: "Garbage", status: "New" },
       { issueType: "Crime Alert", status: "In Progress" },
@@ -30,15 +29,9 @@ const Section3 = () => {
       { issueType: "Fire Hazard", status: "Overdue" },
     ];
 
-    console.log("Complaints Data:", complaints);
-
-    // Define categories (Issue Types)
     const issueTypes = [...new Set(complaints.map(complaint => complaint.issueType))];
-    console.log("Unique Issue Types:", issueTypes);
-
     const statuses = ["New", "In Progress", "Resolved", "Overdue"];
 
-    // Count occurrences of each status per issue type
     const statusCounts = issueTypes.reduce((acc, issue) => {
       acc[issue] = { "New": 0, "In Progress": 0, "Resolved": 0, "Overdue": 0 };
       return acc;
@@ -50,9 +43,6 @@ const Section3 = () => {
       }
     });
 
-    console.log("Status Counts:", statusCounts);
-
-    // Prepare datasets for Chart.js
     const datasets = statuses.map((status, index) => ({
       label: status,
       data: issueTypes.map(issue => statusCounts[issue][status] || 0),
@@ -62,9 +52,6 @@ const Section3 = () => {
       borderSkipped: 'bottom',
     }));
 
-    console.log("Datasets for Chart.js:", datasets);
-
-    // Create Chart
     const ctxBarChart = chartRef.current?.getContext("2d");
 
     if (ctxBarChart) {
@@ -90,12 +77,9 @@ const Section3 = () => {
         },
       });
 
-      // Cleanup function to destroy the chart when the component unmounts
       return () => {
         chartInstance.destroy();
       };
-    } else {
-      console.log("Chart.js canvas element not found!");
     }
   }, []);
 

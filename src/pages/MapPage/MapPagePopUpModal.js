@@ -144,7 +144,7 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                     }}
                   />
                   <p className="text-sm text-gray-500 text-center mt-2">
-                    Default Image: {defaultImages[selectedComplaint.issueType] || "/assets/images/default.jpg"}
+                    Default Image: {defaultImages[selectedComplaint.directorate] || "/assets/images/default.jpg"}
                   </p>
                 </>
               )}
@@ -235,7 +235,10 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                   <span className="font-semibold text-gray-800">Requester Name:</span>
                   <span className="text-gray-600">{selectedComplaint.name || "Unassigned"}</span>
                 </div>
-
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-800">Directorate:</span>
+                  <span className="text-gray-600">{selectedComplaint.directorate || "Unassigned"}</span>
+                </div>
                 {/* Resident Feedback */}
                 <div className="flex justify-between">
                   <span className="font-semibold text-gray-800">Resident Feedback:</span>

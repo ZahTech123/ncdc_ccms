@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { LuPencil } from "react-icons/lu";
 import { BiExpandHorizontal, BiCollapseHorizontal } from "react-icons/bi";
 import { usePermissions } from "../../context/PermissionsContext";
+import "../../styles/scrollbar.css"; // Import the scrollbar styles
+import { doc, setDoc, deleteDoc, getDoc } from "firebase/firestore"; // Import Firestore functions
+import { db } from "../../firebaseConfig"; // Import Firestore instance
+import EditModal from "./EditModal"; // Import EditModal
 
 const TicketTable = ({
   filteredTickets,
@@ -21,10 +25,13 @@ const TicketTable = ({
   resetFilters,
 }) => {
   const { userPermissions } = usePermissions();
+  const { role } = userPermissions;
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   // Force the table to be expanded for roles that are not admin or operator
   const isTableExpanded =
-    userPermissions.role !== "admin" && userPermissions.role !== "operator" ? true : isExpanded;
+    role !== "admin" && role !== "operator" ? true : isExpanded;
 
   // Sort the tickets by submission date in descending order
   const sortedTickets = [...filteredTickets].sort((a, b) => {
@@ -33,6 +40,90 @@ const TicketTable = ({
     return dateB - dateA;
   });
 
+  // Function to open the EditModal for verification
+  const openEditModal = (ticket) => {
+    setSelectedTicket(ticket);
+    setIsEditModalOpen(true);
+  };
+
+  // Function to handle verification
+  const handleVerify = async (ticketId) => {
+    console.log(`Initiating verification for ticket: ${ticketId}`);
+  
+    try {
+      const ticketRef = doc(db, "complaints", ticketId);
+      console.log(`Fetching document reference for ticket: ${ticketId}`);
+
+      // Determine the new currentHandler based on the assigned team
+      let newCurrentHandler = "Admin";
+      if (selectedTicket.team === "Compliance") {
+        newCurrentHandler = "Admin Compliance";
+      } else if (selectedTicket.team === "City Planning & Infrastructure") {
+        newCurrentHandler = "Admin CPI";
+      } else if (selectedTicket.team === "Sustainability & Lifestyle") {
+        newCurrentHandler = "Admin S&L";
+      }
+
+      await setDoc(
+        ticketRef,
+        {
+          status: "Verified", // Update the status to "Verified"
+          currentHandler: newCurrentHandler // Update the current handler
+        },
+        { merge: true } // Merge with existing data
+      );
+  
+      console.log(`Ticket ${ticketId} successfully verified.`);
+      setIsEditModalOpen(false); // Close the modal after verification
+      console.log(`Edit modal closed.`);
+    } catch (error) {
+      console.error(`Error verifying ticket ${ticketId}:`, error);
+    }
+  };
+
+  // Function to handle deletion
+  const handleDelete = async (ticketId) => {
+    let ticketSnapshot = null;
+    let abortController = new AbortController();
+
+    try {
+      const ticketRef = doc(db, "complaints", ticketId);
+      const deletedTicketRef = doc(db, "deletedTickets", ticketId);
+
+      // 1. Get the ticket data with abort signal
+      ticketSnapshot = await getDoc(ticketRef, { signal: abortController.signal });
+      if (!ticketSnapshot.exists()) {
+        throw new Error("Ticket not found");
+      }
+
+      // 2. Add deletion metadata with fallback values
+      const ticketData = {
+        ...ticketSnapshot.data(),
+        deletedAt: new Date().toISOString(),
+        deletedBy: userPermissions?.userId || 'unknown_user',
+        deletedByName: userPermissions?.userName || 'Unknown User'
+      };
+
+      // 3. Copy to deletedTickets collection
+      await setDoc(deletedTicketRef, ticketData, { signal: abortController.signal });
+
+      // 4. Delete from original collection
+      await deleteDoc(ticketRef, { signal: abortController.signal });
+
+      // Close the modal
+      setIsEditModalOpen(false);
+      
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        // Handle non-abort errors silently
+      }
+    } finally {
+      // Cleanup
+      abortController.abort();
+      ticketSnapshot = null;
+    }
+  };
+  
   return (
     <div
       className={`table-container ${
@@ -183,7 +274,7 @@ const TicketTable = ({
         </span>
 
         {/* Expand/Collapse Icon - Conditionally Rendered for Admin and Operator Roles */}
-        {(userPermissions.role === "admin" || userPermissions.role === "operator") && (
+        {(role === "admin" || role === "operator") && (
           <div className="absolute right-0">
             {isTableExpanded ? (
               <BiCollapseHorizontal
@@ -201,19 +292,21 @@ const TicketTable = ({
       </div>
 
       {/* Ticket Table */}
-      <div className="table-container">
+      <div className="custom-scrollbar" style={{ maxHeight: "450px", overflowY: "auto" }}>
         <table className="w-full table-auto text-sm">
           <thead>
             <tr className="border-b border-gray-600">
               {/* Conditionally render the Actions column */}
-              {userPermissions.canEditTicket && userPermissions.role !== "operator" && (
+              {(userPermissions.canEditTicket || role === "bU_adminC" || role === "supervisorC") && (
                 <th className="p-2 text-left">Actions</th>
               )}
               <th className="p-2 text-left">Ticket ID</th>
               <th className="p-2 text-left">Issue Type</th>
               <th className="p-2 text-left">Assigned to</th>
               <th className="p-2 text-left">Priority</th>
-              <th className="p-2 text-left status-column">Status</th>
+              <th className="p-2 text-left status-column" style={{ minWidth: "120px" }}>
+                Status
+              </th>
               <th className="p-2 text-left">Current Handler</th>
               <th className="p-2 text-left">Submission Date</th>
               {/* New Columns */}
@@ -231,15 +324,32 @@ const TicketTable = ({
                 key={index}
                 className="border-b border-gray-600 hover:bg-gray-700"
               >
-                {/* Conditionally render the Edit button */}
-                {userPermissions.canEditTicket && userPermissions.role !== "operator" && (
-                  <td className="p-2 flex items-center gap-2">
-                    <LuPencil
-                      className="cursor-pointer text-base hover:text-blue-300"
-                      onClick={() => handleEditClick(ticket)}
-                    />
-                  </td>
-                )}
+       {/* Render Verify button for supervisorC */}
+{role === "supervisorC" && (
+  <td className="p-2 flex items-center gap-2">
+    <button
+      className={`p-1 rounded-md text-sm ${
+        ticket.status === "Verified"
+          ? "bg-gray-500 cursor-not-allowed"
+          : "bg-yellow-500 hover:bg-yellow-600"
+      }`}
+      onClick={() => ticket.status !== "Verified" && openEditModal(ticket)}
+      disabled={ticket.status === "Verified"}
+    >
+      {ticket.status === "Verified" ? "Verified" : "Verify"}
+    </button>
+  </td>
+)}
+
+{/* Render Edit button for admin and bU_adminC */}
+{(role === "admin" || role === "bU_adminC") && (
+  <td className="p-2 flex items-center gap-2">
+    <LuPencil
+      className="cursor-pointer text-base hover:text-blue-300"
+      onClick={() => openEditModal(ticket)} // Use openEditModal instead of handleEditClick
+    />
+  </td>
+)}
                 <td className="p-2">
                   {ticket.id.length > 15
                     ? ticket.id.substring(0, 15) + "..."
@@ -257,6 +367,8 @@ const TicketTable = ({
                         ? "text-green-500 bg-gray-700"
                         : ticket.status === "In Progress"
                         ? "text-yellow-500 bg-gray-700"
+                        : ticket.status === "Verified"
+                        ? "text-blue-500 bg-gray-700"
                         : "text-red-400 bg-gray-700"
                     }`}
                   >
@@ -289,7 +401,14 @@ const TicketTable = ({
                 {isTableExpanded && (
                   <>
                     <td className="p-2">{ticket.suburb}</td>
-                    <td className="p-2">{ticket.newComment}</td>
+                    <td className="p-2">
+                      {(() => {
+                        const parts = ticket.description.split("|");
+                        const newestComment = parts[parts.length - 1].trim();
+                        const hasMoreComments = parts.length > 4; // Check if there are more than 4 parts (indicating multiple comments)
+                        return hasMoreComments ? `${newestComment}...` : newestComment;
+                      })()}
+                    </td>
                   </>
                 )}
               </tr>
@@ -297,6 +416,16 @@ const TicketTable = ({
           </tbody>
         </table>
       </div>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && selectedTicket && (
+        <EditModal
+          ticket={selectedTicket}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleVerify}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 };
