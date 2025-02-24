@@ -68,10 +68,10 @@ const getCurrentHandlerOptions = (role) => {
       ];
     case "bU_adminC":
       return [
-        { label: "Compliance Supervisor", disabled: false },
-        { label: "Compliance Manager", disabled: false },
-        { label: "Compliance Director", disabled: false },
-        { label: "Response Team", disabled: false },
+        { label: "Compliance Supervisor", disabled: true },
+        { label: "Compliance Manager", disabled: true },
+        { label: "Compliance Director", disabled: true },
+        { label: "Response Team", disabled: true },
       ];
     case "bU_C_supervisor":
       return [
