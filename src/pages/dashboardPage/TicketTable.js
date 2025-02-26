@@ -95,11 +95,6 @@ const TicketTable = ({
         updatedPreviousHandlers = updatedTicket.previousHandlers; // No change to previousHandlers
       }
   
-      // Additional logic to append "bU_supervisorC" if currentHandler is "Supervisor Compliance"
-      if (updatedTicket.currentHandler === "Supervisor Compliance") {
-        updatedPreviousHandlers = [...updatedPreviousHandlers, "bU_supervisorC"];
-      }
-  
       // Format the new comment using previousHandler
       const timestamp = new Date().toLocaleString();
       const newComment = updatedTicket.newComment 
@@ -375,7 +370,7 @@ const TicketTable = ({
               <tr
                 key={index}
                 className="border-b border-gray-600 hover:bg-gray-700"
-               >
+              >
                 {/* Render Verify button for supervisorC */}
                 {role === "supervisorC" && (
                   <td className="p-2 flex items-center gap-2">
