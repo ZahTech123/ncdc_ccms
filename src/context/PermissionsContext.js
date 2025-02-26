@@ -1,48 +1,58 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 
 // Create the context
+// Create the context
 export const PermissionsContext = createContext();
 
 // Create the provider component
 export const PermissionsProvider = ({ children }) => {
-  // Initialize role from localStorage
+  // Initialize state from localStorage
   const [userPermissions, setUserPermissions] = useState({
     role: localStorage.getItem("userRole") || null,
-    buttons: [], // List of buttons the user can see
-    dropdowns: [], // List of dropdown options the user can see
-    canView: [], // Pages or sections the user can view
-    canEdit: [], // Items the user can edit
-    canDelete: [], // Items the user can delete
-    canExpandCollapse: false, // Whether the user can expand/collapse the table
-    canEditTicket: false, // Whether the user can edit tickets
+    name: localStorage.getItem("userName") || null, // Add name field
+    buttons: [],
+    dropdowns: [],
+    canView: [],
+    canEdit: [],
+    canDelete: [],
+    canExpandCollapse: false,
+    canEditTicket: false,
   });
 
-  // Log the role when it changes
+  // Log the role and name when they change
   useEffect(() => {
     console.log("Role updated:", userPermissions.role);
-  }, [userPermissions.role]);
+    console.log("Name updated:", userPermissions.name);
+  }, [userPermissions.role, userPermissions.name]);
 
-  // Update localStorage whenever the role changes
+  // Update localStorage whenever the role or name changes
   useEffect(() => {
     if (userPermissions.role) {
       localStorage.setItem("userRole", userPermissions.role);
     } else {
       localStorage.removeItem("userRole");
     }
-  }, [userPermissions.role]);
 
-  // Function to update permissions based on role
-  const updatePermissions = (role, permissions) => {
+    if (userPermissions.name) {
+      localStorage.setItem("userName", userPermissions.name);
+    } else {
+      localStorage.removeItem("userName");
+    }
+  }, [userPermissions.role, userPermissions.name]);
+
+  // Function to update permissions based on role and name
+  const updatePermissions = (role, permissions, name) => {
     const rolePermissions = UI_PERMISSIONS[role] || {};
     setUserPermissions({
       role,
+      name, // Add name to the state
       buttons: rolePermissions.buttons || [],
       dropdowns: rolePermissions.dropdowns || [],
       canView: rolePermissions.canView || [],
       canEdit: rolePermissions.canEdit || [],
       canDelete: rolePermissions.canDelete || [],
-      canExpandCollapse: rolePermissions.canExpandCollapse || false, // Include canExpandCollapse
-      canEditTicket: rolePermissions.canEditTicket || false, // Include canEditTicket
+      canExpandCollapse: rolePermissions.canExpandCollapse || false,
+      canEditTicket: rolePermissions.canEditTicket || false,
     });
   };
 

@@ -35,7 +35,9 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
 
   // Memoize filtered tickets (only for status, issueType, and keyword search)
   const filteredTickets = useMemo(() => {
-    return filterTickets(tickets, statusFilter, issueTypeFilter, keywordSearch, role);
+    const filtered = filterTickets(tickets, statusFilter, issueTypeFilter, keywordSearch, role);
+    console.log(`Role ${role} filtered tickets: dashboard`, filtered);
+    return filtered;
   }, [tickets, statusFilter, issueTypeFilter, keywordSearch, role]);
 
   // Update the unreadTickets memoization

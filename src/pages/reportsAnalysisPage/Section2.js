@@ -4,6 +4,11 @@ import Chart from "chart.js/auto";
 const Section2 = ({ tickets = [] }) => {
     const lineChartRef = useRef(null);
     const lineChartInstance = useRef(null);
+    useEffect(() => {
+
+      console.log("Tickets data in Section2:", tickets);
+    }, [tickets]);
+
 
     useEffect(() => {
         // Get the canvas context for drawing the chart
@@ -85,7 +90,7 @@ const Section2 = ({ tickets = [] }) => {
     return (
         <div className="flex flex-col lg:flex-row gap-8">
             {/* Complaints by Electorate Section */}
-            <div className="lg:w-1/2 bg-gray-800 p-6 rounded-lg mb-8">
+            <div className="lg:w-1/3 bg-gray-800 p-6 rounded-lg mb-8">
                 <h2 className="text-lg font-bold mb-4 text-white">Complaints by Electorate</h2>
                 <div className="flex flex-col gap-4">
                     {[
@@ -125,7 +130,7 @@ const Section2 = ({ tickets = [] }) => {
             </div>
 
             {/* Line Graph Section */}
-            <div className="lg:w-1/2 bg-gray-800 p-6 rounded-lg mb-8">
+            <div className="lg:w-2/3 bg-gray-800 p-6 rounded-lg mb-8">
                 <p className="text-3xl font-bold">Complaint Resolution Progress Over Time</p>
                 <p className="text-sm text-gray-400 mt-1">
                     Total Resolved: <span className="text-green-400">230</span> | Total Pending: <span className="text-red-400">12</span>

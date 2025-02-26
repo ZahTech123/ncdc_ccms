@@ -38,7 +38,8 @@ const Filters = ({
   priority,
   setPriority,
   resetFiltersAndZoom,
-  selectedDirectorate, // Pass selectedDirectorate
+  selectedDirectorate,
+  setSelectedDirectorate, // Add setSelectedDirectorate
 }) => {
   // Get issue types based on selected directorate
   const getFilteredIssueTypes = () => {
@@ -67,6 +68,21 @@ const Filters = ({
           <option value="Moresby North-East Open">Moresby North-East Open</option>
           <option value="Moresby North-West Open">Moresby North-West Open</option>
           <option value="Moresby South Open">Moresby South Open</option>
+        </select>
+      </div>
+
+      {/* Directorate Dropdown */}
+      <div className="space-y-2">
+        <label className="text-sm text-white">Select Directorate:</label>
+        <select
+          value={selectedDirectorate}
+          onChange={(e) => setSelectedDirectorate(e.target.value)}
+          className="w-full p-2 rounded-md bg-gray-600 text-white"
+        >
+          <option value="">All</option>
+          <option value="Sustainability & Lifestyle">Sustainability & Lifestyle</option>
+          <option value="Compliance">Compliance</option>
+          <option value="City Planning & Infrastructure">City Planning & Infrastructure</option>
         </select>
       </div>
 

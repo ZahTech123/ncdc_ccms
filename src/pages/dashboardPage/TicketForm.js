@@ -119,8 +119,8 @@ const TicketForm = ({ onSubmit }) => {
     });
 
     //const ticketId = generateTicketId(); // Generate a unique ticket ID
-    const defaultDescription = `Operator | ${formattedDate}, ${formattedTime} | New | New Ticket registered by Controls Operator. `;
-    const editedDescription = `Operator | ${formattedDate}, ${formattedTime} | New | ${description}`;
+    const defaultDescription = `Operator | ${formattedDate}, ${formattedTime} | New | New Ticket registered by Controls Operator.|`;
+    const editedDescription = `Operator | ${formattedDate}, ${formattedTime} | New | ${description}|`;
 
     const ticket = {
       directorate,
@@ -135,17 +135,25 @@ const TicketForm = ({ onSubmit }) => {
       status: "New",
       dateSubmitted: now.toISOString(),
       submissionTime: formattedTime,
-      currentHandler: "Operator",
+      currentHandler: "Supervisor",
+      previousHandler: "Operator",
       team,
       handlerStartDateAndTime: now.toISOString(),
       closedTime: formattedTime,
+  
+      previousHandlers: ["operator","supervisorC"], // Logs previous handlers
+      escalationCount: 0, // Number of times issueType was escalated
+      resolved: false, // Tracks if ticket was successfully resolved
+      
       isRead: {
-        admin: false, // Track read status for admin
-        supervisorC: false, // Track read status for supervisorC
-        operator: false, // Track read status for operator
-        bU_admin:false,
+        admin: false,
+        supervisorC: false,
+        operator: false,
+        bU_admin: false,
+        bU_adminCPI: false,
       },
     };
+    
     console.log("Ticket before onSubmit:", ticket);
     onSubmit(ticket);
 

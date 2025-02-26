@@ -28,6 +28,7 @@ export const TicketsProvider = ({ children }) => {
     // Roles that have full access (no filtering)
     const fullAccessRoles = ["admin", "operator", "supervisorC"];
     if (fullAccessRoles.includes(role)) {
+      console.log(`Role ${role} has full access. Returning all tickets.`);
       return tickets;
     }
 
@@ -51,10 +52,24 @@ export const TicketsProvider = ({ children }) => {
     // Find the directorate that matches the user's role
     for (const [directorate, roles] of Object.entries(roleFilters)) {
       if (roles.includes(role)) {
-        return tickets.filter((ticket) => ticket.directorate === directorate);
+        // Special condition for bU_supervisorC
+        if (role === "bU_supervisorC") {
+          const filteredTickets = tickets.filter(
+            (ticket) =>
+              ticket.directorate === directorate &&
+              ticket.currentHandler === "Compliance Supervisor"
+          );
+          console.log(`Role ${role} filtered tickets:`, filteredTickets);
+          return filteredTickets;
+        }
+        // Default filtering for other roles
+        const filteredTickets = tickets.filter((ticket) => ticket.directorate === directorate);
+        console.log(`Role ${role} filtered tickets:`, filteredTickets);
+        return filteredTickets;
       }
     }
 
+    console.log(`Role ${role} has no specific filtering. Returning all tickets.`);
     return tickets; // Default return all if no match found
   };
 

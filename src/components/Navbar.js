@@ -24,7 +24,7 @@ const Navbar = ({
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { userPermissions } = usePermissions();
-  const { role } = userPermissions;
+  const { name } = userPermissions; // Use name instead of role
   const { unreadCount } = useNotifications();
 
   const toggleDropdown = () => {
@@ -35,6 +35,11 @@ const Navbar = ({
     if (unreadTickets.length > 0) {
       setIsNotificationOpen(true);
     }
+  };
+
+  const handleSave = async (ticketId) => {
+    console.log("Saving ticket: in Nav bar", ticketId);
+    // Add your save logic here (e.g., update the ticket in Firestore)
   };
 
   const handleLogout = () => {
@@ -103,7 +108,7 @@ const Navbar = ({
           {/* Vertical Separator */}
           <span className="separator">|</span>
 
-          {/* User Icon and Role */}
+          {/* User Icon and Name */}
           <div className="user-info">
             <div className="user-icon-container" ref={dropdownRef}>
               <FaUserCircle
@@ -121,7 +126,7 @@ const Navbar = ({
                 </div>
               )}
             </div>
-            <span className="user-role">{role}</span>
+            <span className="user-name">{name}</span> {/* Display name instead of role */}
           </div>
         </div>
       </nav>
@@ -134,6 +139,7 @@ const Navbar = ({
         }}
         newTickets={unreadTickets}
         updateTicketAsRead={updateTicketAsRead}
+        onSave={handleSave} 
       />
     </>
   );

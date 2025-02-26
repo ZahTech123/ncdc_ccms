@@ -129,16 +129,16 @@ nav {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 8px; /* Space between the icon and the role */
+  gap: 8px; /* Space between the icon and the name */
   font-size: 20px;
 }
 
-/* User role text */
-.user-role {
-  font-size: 18px;
-  font-weight: 400;
-  color: #ffffff; /* Adjust color as needed */
-  text-transform: capitalize; /* Capitalize the role (e.g., "admin" -> "Admin") */
+/* User name text */
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  margin-left: 8px;
 }
 
 /* ===================== */

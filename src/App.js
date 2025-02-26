@@ -14,6 +14,7 @@ import { PermissionsProvider, usePermissions } from "./context/PermissionsContex
 import { NotificationsProvider, useNotifications } from "./context/NotificationsContext";
 import "./styles/scrollbar.css";
 import { TicketsProvider } from "./context/TicketsContext";
+import { filterUnreadTickets } from "./utils/ticketFilters"; // Import the filtering function
 
 const App = () => {
   useEffect(() => {
@@ -40,10 +41,6 @@ const AppContent = () => {
   const { userPermissions } = usePermissions();
   const { role } = userPermissions;
 
-  useEffect(() => {
-    console.log("User:", role);
-  }, [role]);
-
   // Fetch tickets from Firestore
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "complaints"), (snapshot) => {
@@ -52,24 +49,8 @@ const AppContent = () => {
         ...doc.data(),
       }));
 
-      // Filter tickets based on role
-      const filteredTickets = tickets.filter((ticket) => {
-        if (role === "bU_adminC") {
-          // For bU_adminC, show only Compliance and Verified tickets that are unread
-          return (
-            ticket.directorate === "Compliance" &&
-            ticket.status === "Verified" &&
-            ticket.isRead?.bU_adminC === false // Ensure isRead for bU_adminC is false
-          );
-        } else {
-          // For other roles, use the default filtering logic (based on isRead)
-          if (typeof ticket.isRead === 'object' && ticket.isRead !== null) {
-            return !ticket.isRead[role]; // Return true if the ticket is unread for the current role
-          }
-          return !ticket.isRead; // Fallback for boolean isRead
-        }
-      });
-
+      // Use filterUnreadTickets instead of duplicating the logic
+      const filteredTickets = filterUnreadTickets(tickets, role);
       setNewTickets(filteredTickets); // Pass the filtered tickets to Navbar
     });
 
@@ -98,10 +79,6 @@ const AppContent = () => {
     },
     []
   );
-
-  useEffect(() => {
-    console.log("newTickets in App.js:", newTickets);
-  }, [newTickets]);
 
   const showNavbar = location.pathname !== "/login";
 

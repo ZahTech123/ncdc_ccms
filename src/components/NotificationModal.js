@@ -19,6 +19,14 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
     // Add any additional logic here if needed
   };
 
+  // Define handleDropdownChange function
+  const handleDropdownChange = (name, value) => {
+    setSelectedTicket((prevTicket) => ({
+      ...prevTicket,
+      [name]: value,
+    }));
+  };
+
   useEffect(() => {
     if (isOpen) {
       console.log("We are in the modal page. Testing tickets and their boolean values:");
@@ -34,29 +42,68 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
     }
   }, [isOpen, newTickets, role]);
 
+  // Filter and sort tickets
   const sortedTickets = newTickets
-  .filter((ticket) => {
-    // Check if the current role is bU_adminC
-    if (role === "bU_adminC") {
-      // Filter tickets where directorate is "Compliance" and status is "Verified"
-      return (
-        ticket.directorate === "Compliance" &&
-        ticket.status === "Verified"
-      );
-    }
+    .filter((ticket) => {
+      // Check if the current role is bU_adminC
+      if (role === "bU_adminC") {
+        // Filter tickets where directorate is "Compliance" and status is "Verified"
+        return (
+          ticket.directorate === "Compliance" &&
+          ticket.status === "Verified"
+        );
+      }
 
-    // For other roles, use the existing filtering logic
-    if (typeof ticket.isRead === 'object' && ticket.isRead !== null) {
-      return !ticket.isRead[role]; // Return true if the ticket is unread for the current role
-    }
-    return !ticket.isRead; // Fallback for boolean isRead
-  })
-  .sort((a, b) => new Date(b.dateSubmitted) - new Date(a.dateSubmitted)); // Sort by date
+      // For other roles, use the existing filtering logic
+      if (typeof ticket.isRead === 'object' && ticket.isRead !== null) {
+        return !ticket.isRead[role]; // Return true if the ticket is unread for the current role
+      }
+      return !ticket.isRead; // Fallback for boolean isRead
+    })
+    .sort((a, b) => new Date(b.dateSubmitted) - new Date(a.dateSubmitted)); // Sort by date in descending order (most recent first)
+
+  // Ensure the most recent ticket is at the top
+  if (sortedTickets.length > 0) {
+    console.log("Most recent ticket:", sortedTickets[0]);
+  }
 
   // Function to parse the description into its components
   const parseDescription = (description) => {
-    const [operator, , status, comment] = description.split(" | "); // Remove unused 'date' variable
-    return { operator, status, comment };
+    if (!description) {
+      return {
+        handler: "Unknown",
+        timestamp: "Unknown",
+        status: "Unknown",
+        comment: "No comment",
+      };
+    }
+
+    // Split the description into individual entries
+    const entries = description.split("|");
+
+    // Group the entries into chunks of 4 (handler, timestamp, status, comment)
+    const groupedEntries = [];
+    for (let i = 0; i < entries.length; i += 4) {
+      // Ensure we don't go out of bounds
+      if (i + 3 < entries.length) {
+        groupedEntries.push({
+          handler: entries[i].trim(),
+          timestamp: entries[i + 1].trim(),
+          status: entries[i + 2].trim(),
+          comment: entries[i + 3].trim(),
+        });
+      }
+    }
+
+    // Find the most recent entry based on the timestamp
+    let mostRecentEntry = groupedEntries[0]; // Default to the first entry
+    for (const entry of groupedEntries) {
+      if (new Date(entry.timestamp) > new Date(mostRecentEntry.timestamp)) {
+        mostRecentEntry = entry;
+      }
+    }
+
+    return mostRecentEntry;
   };
 
   // Function to handle verify button click
@@ -105,34 +152,36 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
     <>
       <Modal
         isOpen={isOpen}
-        onRequestClose={handleClose} // Use handleClose instead of onClose directly
+        onRequestClose={handleClose}
         contentLabel="Notifications"
         className="notification-modal-content"
         overlayClassName="notification-modal-overlay"
       >
         <div className="notification-modal-container">
           <div className="notification-modal-header">
-            <h2 className="notification-modal-title">
-              Notifications
-            </h2>
+            <h2 className="notification-modal-title">Notifications</h2>
             <button onClick={handleClose} className="notification-modal-close-button">
               &times;
             </button>
           </div>
-          {/* Apply the custom-scrollbar class to the modal body */}
           <div className="notification-modal-body custom-scrollbar">
             {sortedTickets.length > 0 ? (
               sortedTickets.map((ticket, index) => {
-                const { operator, status, comment } = parseDescription(ticket.description);
-                // Truncate the Ticket ID to 24 characters
+                const { handler, status, comment } = parseDescription(ticket.description);
                 const truncatedTicketId = ticket.id.slice(0, 24);
+
                 return (
                   <div key={ticket.id}>
+                    {index === 0 && (
+                      <div className="most-recent-notification">
+                        <strong>Most Recent Notification</strong>
+                      </div>
+                    )}
                     <div className="notification-modal-item">
                       <div className="flex justify-between items-center">
                         <p className="text-lg font-bold mb-2">Ticket ID: {truncatedTicketId}</p>
-                        {/* Conditionally render the Verify button */}
-                        {(role === 'admin' || role === 'supervisorC') && (
+                        {/* Verify Button Logic */}
+                        {(role === 'supervisorC' && ticket.status !== 'Verified') && (
                           <button
                             className="verify-button"
                             onClick={() => handleVerifyClick(ticket)}
@@ -141,18 +190,15 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
                           </button>
                         )}
                       </div>
-                      {/* Current Handler and Status on the same line */}
                       <div className="flex justify-between items-center">
                         <span className="notification-modal-operator">
-                          Current Handler: {operator}
+                           {handler}
                         </span>
                         <span className="notification-modal-status">
                           Status: {status}
                         </span>
                       </div>
-                      {/* Comments */}
                       <p className="notification-modal-comment">{comment}</p>
-                      {/* Date Submitted and Location */}
                       <div className="flex justify-between items-center">
                         <span className="notification-modal-date">
                           Date Submitted: {new Date(ticket.dateSubmitted).toLocaleString()}
@@ -162,7 +208,6 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
                         </span>
                       </div>
                     </div>
-                    {/* Add a separator line between notifications (except after the last one) */}
                     {index < sortedTickets.length - 1 && (
                       <hr className="notification-modal-divider" />
                     )}
@@ -179,10 +224,11 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
       {/* Edit Modal */}
       {isEditModalOpen && selectedTicket && (
         <EditModal
-          ticket={selectedTicket} // Pass the selected ticket to EditModal
-          onClose={() => setIsEditModalOpen(false)} // Close EditModal
-          onSave={onSave}  // Use the onSave prop from Dashboard.js
-          onDelete={handleDelete} // Pass the delete handler
+          ticket={selectedTicket}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={onSave} // Pass the onSave function here
+          onDelete={handleDelete}
+          onDropdownChange={handleDropdownChange}
         />
       )}
     </>

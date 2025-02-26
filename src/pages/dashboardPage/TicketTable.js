@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LuPencil } from "react-icons/lu";
 import { BiExpandHorizontal, BiCollapseHorizontal } from "react-icons/bi";
 import { usePermissions } from "../../context/PermissionsContext";
@@ -29,6 +29,11 @@ const TicketTable = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
+  // Log selectedTicket whenever it changes
+  useEffect(() => {
+    console.log("Selected Ticket Updated:", selectedTicket);
+  }, [selectedTicket]);
+
   // Force the table to be expanded for roles that are not admin or operator
   const isTableExpanded =
     role !== "admin" && role !== "operator" ? true : isExpanded;
@@ -42,45 +47,93 @@ const TicketTable = ({
 
   // Function to open the EditModal for verification
   const openEditModal = (ticket) => {
+    console.log("Opening EditModal for Ticket:", ticket);
     setSelectedTicket(ticket);
     setIsEditModalOpen(true);
   };
 
-  // Function to handle verification
-  const handleVerify = async (ticketId) => {
-    console.log(`Initiating verification for ticket: ${ticketId}`);
-  
-    try {
-      const ticketRef = doc(db, "complaints", ticketId);
-      console.log(`Fetching document reference for ticket: ${ticketId}`);
-
-      // Determine the new currentHandler based on the assigned team
-      let newCurrentHandler = "Admin";
-      if (selectedTicket.team === "Compliance") {
-        newCurrentHandler = "Admin Compliance";
-      } else if (selectedTicket.team === "City Planning & Infrastructure") {
-        newCurrentHandler = "Admin CPI";
-      } else if (selectedTicket.team === "Sustainability & Lifestyle") {
-        newCurrentHandler = "Admin S&L";
-      }
-
-      await setDoc(
-        ticketRef,
-        {
-          status: "Verified", // Update the status to "Verified"
-          currentHandler: newCurrentHandler // Update the current handler
-        },
-        { merge: true } // Merge with existing data
-      );
-  
-      console.log(`Ticket ${ticketId} successfully verified.`);
-      setIsEditModalOpen(false); // Close the modal after verification
-      console.log(`Edit modal closed.`);
-    } catch (error) {
-      console.error(`Error verifying ticket ${ticketId}:`, error);
-    }
+  // Function to handle dropdown changes
+  const handleDropdownChange = (field, value) => {
+    console.log(`Dropdown Change - Field: ${field}, Value: ${value}`);
+    setSelectedTicket((prevTicket) => ({
+      ...prevTicket,
+      [field]: value,
+    }));
   };
 
+  const handleVerify = async (updatedTicket) => {
+    try {
+      console.log("Selected Ticket Before Verification, in Ticket Table:", updatedTicket);
+  
+      const ticketRef = doc(db, "complaints", updatedTicket.id);
+  
+      let newCurrentHandler = "";
+      let handlerForPreviousHandlers = "";
+      let updatedPreviousHandlers = [];
+  
+      if (role === "supervisorC") {
+        // Logic for supervisorC
+        if (updatedTicket.team === "Compliance") {
+          newCurrentHandler = "Admin Compliance";
+          handlerForPreviousHandlers = "bU_adminC";
+        } else if (updatedTicket.team === "City Planning & Infrastructure") {
+          newCurrentHandler = "Admin CPI";
+          handlerForPreviousHandlers = "bU_adminCPI";
+        } else if (updatedTicket.team === "Sustainability & Lifestyle") {
+          newCurrentHandler = "Admin S&L";
+          handlerForPreviousHandlers = "bU_adminS_L";
+        } else {
+          newCurrentHandler = "Admin";
+          handlerForPreviousHandlers = "Admin";
+        }
+  
+        // Add the internal handler value to previousHandlers
+        updatedPreviousHandlers = [...updatedTicket.previousHandlers, handlerForPreviousHandlers];
+      } else {
+        // For other roles, use the currentHandler from the dropdown
+        newCurrentHandler = updatedTicket.currentHandler;
+        updatedPreviousHandlers = updatedTicket.previousHandlers; // No change to previousHandlers
+      }
+  
+      // Additional logic to append "bU_supervisorC" if currentHandler is "Supervisor Compliance"
+      if (updatedTicket.currentHandler === "Supervisor Compliance") {
+        updatedPreviousHandlers = [...updatedPreviousHandlers, "bU_supervisorC"];
+      }
+  
+      // Format the new comment using previousHandler
+      const timestamp = new Date().toLocaleString();
+      const newComment = updatedTicket.newComment 
+        ? `${updatedTicket.currentHandler} | ${timestamp} | ${updatedTicket.status} | ${updatedTicket.newComment}|`
+        : `${updatedTicket.currentHandler} | ${timestamp} | ${updatedTicket.status} | Ticket Verified|`;
+  
+      // Append the new comment to the existing description
+      const updatedDescription = updatedTicket.description
+        ? `${updatedTicket.description}\n${newComment}`
+        : newComment;
+  
+      // Prepare the updated data
+      const updatedData = {
+        status: role === "supervisorC" ? "In Progress" : updatedTicket.status,
+        currentHandler: newCurrentHandler,
+        previousHandler: updatedTicket.currentHandler,
+        previousHandlers: updatedPreviousHandlers,
+        description: updatedDescription,
+      };
+  
+      // Log the data being sent to Firestore
+      console.log("Data to be updated in Firestore:", updatedData);
+  
+      // Update the ticket in Firestore
+      await setDoc(ticketRef, updatedData, { merge: true });
+  
+      console.log("Ticket verified successfully. Ticket Table");
+      console.log("Updated Data:", updatedData);
+  
+      setIsEditModalOpen(false); // Close the modal after verification
+    } catch (error) {
+      console.error("Error verifying ticket:", error);
+    }
+  };
   // Function to handle deletion
   const handleDelete = async (ticketId) => {
     let ticketSnapshot = null;
@@ -100,8 +153,8 @@ const TicketTable = ({
       const ticketData = {
         ...ticketSnapshot.data(),
         deletedAt: new Date().toISOString(),
-        deletedBy: userPermissions?.userId || 'unknown_user',
-        deletedByName: userPermissions?.userName || 'Unknown User'
+        deletedBy: userPermissions?.userId || "unknown_user",
+        deletedByName: userPermissions?.userName || "Unknown User",
       };
 
       // 3. Copy to deletedTickets collection
@@ -112,10 +165,9 @@ const TicketTable = ({
 
       // Close the modal
       setIsEditModalOpen(false);
-      
     } catch (error) {
-      if (error.name !== 'AbortError') {
-        // Handle non-abort errors silently
+      if (error.name !== "AbortError") {
+        console.error("Error deleting ticket:", error);
       }
     } finally {
       // Cleanup
@@ -123,7 +175,7 @@ const TicketTable = ({
       ticketSnapshot = null;
     }
   };
-  
+
   return (
     <div
       className={`table-container ${
@@ -323,33 +375,33 @@ const TicketTable = ({
               <tr
                 key={index}
                 className="border-b border-gray-600 hover:bg-gray-700"
-              >
-       {/* Render Verify button for supervisorC */}
-{role === "supervisorC" && (
-  <td className="p-2 flex items-center gap-2">
-    <button
-      className={`p-1 rounded-md text-sm ${
-        ticket.status === "Verified"
-          ? "bg-gray-500 cursor-not-allowed"
-          : "bg-yellow-500 hover:bg-yellow-600"
-      }`}
-      onClick={() => ticket.status !== "Verified" && openEditModal(ticket)}
-      disabled={ticket.status === "Verified"}
-    >
-      {ticket.status === "Verified" ? "Verified" : "Verify"}
-    </button>
-  </td>
-)}
+               >
+                {/* Render Verify button for supervisorC */}
+                {role === "supervisorC" && (
+                  <td className="p-2 flex items-center gap-2">
+                    <button
+                      className={`p-1 rounded-md text-sm ${
+                        ticket.status === "In Progress"
+                          ? "bg-gray-500 cursor-not-allowed"
+                          : "bg-yellow-500 hover:bg-yellow-600"
+                      }`}
+                      onClick={() => ticket.status !== "In Progress" && openEditModal(ticket)}
+                      disabled={ticket.status === "In Progress"}
+                    >
+                      {ticket.status === "In Progress" ? "Verified" : "Verify"}
+                    </button>
+                  </td>
+                )}
 
-{/* Render Edit button for admin and bU_adminC */}
-{(role === "admin" || role === "bU_adminC") && (
-  <td className="p-2 flex items-center gap-2">
-    <LuPencil
-      className="cursor-pointer text-base hover:text-blue-300"
-      onClick={() => openEditModal(ticket)} // Use openEditModal instead of handleEditClick
-    />
-  </td>
-)}
+                {/* Render Edit button for admin and bU_adminC */}
+                {(role === "admin" || role === "bU_adminC") && (
+                  <td className="p-2 flex items-center gap-2">
+                    <LuPencil
+                      className="cursor-pointer text-base hover:text-blue-300"
+                      onClick={() => openEditModal(ticket)}
+                    />
+                  </td>
+                )}
                 <td className="p-2">
                   {ticket.id.length > 15
                     ? ticket.id.substring(0, 15) + "..."
@@ -403,10 +455,29 @@ const TicketTable = ({
                     <td className="p-2">{ticket.suburb}</td>
                     <td className="p-2">
                       {(() => {
-                        const parts = ticket.description.split("|");
-                        const newestComment = parts[parts.length - 1].trim();
-                        const hasMoreComments = parts.length > 4; // Check if there are more than 4 parts (indicating multiple comments)
-                        return hasMoreComments ? `${newestComment}...` : newestComment;
+                        if (!ticket.description) {
+                          console.log("No description found for ticket:", ticket.id);
+                          return "No comment";
+                        }
+
+                        // Split the description into individual entries, handling newlines
+                        const entries = ticket.description.replace(/\n/g, "|").split("|");
+                        console.log("Entries for ticket:", ticket.id, entries);
+
+                        // Ensure there are enough entries to extract a comment
+                        if (entries.length >= 4) {
+                          // The most recent comment is the last non-empty entry
+                          const mostRecentComment = entries
+                            .map(entry => entry.trim()) // Trim each entry
+                            .filter(entry => entry !== "") // Remove empty entries
+                            .pop(); // Get the last non-empty entry
+
+                          console.log("Most recent comment for ticket:", ticket.id, mostRecentComment);
+                          return mostRecentComment || "No comment";
+                        }
+
+                        console.log("Not enough entries for ticket:", ticket.id);
+                        return "No comment";
                       })()}
                     </td>
                   </>
@@ -424,6 +495,7 @@ const TicketTable = ({
           onClose={() => setIsEditModalOpen(false)}
           onSave={handleVerify}
           onDelete={handleDelete}
+          onDropdownChange={handleDropdownChange}
         />
       )}
     </div>

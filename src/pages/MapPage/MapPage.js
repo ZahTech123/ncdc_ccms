@@ -52,9 +52,10 @@ const MapPage = () => {
       priority, // statusFilter
       category, // issueTypeFilter
       locationKeyword, // keywordSearch
-      role // role
+      role, // role
+      selectedDirectorate // Add selectedDirectorate as a filter criterion
     );
-  }, [filteredTickets, category, locationKeyword, priority, role]);
+  }, [filteredTickets, category, locationKeyword, priority, role, selectedDirectorate]);
 
   // Initialize map with 3D buildings
   useEffect(() => {
@@ -127,7 +128,7 @@ const MapPage = () => {
           m.togglePopup();
         }
       });
-      const offsetLatitude = latitude - 0.0009; 
+      const offsetLatitude = latitude - 0.0009;
       map.flyTo({
         center: [longitude, offsetLatitude],
         zoom: 18,
@@ -264,7 +265,8 @@ const MapPage = () => {
         priority={priority}
         setPriority={setPriority}
         resetFiltersAndZoom={resetFiltersAndZoom}
-        selectedDirectorate={selectedDirectorate} // Pass selectedDirectorate
+        selectedDirectorate={selectedDirectorate}
+        setSelectedDirectorate={setSelectedDirectorate}
       />
       {showModal && (
         <MapPagePopUpModal

@@ -20,49 +20,49 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
+  
     if (!isAllowed) {
       setError("Access Denied: Please contact the admin for access.");
       console.log("Access Denied for user:", email);
       setLoading(false);
       return;
     }
-
+  
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log("Login successful for user:", userCredential.user);
-
+  
       // After login, try accessing the 'users' collection
       try {
         const usersCollection = collection(db, "users");
         const userSnapshot = await getDocs(usersCollection);
-
+  
         let userFound = false;
-
+  
         if (!userSnapshot.empty) {
           console.log("Users collection accessed successfully!");
-
+  
           // Find the user with the matching email
           userSnapshot.forEach((doc) => {
             const userData = doc.data();
             if (userData.email === email) {
               console.log("User data:", userData);
               userFound = true;
-
+  
               // Parse permissions if they are stored as a string
               const permissions = typeof userData.permissions === "string"
-                ? JSON.parse(userData.permissions.replace(/'/g, '"')) // Replace single quotes with double quotes
+                ? JSON.parse(userData.permissions.replace(/'/g, '"'))
                 : userData.permissions;
-
-              // Update the global permissions provider
-              updatePermissions(userData.role, permissions);
-
+  
+              // Update the global permissions provider with role, permissions, and name
+              updatePermissions(userData.role, permissions, userData.name); // Pass name here
+  
               // Redirect all users to the same dashboard
-              console.log("Navigating to /dashboard"); // Debug log
+              console.log("Navigating to /dashboard");
               navigate("/dashboard");
             }
           });
-
+  
           if (!userFound) {
             console.log("No matching user found with that email");
             setError("User not found in the database.");
@@ -75,7 +75,7 @@ const Login = () => {
       }
     } catch (error) {
       let errorMessage = "Something went wrong. Please try again.";
-
+  
       switch (error.code) {
         case "auth/user-not-found":
           errorMessage = "Oops! We couldn't find an account with that email. Please check and try again.";
@@ -92,11 +92,11 @@ const Login = () => {
         default:
           errorMessage = "An unexpected error occurred. Please try again.";
       }
-
+  
       setError(errorMessage);
       console.error("Login error:", error);
     }
-
+  
     setLoading(false);
   };
 
