@@ -84,6 +84,7 @@ const EditModal = ({ ticket, onClose, onSave, onDelete, onDropdownChange }) => {
           { label: "Compliance", disabled: false },
           { label: "Sustainability & Lifestyle", disabled: false },
         ];
+        //Compliance Team assign to drop-down values
       case "bU_adminC":
         return [
           { label: "Compliance Supervisor", disabled: false },
@@ -91,6 +92,86 @@ const EditModal = ({ ticket, onClose, onSave, onDelete, onDropdownChange }) => {
           { label: "Compliance Director", disabled: false },
           { label: "Response Team", disabled: false },
         ];
+        case "bU_supervisorC":
+          return [
+            { label: "Compliance Supervisor", disabled: false },
+            { label: "Compliance Manager", disabled: false },
+            { label: "Compliance Director", disabled: false },
+            { label: "Response Team", disabled: false },
+          ];
+          case "bU_managerC":
+            return [
+              { label: "Compliance Supervisor", disabled: false },
+              { label: "Compliance Manager", disabled: false },
+              { label: "Compliance Director", disabled: false },
+              { label: "Response Team", disabled: false },
+            ];
+            case "bU_directorC":
+              return [
+                { label: "Compliance Supervisor", disabled: false },
+                { label: "Compliance Manager", disabled: false },
+                { label: "Compliance Director", disabled: false },
+                { label: "Response Team", disabled: false },
+              ];
+
+               //City Planning & Infrastructure Team assign to drop-down values
+      case "bU_adminCPI":
+        return [
+          { label: "City Planning & Infrastructure Supervisor", disabled: false },
+          { label: "City Planning & Infrastructure Manager", disabled: false },
+          { label: "City Planning & Infrastructure Director", disabled: false },
+          { label: "Response Team", disabled: false },
+        ];
+        case "bU_supervisorCPI":
+          return [
+            { label: "City Planning & Infrastructure Supervisor", disabled: false },
+            { label: "City Planning & Infrastructure Manager", disabled: false },
+            { label: "City Planning & Infrastructure Director", disabled: false },
+            { label: "Response Team", disabled: false },
+          ];
+          case "bU_managerCPI":
+            return [
+              { label: "City Planning & Infrastructure Supervisor", disabled: false },
+              { label: "City Planning & Infrastructure Manager", disabled: false },
+              { label: "City Planning & Infrastructure Director", disabled: false },
+              { label: "Response Team", disabled: false },
+            ];
+            case "bU_directorCPI":
+              return [
+                { label: "City Planning & Infrastructure Supervisor", disabled: false },
+                { label: "City Planning & Infrastructure Manager", disabled: false },
+                { label: "City Planning & Infrastructure Director", disabled: false },
+                { label: "Response Team", disabled: false },
+              ];
+       //Sustainability & Lifestyle Team assign to drop-down values
+      case "bU_adminS_L":
+        return [
+          { label: "Sustainability & Lifestyle", disabled: false },
+          { label: "Sustainability & Lifestyle Manager", disabled: false },
+          { label: "Sustainability & Lifestyle Director", disabled: false },
+          { label: "Response Team", disabled: false },
+        ];
+        case "bU_supervisorS_L":
+          return [
+            { label: "Sustainability & Lifestyle Supervisor", disabled: false },
+            { label: "Sustainability & Lifestyle Manager", disabled: false },
+            { label: "Sustainability & Lifestyle Director", disabled: false },
+            { label: "Response Team", disabled: false },
+          ];
+          case "bU_managerS_L":
+            return [
+              { label: "Sustainability & Lifestyle Supervisor", disabled: false },
+              { label: "Sustainability & Lifestyle Manager", disabled: false },
+              { label: "Sustainability & Lifestyle Director", disabled: false },
+              { label: "Response Team", disabled: false },
+            ];
+            case "bU_directorS_L":
+              return [
+                { label: "Sustainability & Lifestyle Supervisor", disabled: false },
+                { label: "Sustainability & Lifestyle Manager", disabled: false },
+                { label: "Sustainability & Lifestyle Director", disabled: false },
+                { label: "Response Team", disabled: false },
+              ];
       default:
         return [];
     }
