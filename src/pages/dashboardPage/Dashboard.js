@@ -10,8 +10,7 @@ import emailjs from "emailjs-com";
 import { useTickets } from "../../context/TicketsContext";
 import { filterTickets, filterUnreadTickets } from "../../utils/ticketFilters"; // Import the filtering functions
 
-// Initialize EmailJS with your Public Key
-emailjs.init("SimW6urql2il_yFhB"); // Replace with your Public Key
+
 
 const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissionsCount }) => {
   const { tickets, updateTicket } = useTickets();
@@ -44,6 +43,30 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
   const unreadTickets = useMemo(() => {
     return filterUnreadTickets(tickets, role);
   }, [tickets, role]);
+
+  // Log ticket data when it changes
+  useEffect(() => {
+    console.log("Ticket data updated:", tickets);
+    tickets.forEach(ticket => {
+      console.log("Ticket ID:", ticket.id);
+    });
+  }, [tickets]);
+
+  // Log filtered tickets when they change
+  useEffect(() => {
+    console.log("Filtered tickets updated:", filteredTickets);
+    filteredTickets.forEach(ticket => {
+      console.log("Filtered Ticket ID:", ticket.id);
+    });
+  }, [filteredTickets]);
+
+  // Log unread tickets when they change
+  useEffect(() => {
+    console.log("Unread tickets updated:", unreadTickets);
+    unreadTickets.forEach(ticket => {
+      console.log("Unread Ticket ID:", ticket.id);
+    });
+  }, [unreadTickets]);
 
   // Monitor tickets for pending status and operator handler
   useEffect(() => {
@@ -127,7 +150,7 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
     setKeywordSearch("");
   }, []);
 
-  // Log new ticket to Firestore
+  // Log new ticket when it's created
   const logToComplaints = useCallback(async (ticket) => {
     const ticketId = `ticketId_${new Date().getTime()}`;
     const ticketWithId = { 
@@ -139,6 +162,9 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
         supervisor: false
       }
     };
+
+    console.log("New ticket created with ID:", ticketId);
+    console.log("New ticket data:", ticketWithId);
 
     // Update submissions count
     if (setSubmissionsCount) {

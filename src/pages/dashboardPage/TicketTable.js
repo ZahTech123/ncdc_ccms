@@ -72,7 +72,39 @@ const TicketTable = ({
       let updatedPreviousHandlers = [];
   
       if (role === "supervisorC") {
-        // Logic for supervisorC
+        // If the status is "Invalid", handle it differently
+        if (updatedTicket.status === "Invalid") {
+          // Format the new comment
+          const timestamp = new Date().toLocaleString();
+          const newComment = updatedTicket.newComment 
+            ? `${updatedTicket.currentHandler} | ${timestamp} | ${updatedTicket.status} | ${updatedTicket.newComment}|`
+            : `${updatedTicket.currentHandler} | ${timestamp} | ${updatedTicket.status} | Ticket Marked as Invalid|`;
+  
+          // Append the new comment to the existing description
+          const updatedDescription = updatedTicket.description
+            ? `${updatedTicket.description}\n${newComment}`
+            : newComment;
+  
+          // Prepare the updated data
+          const updatedData = {
+            status: "Invalid",
+            description: updatedDescription,
+          };
+  
+          // Log the data being sent to Firestore
+          console.log("Data to be updated in Firestore:", updatedData);
+  
+          // Update the ticket in Firestore
+          await setDoc(ticketRef, updatedData, { merge: true });
+  
+          console.log("Ticket marked as invalid successfully. Ticket Table");
+          console.log("Updated Data:", updatedData);
+  
+          setIsEditModalOpen(false); // Close the modal after verification
+          return;
+        }
+  
+        // Logic for supervisorC for other statuses
         if (updatedTicket.team === "Compliance") {
           newCurrentHandler = "Admin Compliance";
           handlerForPreviousHandlers = "bU_adminC";
@@ -358,10 +390,13 @@ const TicketTable = ({
         <table className="w-full table-auto text-sm">
           <thead>
             <tr className="border-b border-gray-600">
-              {/* Conditionally render the Actions column */}
-              {(userPermissions.canEditTicket || role === "bU_adminC" || role === "supervisorC") && (
-                <th className="p-2 text-left">Actions</th>
-              )}
+{/* Conditionally render the Actions column */}
+{(userPermissions.canEditTicket || role === "bU_adminC" || 
+  role === "bU_supervisorC" || role === "bU_managerC" || role === "bU_directorC" ||
+  role === "bU_adminS_L" || role === "bU_supervisorS_L" || role === "bU_managerS_L" || role === "bU_directorS_L" ||
+  role === "bU_adminCPI" || role === "bU_supervisorCPI" || role === "bU_managerCPI" || role === "bU_directorCPI") && (
+  <th className="p-2 text-left">Actions</th>
+)}
               <th className="p-2 text-left">Ticket ID</th>
               <th className="p-2 text-left">Issue Type</th>
               <th className="p-2 text-left">Assigned to</th>
@@ -380,121 +415,120 @@ const TicketTable = ({
               )}
             </tr>
           </thead>
-          <tbody>
-            {sortedTickets.map((ticket, index) => (
-              <tr
-                key={index}
-                className="border-b border-gray-600 hover:bg-gray-700"
-              >
-                {/* Render Verify button for supervisorC */}
-                {role === "supervisorC" && (
-                  <td className="p-2 flex items-center gap-2">
-                    <button
-                      className={`p-1 rounded-md text-sm ${
-                        ticket.status === "In Progress"
-                          ? "bg-gray-500 cursor-not-allowed"
-                          : "bg-yellow-500 hover:bg-yellow-600"
-                      }`}
-                      onClick={() => ticket.status !== "In Progress" && openEditModal(ticket)}
-                      disabled={ticket.status === "In Progress"}
-                    >
-                      {ticket.status === "In Progress" ? "Verified" : "Verify"}
-                    </button>
-                  </td>
-                )}
+ <tbody>
+  {sortedTickets.map((ticket, index) => (
+    <tr
+      key={index}
+      className="border-b border-gray-600 hover:bg-gray-700"
+    >
+      {/* Render Verify button for supervisorC */}
+  {/* Render Edit button for admin, bU_adminC, and other specified roles */}
+{(role === "admin" || role === "bU_adminC" || 
+  role === "bU_supervisorC" || role === "bU_managerC" || role === "bU_directorC" ||
+  role === "bU_adminS_L" || role === "bU_supervisorS_L" || role === "bU_managerS_L" || role === "bU_directorS_L" ||
+  role === "bU_adminCPI" || role === "bU_supervisorCPI" || role === "bU_managerCPI" || role === "bU_directorCPI") && (
+  <td className="p-2 flex items-center gap-2">
+    <LuPencil
+      className="cursor-pointer text-base hover:text-blue-300"
+      onClick={() => openEditModal(ticket)}
+    />
+  </td>
+)}
 
-                {/* Render Edit button for admin and bU_adminC */}
-                {(role === "admin" || role === "bU_adminC") && (
-                  <td className="p-2 flex items-center gap-2">
-                    <LuPencil
-                      className="cursor-pointer text-base hover:text-blue-300"
-                      onClick={() => openEditModal(ticket)}
-                    />
-                  </td>
-                )}
-                <td className="p-2">
-                  {ticket.id.length > 15
-                    ? ticket.id.substring(0, 15) + "..."
-                    : ticket.id}
-                </td>
-                <td className="p-2">{ticket.issueType}</td>
-                <td className="p-2">{ticket.team}</td>
-                <td className="p-2">{ticket.priority}</td>
-                <td className="p-2">
-                  <span
-                    className={`px-3 py-1 rounded-full ${
-                      ticket.status === "Resolved"
-                        ? "text-gray-500 bg-gray-700"
-                        : ticket.status === "New"
-                        ? "text-green-500 bg-gray-700"
-                        : ticket.status === "In Progress"
-                        ? "text-yellow-500 bg-gray-700"
-                        : ticket.status === "Verified"
-                        ? "text-blue-500 bg-gray-700"
-                        : "text-red-400 bg-gray-700"
-                    }`}
-                  >
-                    {ticket.status}
-                  </span>
-                </td>
-                <td className="p-2">{ticket.currentHandler}</td>
-                <td className="p-2">
-                  {(() => {
-                    let dateString =
-                      ticket.dateSubmitted || ticket.submissionDate;
-                    if (dateString && !dateString.includes("T")) {
-                      const [day, month, year] = dateString.split("/");
-                      dateString = `20${year}-${month}-${day}`;
-                    }
-                    const date = new Date(dateString);
-                    if (isNaN(date.getTime())) return "Invalid Date";
-                    return `${date
-                      .getDate()
-                      .toString()
-                      .padStart(2, "0")}/${(date.getMonth() + 1)
-                      .toString()
-                      .padStart(2, "0")}/${date
-                      .getFullYear()
-                      .toString()
-                      .slice(2, 4)}`;
-                  })()}
-                </td>
-                {/* New Columns */}
-                {isTableExpanded && (
-                  <>
-                    <td className="p-2">{ticket.suburb}</td>
-                    <td className="p-2">
-                      {(() => {
-                        if (!ticket.description) {
-                          console.log("No description found for ticket:", ticket.id);
-                          return "No comment";
-                        }
+      {/* Render Edit button for admin and bU_adminC */}
+      {(role === "admin" || role === "bU_adminC") && (
+        <td className="p-2 flex items-center gap-2">
+          <LuPencil
+            className="cursor-pointer text-base hover:text-blue-300"
+            onClick={() => openEditModal(ticket)}
+          />
+        </td>
+      )}
 
-                        // Split the description into individual entries, handling newlines
-                        const entries = ticket.description.replace(/\n/g, "|").split("|");
-                        console.log("Entries for ticket:", ticket.id, entries);
+      {/* Rest of the table row */}
+      <td className="p-2">
+        {ticket.id.length > 15
+          ? ticket.id.substring(0, 15) + "..."
+          : ticket.id}
+      </td>
+      <td className="p-2">{ticket.issueType}</td>
+      <td className="p-2">{ticket.team}</td>
+      <td className="p-2">{ticket.priority}</td>
+      <td className="p-2">
+        <span
+          className={`px-3 py-1 rounded-full ${
+            ticket.status === "Resolved"
+              ? "text-gray-500 bg-gray-700"
+              : ticket.status === "New"
+              ? "text-green-500 bg-gray-700"
+              : ticket.status === "In Progress"
+              ? "text-yellow-500 bg-gray-700"
+              : ticket.status === "Verified"
+              ? "text-blue-500 bg-gray-700"
+              : "text-red-400 bg-gray-700"
+          }`}
+        >
+          {ticket.status}
+        </span>
+      </td>
+      <td className="p-2">{ticket.currentHandler}</td>
+      <td className="p-2">
+        {(() => {
+          let dateString =
+            ticket.dateSubmitted || ticket.submissionDate;
+          if (dateString && !dateString.includes("T")) {
+            const [day, month, year] = dateString.split("/");
+            dateString = `20${year}-${month}-${day}`;
+          }
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return "Invalid Date";
+          return `${date
+            .getDate()
+            .toString()
+            .padStart(2, "0")}/${(date.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}/${date
+            .getFullYear()
+            .toString()
+            .slice(2, 4)}`;
+        })()}
+      </td>
+      {/* New Columns */}
+      {isTableExpanded && (
+        <>
+          <td className="p-2">{ticket.suburb}</td>
+          <td className="p-2">
+            {(() => {
+              if (!ticket.description) {
+                console.log("No description found for ticket:", ticket.id);
+                return "No comment";
+              }
 
-                        // Ensure there are enough entries to extract a comment
-                        if (entries.length >= 4) {
-                          // The most recent comment is the last non-empty entry
-                          const mostRecentComment = entries
-                            .map(entry => entry.trim()) // Trim each entry
-                            .filter(entry => entry !== "") // Remove empty entries
-                            .pop(); // Get the last non-empty entry
+              // Split the description into individual entries, handling newlines
+              const entries = ticket.description.replace(/\n/g, "|").split("|");
+              console.log("Entries for ticket:", ticket.id, entries);
 
-                          console.log("Most recent comment for ticket:", ticket.id, mostRecentComment);
-                          return mostRecentComment || "No comment";
-                        }
+              // Ensure there are enough entries to extract a comment
+              if (entries.length >= 4) {
+                // The most recent comment is the last non-empty entry
+                const mostRecentComment = entries
+                  .map(entry => entry.trim()) // Trim each entry
+                  .filter(entry => entry !== "") // Remove empty entries
+                  .pop(); // Get the last non-empty entry
 
-                        console.log("Not enough entries for ticket:", ticket.id);
-                        return "No comment";
-                      })()}
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-          </tbody>
+                console.log("Most recent comment for ticket:", ticket.id, mostRecentComment);
+                return mostRecentComment || "No comment";
+              }
+
+              console.log("Not enough entries for ticket:", ticket.id);
+              return "No comment";
+            })()}
+          </td>
+        </>
+      )}
+    </tr>
+  ))}
+</tbody>
         </table>
       </div>
 
