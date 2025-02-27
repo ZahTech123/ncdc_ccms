@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
 import ModalMap from "./ModalMap";  // Ensure ModalMap exists or remove this line if not needed
-//import emailjs from "emailjs-com";
-
+import { sendEmail } from "./EmailEscalation";
 // Initialize EmailJS with your Public Key
 //emailjs.init("SimW6urql2il_yFhB");  // Replace with your Public Key
 
@@ -95,11 +94,6 @@ const TicketForm = ({ onSubmit }) => {
   const [longitude, setLongitude] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // // Function to generate a random ticket ID
-  // const generateTicketId = () => {
-  //   return `#${Math.floor(1000 + Math.random() * 9000)}`; // Generates a 4-digit number
-  // };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!latitude || !longitude) {
@@ -118,7 +112,6 @@ const TicketForm = ({ onSubmit }) => {
       hour12: true,
     });
 
-    //const ticketId = generateTicketId(); // Generate a unique ticket ID
     const defaultDescription = `Operator | ${formattedDate}, ${formattedTime} | New | New Ticket registered by Controls Operator.|`;
     const editedDescription = `Operator | ${formattedDate}, ${formattedTime} | New | ${description}|`;
 
@@ -140,11 +133,9 @@ const TicketForm = ({ onSubmit }) => {
       team,
       handlerStartDateAndTime: now.toISOString(),
       closedTime: formattedTime,
-  
-      previousHandlers: ["operator","supervisorC"], // Logs previous handlers
-      escalationCount: 0, // Number of times issueType was escalated
-      resolved: false, // Tracks if ticket was successfully resolved
-      
+      previousHandlers: ["operator", "supervisorC"],
+      escalationCount: 0,
+      resolved: false,
       isRead: {
         admin: false,
         supervisorC: false,
@@ -153,35 +144,12 @@ const TicketForm = ({ onSubmit }) => {
         bU_adminCPI: false,
       },
     };
-    
+
     console.log("Ticket before onSubmit:", ticket);
     onSubmit(ticket);
 
     // Send email
-    // try {
-    //   await emailjs.send("service_jlnl89i", "template_4xwuhsk", {
-    //     to_email: "Heni.sarwom@qrfpng.com",
-    //     recipient_name: "Recipient Name", // Replace with dynamic data if available
-    //     ticket_id: ticketId,
-    //     issue_type: issueType,
-    //     status: "Submitted",
-    //     date_submitted: formattedDate,
-    //     location: suburb,
-    //     assigned_to: team,
-    //     priority: priority,
-    //     resolution_progress: "Initial Status",
-    //     escalation_info: "N/A", // Replace with dynamic data if available
-    //     completion_date: "N/A", // Replace with dynamic data if available
-    //     resident_feedback: "N/A", // Replace with dynamic data if available
-    //     electorate: electorate,
-    //     coordinates: `${latitude}, ${longitude}`,
-    //     description: description,
-    //     contact_information: "NCDC CCMS Response Team | contact@ncdc.gov.pg", // Replace with actual contact info
-    //   });
-    //   console.log("Email sent successfully");
-    // } catch (error) {
-    //   console.error("Failed to send email:", error);
-    // }
+    await sendEmail(ticket);
   };
 
   const handleLocationSelect = (lat, lng) => {

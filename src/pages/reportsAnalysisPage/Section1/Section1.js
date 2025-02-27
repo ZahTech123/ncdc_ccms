@@ -91,7 +91,7 @@ const Section1 = ({ tickets = [] }) => {
     <div className="flex flex-col lg:flex-row gap-8">
       {/* Left Column */}
       <div className="lg:w-1/3">
-        <DonutChart tickets={tickets} /> {/* Use the DonutChart component here */}
+        <DonutChart tickets={tickets} role={role} name={name}  /> {/* Use the DonutChart component here */}
       </div>
 
       {/* Right Column */}

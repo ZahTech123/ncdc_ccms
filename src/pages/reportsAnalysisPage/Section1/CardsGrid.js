@@ -33,9 +33,18 @@ const CardsGrid = ({ tickets, role, name }) => {
     acc[ticket.issueType] = (acc[ticket.issueType] || 0) + 1;
     return acc;
   }, {});
+
   const topIssueType = Object.entries(issueTypeCounts).sort((a, b) => b[1] - a[1])[0];
+
+  // Shorten "Development Control & Physical Planning" to "DCPP"
+  const formatIssueType = (issueType) => {
+    return issueType === "Development Control & Physical Planning" 
+      ? "DCPP" 
+      : issueType;
+  };
+
   const topComplaint = topIssueType
-    ? `${topIssueType[0]}: ${((topIssueType[1] / tickets.length) * 100).toFixed(0)}% of total escalations`
+    ? `${formatIssueType(topIssueType[0])}: ${((topIssueType[1] / tickets.length) * 100).toFixed(0)}% of total tickets`
     : "No issues";
 
   // Card #4: Resolution Rate
@@ -43,35 +52,40 @@ const CardsGrid = ({ tickets, role, name }) => {
   const resolutionRate = ((resolvedTickets / tickets.length) * 100).toFixed(0);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 ">
+
       {[
         {
           icon: <FaChartLine />,
           title: (
             <span>
-              Escalated <br /> Cases
+              Overall <br /> Escalations
             </span>
           ),
           subheading: "Team Focus",
           value: escalatedCases,
           badge: "↓ 10% from last week",
-          description: "Total complaints escalated",
+          description: "Total escalated complaints",
         },
         {
           icon: <FaUserTie />,
-          title: "Handler Escalations",
-          subheading: name,
+          title: (
+            <span>
+              Assigned <br /> Tickets
+            </span>
+          ),
+          subheading: "User Focus",
           value: handlerEscalations,
-          badge: `Handler: ${name}`, // Use name instead of role
-          description: "Identifies workload distribution across handlers.",
+          badge: `Current User: ${name}`, // Use name instead of role
+          description: "Total tickets assigned to current User",
         },
         {
           icon: <FaExclamationCircle />,
-          title: "Top Complaint",
+          title: "Frequent Complaint",
           subheading: "Team Insight",
           value: topIssueType ? `${((topIssueType[1] / tickets.length) * 100).toFixed(0)}%` : "0%",
           badge: topComplaint,
-          description: "Highlights the most escalated issue type.",
+          description: "Most frequently reported complaint among all issue types.",
         },
         {
           icon: <FaCheckCircle />,

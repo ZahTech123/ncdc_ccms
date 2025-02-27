@@ -89,6 +89,21 @@ const TicketTable = ({
   
         // Add the internal handler value to previousHandlers
         updatedPreviousHandlers = [...updatedTicket.previousHandlers, handlerForPreviousHandlers];
+      } else if (role === "bU_adminC") {
+        // Logic for bU_adminC
+        newCurrentHandler = updatedTicket.currentHandler;
+  
+        // Append to previousHandlers based on the selected dropdown value
+        if (updatedTicket.currentHandler === "Compliance Supervisor") {
+          handlerForPreviousHandlers = "bU_supervisorC";
+        } else if (updatedTicket.currentHandler === "Compliance Manager") {
+          handlerForPreviousHandlers = "bU_managerC";
+        } else if (updatedTicket.currentHandler === "Compliance Director") {
+          handlerForPreviousHandlers = "bU_directorC";
+        }
+  
+        // Add the internal handler value to previousHandlers
+        updatedPreviousHandlers = [...updatedTicket.previousHandlers, handlerForPreviousHandlers];
       } else {
         // For other roles, use the currentHandler from the dropdown
         newCurrentHandler = updatedTicket.currentHandler;

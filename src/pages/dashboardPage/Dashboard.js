@@ -51,9 +51,11 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
       .filter((ticket) => ticket.currentHandler === "operator" && ticket.status === "pending")
       .map((ticket) => {
         return setTimeout(async () => {
-          // Send email
+          // Log email attempt
+          console.log("Attempting to send email for ticket:", ticket.id);
+          
           try {
-            await emailjs.send("service_jlnl89i", "template_gohitig", {
+            const emailParams = {
               to_email: "Heni.sarwom@qrfpng.com",
               recipient_name: "Recipient Name",
               ticket_id: ticket.id,
@@ -71,9 +73,17 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
               coordinates: `${ticket.latitude}, ${ticket.longitude}`,
               description: ticket.description,
               contact_information: "NCDC CCMS Response Team | contact@ncdc.gov.pg",
-            });
+            };
+
+            // Log email parameters
+            console.log("Email parameters:", emailParams);
+
+            const response = await emailjs.send("service_jlnl89i", "template_gohitig", emailParams);
+            
+            // Log successful email
+            console.log("Email sent successfully for ticket:", ticket.id, "Response:", response);
           } catch (error) {
-            console.error("Failed to send email:", error);
+            console.error("Failed to send email for ticket:", ticket.id, "Error:", error);
           }
 
           // Update ticket data

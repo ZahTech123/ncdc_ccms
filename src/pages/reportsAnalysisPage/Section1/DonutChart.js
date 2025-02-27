@@ -1,23 +1,43 @@
-// DonutChart.js
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-const DonutChart = ({ tickets }) => {
+const DonutChart = ({ tickets, role }) => {
   const donutChartRef = useRef(null);
   const donutChartInstance = useRef(null);
+
+  // Log the role when the component mounts
+  useEffect(() => {
+    console.log("Confirming role in DonutChart. Role:", role);
+  }, [role]);
 
   useEffect(() => {
     if (!donutChartRef.current) return;
 
     const ctxDonut = donutChartRef.current.getContext("2d");
 
-    const verifiedCount = tickets.filter(ticket => ticket.status === "Verified").length;
-    const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
-    const closedCount = tickets.filter(ticket => ticket.status === "Closed").length;
+    // Define counts based on the role
+    let labels, counts;
+    if (role === "supervisorC") {
+      console.log("Filtering tickets for supervisorC role");
+      const newCount = tickets.filter(ticket => ticket.status === "New").length;
+      const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
+      const closedCount = tickets.filter(ticket => ticket.status === "Closed").length;
 
-    const complaintsData = [verifiedCount, inProgressCount, closedCount];
-    const totalComplaints = complaintsData.reduce((a, b) => a + b, 0);
+      labels = ["New", "In Progress", "Closed"];
+      counts = [newCount, inProgressCount, closedCount];
+    } else {
+      console.log("Filtering tickets for other roles");
+      const verifiedCount = tickets.filter(ticket => ticket.status === "Verified").length;
+      const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
+      const closedCount = tickets.filter(ticket => ticket.status === "Closed").length;
+
+      labels = ["Verified", "In Progress", "Closed"];
+      counts = [verifiedCount, inProgressCount, closedCount];
+    }
+
+    const totalComplaints = counts.reduce((a, b) => a + b, 0);
+    console.log("Total complaints:", totalComplaints);
 
     // Custom plugin to increase spacing between legend and chart
     const legendSpacingPlugin = {
@@ -30,17 +50,17 @@ const DonutChart = ({ tickets }) => {
       },
     };
 
-    const gradientVerified = ctxDonut.createLinearGradient(0, 0, 0, 400);
-    gradientVerified.addColorStop(0, "#f8df7c");
-    gradientVerified.addColorStop(1, "#eab308");
+    const gradientNew = ctxDonut.createLinearGradient(0, 0, 0, 400);
+    gradientNew.addColorStop(0, "#34d399"); // Light green
+    gradientNew.addColorStop(1, "#059669"); // Dark green
 
     const gradientInProgress = ctxDonut.createLinearGradient(0, 0, 0, 400);
-    gradientInProgress.addColorStop(0, "#60a5fa");
-    gradientInProgress.addColorStop(1, "#2563eb");
+    gradientInProgress.addColorStop(0, "#f8df7c"); // Light gold
+    gradientInProgress.addColorStop(1, "#eab308"); // Dark gold
 
     const gradientClosed = ctxDonut.createLinearGradient(0, 0, 0, 400);
-    gradientClosed.addColorStop(0, "#34d399");
-    gradientClosed.addColorStop(1, "#059669");
+    gradientClosed.addColorStop(0, "#9ca3af"); // Light grey
+    gradientClosed.addColorStop(1, "#4b5563"); // Dark grey
 
     if (donutChartInstance.current) {
       donutChartInstance.current.destroy();
@@ -49,11 +69,15 @@ const DonutChart = ({ tickets }) => {
     donutChartInstance.current = new Chart(ctxDonut, {
       type: "doughnut",
       data: {
-        labels: ["Verified", "In Progress", "Closed"],
+        labels: labels,
         datasets: [
           {
-            data: complaintsData,
-            backgroundColor: [gradientVerified, gradientInProgress, gradientClosed],
+            data: counts,
+            backgroundColor: [
+              gradientNew,        // New - Green gradient
+              gradientInProgress, // In Progress - Gold gradient
+              gradientClosed      // Closed - Grey gradient
+            ],
             borderColor: "#1F2937",
             borderWidth: 0,
             hoverOffset: 4,
@@ -124,7 +148,7 @@ const DonutChart = ({ tickets }) => {
         donutChartInstance.current.destroy();
       }
     };
-  }, [tickets]);
+  }, [tickets, role]); // Add role to the dependency array
 
   return (
     <div className="text-center slide-in-left bg-gray-700 rounded-lg p-6 mb-8" style={{ animationDelay: "0.2s" }}>

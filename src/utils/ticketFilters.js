@@ -92,7 +92,48 @@ export const filterTicketsRoles = (tickets, role) => {
                 ticket.directorate === "Compliance" &&
                 ticket.currentHandler === "Compliance Supervisor"
             );
-        }
+        }         if (role === "bU_managerC") {
+            return (
+                ticket.directorate === "Compliance" &&
+                ticket.currentHandler === "Compliance Manager"
+            );
+        }         if (role === "bU_directorC") {
+            return (
+                ticket.directorate === "Compliance" &&
+                ticket.currentHandler === "Compliance Director"
+            );
+        }          if (role === "bU_supervisorS_L") {
+            return (
+                ticket.directorate === "Sustainability & Lifestyle" &&
+                ticket.currentHandler === "Sustainability & Lifestyle Supervisor"
+            );
+        }           if (role === "bU_managerS_L") {
+            return (
+                ticket.directorate === "Sustainability & Lifestyle" &&
+                ticket.currentHandler === "Sustainability & Lifestyle Manager"
+            );
+        }            if (role === "bU_directorS_L") {
+            return (
+                ticket.directorate === "Sustainability & Lifestyle" &&
+                ticket.currentHandler === "Sustainability & Lifestyle Director"
+            );
+        }             if (role === "bU_supervisorCPI") {
+            return (
+                ticket.directorate === "City Planning & Infrastructure" &&
+                ticket.currentHandler === "City Planning & Infrastructure Supervisor"
+            );
+        }              if (role === "bU_managerCPI") {
+            return (
+                ticket.directorate === "City Planning & Infrastructure" &&
+                ticket.currentHandler === "City Planning & Infrastructure Manager"
+            );
+        }              if (role === "bU_directorCPI") {
+            return (
+                ticket.directorate === "City Planning & Infrastructure" &&
+                ticket.currentHandler === "City Planning & Infrastructure Director"
+            );
+        } 
+
 
         const directorateMap = {
             "bU_adminC": "Compliance",
