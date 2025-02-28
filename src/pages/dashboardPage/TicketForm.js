@@ -146,7 +146,17 @@ const TicketForm = ({ onSubmit }) => {
     };
 
     console.log("Ticket before onSubmit:", ticket);
-    onSubmit(ticket);
+    await onSubmit(ticket);
+
+    // Clear all form fields after successful submission
+    setDirectorate("");
+    setIssueType("");
+    setDescription("");
+    setName("");
+    setPriority("");
+    setSuburb("");
+    setLatitude("");
+    setLongitude("");
 
     // Send email
     await sendEmail(ticket);
