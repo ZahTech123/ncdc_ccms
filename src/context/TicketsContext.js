@@ -1,6 +1,18 @@
-import React, { createContext, useState, useEffect, useCallback, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+} from "react";
 import { db } from "../firebaseConfig";
-import { collection, onSnapshot, doc, setDoc, deleteDoc } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  setDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { PermissionsContext } from "./PermissionsContext"; // Import Permissions Context
 
 export const TicketsContext = createContext();
@@ -9,7 +21,7 @@ export const TicketsProvider = ({ children }) => {
   const [tickets, setTickets] = useState([]);
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Access user role and name from PermissionsContext
   const { userPermissions } = useContext(PermissionsContext);
   const { role, name } = userPermissions || {}; // Using 'name' for the logged-in user's name
@@ -17,16 +29,23 @@ export const TicketsProvider = ({ children }) => {
   // Log when user successfully logs in
   useEffect(() => {
     if (role) {
-      console.log(`User ${name || 'unknown'} with role ${role} logged in successfully.`);
+      console.log(
+        `User ${name || "unknown"} with role ${role} logged in successfully.`
+      );
     }
   }, [role, name]); // Logs when role or name changes
 
-  console.log(`User ${name || 'unknown'} with role ${role} logged in successfully.`);
+  console.log(
+    `User ${name || "unknown"} with role ${role} logged in successfully.`
+  );
   // Fetch tickets from Firestore
   useEffect(() => {
     console.log("Fetching tickets from Firestore...");
     const unsubscribe = onSnapshot(collection(db, "complaints"), (snapshot) => {
-      const ticketData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const ticketData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       console.log("Tickets fetched:", ticketData);
       setTickets(ticketData);
       setLoading(false);
@@ -39,20 +58,51 @@ export const TicketsProvider = ({ children }) => {
   }, []);
 
   // Function to filter tickets based on role
+  // Function to filter tickets based on role
   const applyRoleFilter = (tickets, role) => {
     if (!role) {
       console.error("Role is undefined. Cannot filter tickets.");
       return tickets;
     }
-    
+
+    // Roles that have full access to all tickets
     const fullAccessRoles = ["admin", "operator", "supervisorC"];
     if (fullAccessRoles.includes(role)) {
       console.log("User has full access. Returning all tickets.");
       return tickets;
     }
 
+    // Role-specific filtering logic
+    if (role === "bU_supervisorC") {
+      console.log("User is a Compliance Supervisor. Filtering tickets.");
+      return tickets.filter(
+        (ticket) =>
+          ticket.directorate === "Compliance" &&
+          ticket.currentHandler === "Compliance Supervisor"
+      );
+    }
+
+    if (role === "bU_managerC") {
+      console.log("User is a Compliance Manager. Filtering tickets.");
+      return tickets.filter(
+        (ticket) =>
+          ticket.directorate === "Compliance" &&
+          ticket.currentHandler === "Compliance Manager"
+      );
+    }
+
+    if (role === "bU_directorC") {
+      console.log("User is a Compliance Director. Filtering tickets.");
+      return tickets.filter(
+        (ticket) =>
+          ticket.directorate === "Compliance" &&
+          ticket.currentHandler === "Compliance Director"
+      );
+    }
+
+    // Default filtering for other roles
     const roleFilters = {
-      Compliance: ["bU_adminC", "bU_supervisorC", "bU_managerC", "bU_directorC"],
+      Compliance: ["bU_adminC"],
       "Sustainability & Lifestyle": [
         "bU_adminS&L",
         "bU_supervisorS&L",
@@ -69,7 +119,9 @@ export const TicketsProvider = ({ children }) => {
 
     for (const [directorate, roles] of Object.entries(roleFilters)) {
       if (roles.includes(role)) {
-        console.log(`User role matches directorate ${directorate}. Filtering tickets.`);
+        console.log(
+          `User role matches directorate ${directorate}. Filtering tickets.`
+        );
         return tickets.filter((ticket) => ticket.directorate === directorate);
       }
     }
@@ -122,7 +174,14 @@ export const TicketsProvider = ({ children }) => {
 
   return (
     <TicketsContext.Provider
-      value={{ tickets, filteredTickets, loading, role, updateTicket, deleteTicket }}
+      value={{
+        tickets,
+        filteredTickets,
+        loading,
+        role,
+        updateTicket,
+        deleteTicket,
+      }}
     >
       {children}
     </TicketsContext.Provider>

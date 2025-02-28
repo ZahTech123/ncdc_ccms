@@ -19,13 +19,11 @@ const TicketTable = ({
   setIssueTypeFilter,
   keywordSearch,
   setKeywordSearch,
-  searchSuggestions,
-  showSuggestions,
-  setShowSuggestions,
   resetFilters,
+  role,
 }) => {
   const { userPermissions } = usePermissions();
-  const { role } = userPermissions;
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
@@ -233,21 +231,24 @@ const TicketTable = ({
       {/* Filters */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-6">
-          <select
-            id="statusFilter"
-            className="bg-gray-700 text-sm p-2 rounded-md"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="" disabled className="text-gray-500">
-              Filter by Status
-            </option>
-            <option value="">All</option>
-            <option value="New">New</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Overdue">Overdue</option>
-          </select>
+          <div className="relative">
+            <select
+              id="statusFilter"
+              className="bg-gray-700 text-sm p-2 rounded-md"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              <option value="New">New</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Overdue">Overdue</option>
+              <option value="Closed">Closed</option>
+              {(role === "admin" || role === "supervisor") && (
+                <option value="Invalid">Invalid</option>
+              )}
+            </select>
+          </div>
 
           <select
             id="issueTypeFilter"
@@ -286,39 +287,8 @@ const TicketTable = ({
               placeholder="Search by description, issue type, status, etc."
               className="bg-gray-700 text-sm p-2 rounded-md"
               value={keywordSearch}
-              onChange={(e) => {
-                setKeywordSearch(e.target.value);
-                setShowSuggestions(true);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setShowSuggestions(false)}
+              onChange={(e) => setKeywordSearch(e.target.value)}
             />
-            {showSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute bg-gray-700 mt-1 rounded-md shadow-lg z-10 w-full">
-                {searchSuggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className="p-2 hover:bg-gray-600 cursor-pointer"
-                    onClick={() => {
-                      setKeywordSearch(suggestion);
-                      setShowSuggestions(false);
-                    }}
-                  >
-                    {suggestion
-                      .split(new RegExp(`(${keywordSearch})`, "gi"))
-                      .map((part, i) =>
-                        part.toLowerCase() === keywordSearch.toLowerCase() ? (
-                          <strong key={i} className="text-blue-400">
-                            {part}
-                          </strong>
-                        ) : (
-                          part
-                        )
-                      )}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
         <div className="flex items-center space-x-6">
@@ -366,6 +336,22 @@ const TicketTable = ({
             {filteredTickets.filter((t) => t.status === "Overdue").length}
           </span>
         </span>
+        {/* Closed count - visible to all roles */}
+        <span>
+          Closed:{" "}
+          <span className="text-pink-400 bg-gray-700 px-3 py-1 rounded-full font-bold">
+            {filteredTickets.filter((t) => t.status === "Closed").length}
+          </span>
+        </span>
+        {/* Invalid count - only for admin and supervisor */}
+        {(role === "admin" || role === "supervisor") && (
+          <span>
+            Invalid:{" "}
+            <span className="text-purple-400 bg-gray-700 px-3 py-1 rounded-full font-bold">
+              {filteredTickets.filter((t) => t.status === "Invalid").length}
+            </span>
+          </span>
+        )}
 
         {/* Expand/Collapse Icon - Conditionally Rendered for Admin and Operator Roles */}
         {(role === "admin" || role === "operator") && (
@@ -388,55 +374,70 @@ const TicketTable = ({
       {/* Ticket Table */}
       <div className="custom-scrollbar" style={{ maxHeight: "450px", overflowY: "auto" }}>
         <table className="w-full table-auto text-sm">
-          <thead>
-            <tr className="border-b border-gray-600">
-{/* Conditionally render the Actions column */}
-{(userPermissions.canEditTicket || role === "bU_adminC" || 
-  role === "bU_supervisorC" || role === "bU_managerC" || role === "bU_directorC" ||
-  role === "bU_adminS_L" || role === "bU_supervisorS_L" || role === "bU_managerS_L" || role === "bU_directorS_L" ||
-  role === "bU_adminCPI" || role === "bU_supervisorCPI" || role === "bU_managerCPI" || role === "bU_directorCPI") && (
-  <th className="p-2 text-left">Actions</th>
-)}
-              <th className="p-2 text-left">Ticket ID</th>
-              <th className="p-2 text-left">Issue Type</th>
-              <th className="p-2 text-left">Assigned to</th>
-              <th className="p-2 text-left">Priority</th>
-              <th className="p-2 text-left status-column" style={{ minWidth: "120px" }}>
-                Status
-              </th>
-              <th className="p-2 text-left">Current Handler</th>
-              <th className="p-2 text-left">Submission Date</th>
-              {/* New Columns */}
-              {isTableExpanded && (
-                <>
-                  <th className="p-2 text-left">Location Suburb</th>
-                  <th className="p-2 text-left">Comment</th>
-                </>
-              )}
-            </tr>
-          </thead>
- <tbody>
+        <thead>
+  <tr className="border-b border-gray-600">
+    {/* Conditionally render the Actions column */}
+    {(userPermissions.canEditTicket || role === "bU_adminC" || 
+      role === "supervisorC" || role === "admin" ||
+      role === "bU_supervisorC" || role === "bU_managerC" || role === "bU_directorC" ||
+      role === "bU_adminS_L" || role === "bU_supervisorS_L" || role === "bU_managerS_L" || role === "bU_directorS_L" ||
+      role === "bU_adminCPI" || role === "bU_supervisorCPI" || role === "bU_managerCPI" || role === "bU_directorCPI") && (
+      <th className="p-2 text-left">Actions</th>
+    )}
+    <th className="p-2 text-left">Ticket ID</th>
+    <th className="p-2 text-left">Issue Type</th>
+    <th className="p-2 text-left">Assigned to</th>
+    <th className="p-2 text-left">Priority</th>
+    <th className="p-2 text-left status-column" style={{ minWidth: "120px" }}>
+      Status
+    </th>
+    <th className="p-2 text-left">Current Handler</th>
+    <th className="p-2 text-left">Submission Date</th>
+    {/* New Columns */}
+    {isTableExpanded && (
+      <>
+        <th className="p-2 text-left">Location Suburb</th>
+        <th className="p-2 text-left">Comment</th>
+      </>
+    )}
+  </tr>
+</thead>
+          <tbody>
   {sortedTickets.map((ticket, index) => (
     <tr
       key={index}
       className="border-b border-gray-600 hover:bg-gray-700"
     >
       {/* Render Verify button for supervisorC */}
-  {/* Render Edit button for admin, bU_adminC, and other specified roles */}
-{(role === "admin" || role === "bU_adminC" || 
-  role === "bU_supervisorC" || role === "bU_managerC" || role === "bU_directorC" ||
-  role === "bU_adminS_L" || role === "bU_supervisorS_L" || role === "bU_managerS_L" || role === "bU_directorS_L" ||
-  role === "bU_adminCPI" || role === "bU_supervisorCPI" || role === "bU_managerCPI" || role === "bU_directorCPI") && (
-  <td className="p-2 flex items-center gap-2">
-    <LuPencil
-      className="cursor-pointer text-base hover:text-blue-300"
-      onClick={() => openEditModal(ticket)}
-    />
-  </td>
-)}
+      {role === "supervisorC" && (
+        <td className="p-2 flex items-center gap-2">
+          <button
+            className={`p-1 rounded-md text-sm ${
+              ticket.status === "In Progress" || ticket.status === "Invalid"
+                ? "bg-gray-500 cursor-not-allowed"
+                : "bg-yellow-500 hover:bg-yellow-600"
+            }`}
+            onClick={() => 
+              ticket.status !== "In Progress" && 
+              ticket.status !== "Invalid" && 
+              openEditModal(ticket)
+            }
+            disabled={ticket.status === "In Progress" || ticket.status === "Invalid"}
+          >
+            {ticket.status === "In Progress"
+              ? "Verified"
+              : ticket.status === "Invalid"
+              ? "Invalid"
+              : "Verify"}
+          </button>
+        </td>
+      )}
 
-      {/* Render Edit button for admin and bU_adminC */}
-      {(role === "admin" || role === "bU_adminC") && (
+      {/* Render Edit button for admin, bU_adminC, and other specified roles */}
+      {(role === "admin" || role === "bU_adminC" || 
+        role === "bU_supervisorC" || role === "bU_managerC" || role === "bU_directorC" ||
+        role === "bU_adminS_L" || role === "bU_supervisorS_L" || role === "bU_managerS_L" || role === "bU_directorS_L" ||
+        role === "bU_adminCPI" || role === "bU_supervisorCPI" || role === "bU_managerCPI" || role === "bU_directorCPI") && (
         <td className="p-2 flex items-center gap-2">
           <LuPencil
             className="cursor-pointer text-base hover:text-blue-300"

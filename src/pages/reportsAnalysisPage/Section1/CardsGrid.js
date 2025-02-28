@@ -49,7 +49,7 @@ const CardsGrid = ({ tickets, role, name }) => {
 
   // Card #4: Resolution Rate
   const resolvedTickets = tickets.filter(ticket => ticket.resolved).length;
-  const resolutionRate = ((resolvedTickets / tickets.length) * 100).toFixed(0);
+
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 ">
@@ -83,16 +83,16 @@ const CardsGrid = ({ tickets, role, name }) => {
           icon: <FaExclamationCircle />,
           title: "Frequent Complaint",
           subheading: "Team Insight",
-          value: topIssueType ? `${((topIssueType[1] / tickets.length) * 100).toFixed(0)}%` : "0%",
-          badge: topComplaint,
+          value: topIssueType ? `${topIssueType[1]}` : "0", // Actual value
+          badge: topComplaint, // Percentage value in badge
           description: "Most frequently reported complaint among all issue types.",
         },
         {
           icon: <FaCheckCircle />,
           title: "Resolution Rate",
           subheading: "Team Performance",
-          value: `${resolutionRate}%`,
-          badge: `↑ 5% from last month`,
+          value: resolvedTickets, // Actual value
+          badge: `↑ 5% from last month`, // Percentage value in badge
           description: "Measures effectiveness in resolving escalated cases.",
         },
       ].map((card, index) => (

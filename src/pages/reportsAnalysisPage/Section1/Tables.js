@@ -9,10 +9,10 @@ const Tables = ({ labels, ticketCounts }) => {
         <table className="w-full table-auto text-sm">
           <tbody>
             {[
-              { label: labels.totalTickets, value: ticketCounts.totalTickets, color: "gray-500" },
-              { label: labels.totalNew, value: ticketCounts.totalNew, color: "green-500" },
-              { label: labels.totalInProgress, value: ticketCounts.totalInProgress, color: "yellow-500" },
-              { label: labels.totalResolved, value: ticketCounts.totalResolved, color: "blue-500" },
+              { label: labels.totalTickets, value: ticketCounts.totalTickets, color: "gray-600" }, // Neutral for total tickets
+              { label: labels.totalNew, value: ticketCounts.totalNew, color: "green-500" }, // New tickets (fresh, unprocessed)
+              { label: labels.totalInProgress, value: ticketCounts.totalInProgress, color: "amber-500" }, // In-progress tickets (ongoing work)
+              { label: labels.totalResolved, value: ticketCounts.totalResolved, color: "blue-500" }, // Resolved tickets (completed work)
             ].map((row, index) => (
               <tr key={index} className="border-b border-gray-600">
                 <td className="p-2 text-left">{row.label}</td>
@@ -32,10 +32,10 @@ const Tables = ({ labels, ticketCounts }) => {
         <table className="w-full table-auto text-sm">
           <tbody>
             {[
-              { label: labels.totalOverdue, value: ticketCounts.totalOverdue, color: "red-500" },
-              { label: labels.totalHighPriority, value: ticketCounts.totalHighPriority, color: "red-600" },
-              { label: labels.totalMediumPriority, value: ticketCounts.totalMediumPriority, color: "yellow-400" },
-              { label: labels.totalLowPriority, value: ticketCounts.totalLowPriority, color: "green-600" },
+              { label: labels.totalOverdue, value: ticketCounts.totalOverdue, color: "red-600" }, // Overdue tickets (urgent issue)
+              { label: labels.totalHighPriority, value: ticketCounts.totalHighPriority, color: "orange-600" }, // High-priority tickets (critical attention needed)
+              { label: labels.totalMediumPriority, value: ticketCounts.totalMediumPriority, color: "yellow-500" }, // Medium-priority tickets (moderate urgency)
+              { label: labels.totalLowPriority, value: ticketCounts.totalLowPriority, color: "teal-500" }, // Low-priority tickets (least urgent)
             ].map((row, index) => (
               <tr key={index} className="border-b border-gray-600">
                 <td className="p-2 text-left">{row.label}</td>

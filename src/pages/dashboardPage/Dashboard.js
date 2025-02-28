@@ -223,6 +223,7 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
           setShowSuggestions={setShowSuggestions}
           resetFilters={resetFilters}
           isFormVisible={isFormVisible}
+          role={role}
         />
 
         {/* Right Section - Create Ticket Form */}

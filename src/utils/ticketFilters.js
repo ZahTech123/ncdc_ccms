@@ -4,36 +4,43 @@
 export const filterTickets = (tickets, statusFilter, issueTypeFilter, keywordSearch, role) => {
     if (!role) {
         console.error("Role is null or undefined");
-        return []; // or handle the error appropriately
+        return []; // Return an empty array if role is not provided
     }
+
+    const directorateMap = {
+        "bU_adminC": "Compliance",
+        "bU_supervisorC": "Compliance",
+        "bU_managerC": "Compliance",
+        "bU_directorC": "Compliance",
+        "bU_adminS_L": "Sustainability & Lifestyle",
+        "bU_supervisorS_L": "Sustainability & Lifestyle",
+        "bU_managerS_L": "Sustainability & Lifestyle",
+        "bU_directorS_L": "Sustainability & Lifestyle",
+        "bU_adminCPI": "City Planning & Infrastructure",
+        "bU_supervisorCPI": "City Planning & Infrastructure",
+        "bU_managerCPI": "City Planning & Infrastructure",
+        "bU_directorCPI": "City Planning & Infrastructure"
+    };
 
     return tickets.filter((ticket) => {
         let matchesDirectorate = true;
 
-        // Special condition for bU_supervisorC
-        if (role === "bU_supervisorC") {
-            matchesDirectorate =
-                ticket.directorate === "Compliance" &&
-                ticket.currentHandler === "Compliance Supervisor";
-        } else if (role.startsWith("bU_")) {
-            const directorateMap = {
-                "bU_adminC": "Compliance",
-                "bU_supervisorC": "Compliance",
-                "bU_managerC": "Compliance",
-                "bU_directorC": "Compliance",
-                "bU_adminS_L": "Sustainability & Lifestyle",
-                "bU_supervisorS_L": "Sustainability & Lifestyle",
-                "bU_managerS_L": "Sustainability & Lifestyle",
-                "bU_directorS_L": "Sustainability & Lifestyle",
-                "bU_adminCPI": "City Planning & Infrastructure",
-                "bU_supervisorCPI": "City Planning & Infrastructure",
-                "bU_managerCPI": "City Planning & Infrastructure",
-                "bU_directorCPI": "City Planning & Infrastructure"
-            };
-
+        if (role.startsWith("bU_")) {
             const directorate = directorateMap[role];
             if (directorate) {
-                matchesDirectorate = ticket.directorate === directorate && ["Verified", "In Progress", "Closed"].includes(ticket.status);
+                matchesDirectorate = ticket.directorate === directorate;
+                
+                // Apply additional filtering for Compliance roles
+                if (["bU_supervisorC", "bU_managerC", "bU_directorC"].includes(role)) {
+                    const roleHandlerMap = {
+                        "bU_supervisorC": "Compliance Supervisor",
+                        "bU_managerC": "Compliance Manager",
+                        "bU_directorC": "Compliance Director"
+                    };
+                    matchesDirectorate = matchesDirectorate && ticket.currentHandler === roleHandlerMap[role];
+                } else {
+                    matchesDirectorate = matchesDirectorate && ["Verified", "In Progress", "Closed"].includes(ticket.status);
+                }
             }
         }
 
@@ -41,8 +48,8 @@ export const filterTickets = (tickets, statusFilter, issueTypeFilter, keywordSea
         const matchesIssueType = issueTypeFilter ? ticket.issueType === issueTypeFilter : true;
         const matchesKeyword = keywordSearch
             ? Object.values(ticket).some((value) =>
-                String(value).toLowerCase().includes(keywordSearch.toLowerCase())
-            )
+                  String(value).toLowerCase().includes(keywordSearch.toLowerCase())
+              )
             : true;
 
         return matchesDirectorate && matchesStatus && matchesIssueType && matchesKeyword;
@@ -83,80 +90,29 @@ export const filterUnreadTickets = (tickets, role) => {
 };
 
 export const filterTicketsRoles = (tickets, role) => {
-    const filteredTickets = tickets.filter((ticket) => {
-        if (!role.startsWith("bU_")) return true;
+    if (!role.startsWith("bU_")) return tickets;
 
-        // Special condition for bU_supervisorC
-        if (role === "bU_supervisorC") {
-            return (
-                ticket.directorate === "Compliance" &&
-                ticket.currentHandler === "Compliance Supervisor"
-            );
-        }         if (role === "bU_managerC") {
-            return (
-                ticket.directorate === "Compliance" &&
-                ticket.currentHandler === "Compliance Manager"
-            );
-        }         if (role === "bU_directorC") {
-            return (
-                ticket.directorate === "Compliance" &&
-                ticket.currentHandler === "Compliance Director"
-            );
-        }          if (role === "bU_supervisorS_L") {
-            return (
-                ticket.directorate === "Sustainability & Lifestyle" &&
-                ticket.currentHandler === "Sustainability & Lifestyle Supervisor"
-            );
-        }           if (role === "bU_managerS_L") {
-            return (
-                ticket.directorate === "Sustainability & Lifestyle" &&
-                ticket.currentHandler === "Sustainability & Lifestyle Manager"
-            );
-        }            if (role === "bU_directorS_L") {
-            return (
-                ticket.directorate === "Sustainability & Lifestyle" &&
-                ticket.currentHandler === "Sustainability & Lifestyle Director"
-            );
-        }             if (role === "bU_supervisorCPI") {
-            return (
-                ticket.directorate === "City Planning & Infrastructure" &&
-                ticket.currentHandler === "City Planning & Infrastructure Supervisor"
-            );
-        }              if (role === "bU_managerCPI") {
-            return (
-                ticket.directorate === "City Planning & Infrastructure" &&
-                ticket.currentHandler === "City Planning & Infrastructure Manager"
-            );
-        }              if (role === "bU_directorCPI") {
-            return (
-                ticket.directorate === "City Planning & Infrastructure" &&
-                ticket.currentHandler === "City Planning & Infrastructure Director"
-            );
-        } 
+    const directorateMap = {
+        "bU_adminC": "Compliance",
+        "bU_supervisorC": "Compliance",
+        "bU_managerC": "Compliance",
+        "bU_directorC": "Compliance",
+        "bU_adminS_L": "Sustainability & Lifestyle",
+        "bU_supervisorS_L": "Sustainability & Lifestyle",
+        "bU_managerS_L": "Sustainability & Lifestyle",
+        "bU_directorS_L": "Sustainability & Lifestyle",
+        "bU_adminCPI": "City Planning & Infrastructure",
+        "bU_supervisorCPI": "City Planning & Infrastructure",
+        "bU_managerCPI": "City Planning & Infrastructure",
+        "bU_directorCPI": "City Planning & Infrastructure",
+    };
 
+    const directorate = directorateMap[role];
 
-        const directorateMap = {
-            "bU_adminC": "Compliance",
-            "bU_supervisorC": "Compliance",
-            "bU_managerC": "Compliance",
-            "bU_directorC": "Compliance",
-            "bU_adminS_L": "Sustainability & Lifestyle",
-            "bU_supervisorS_L": "Sustainability & Lifestyle",
-            "bU_managerS_L": "Sustainability & Lifestyle",
-            "bU_directorS_L": "Sustainability & Lifestyle",
-            "bU_adminCPI": "City Planning & Infrastructure",
-            "bU_supervisorCPI": "City Planning & Infrastructure",
-            "bU_managerCPI": "City Planning & Infrastructure",
-            "bU_directorCPI": "City Planning & Infrastructure",
-        };
-
-        const directorate = directorateMap[role];
-        return directorate
+    return tickets.filter(ticket => 
+        directorate
             ? ticket.directorate === directorate && ["Verified", "In Progress", "Closed"].includes(ticket.status)
-            : true;
-    });
-
-    // Log the role and filtered tickets
-    console.log(`Role ${role} filtered tickets:`, filteredTickets);
-    return filteredTickets;
+            : true
+    );
 };
+

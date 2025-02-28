@@ -39,7 +39,7 @@ const Section1 = ({ tickets = [] }) => {
         totalNew: "Road Furniture & Road Signs",
         totalInProgress: "Potholes & Drainage",
         totalResolved: "Strategic Planning",
-        totalOverdue: "Total Tickets", // Updated for CPI group
+        totalOverdue: "Total Overdue",
         totalHighPriority: "Total High Priority",
         totalMediumPriority: "Total Medium Priority",
         totalLowPriority: "Total Low Priority",
@@ -61,7 +61,7 @@ const Section1 = ({ tickets = [] }) => {
   const labels = getLabels(role);
 
   const getTicketCounts = (tickets) => {
-    const counts = {
+    let counts = {
       totalTickets: tickets.length,
       totalNew: tickets.filter(ticket => ticket.status === "New").length,
       totalInProgress: tickets.filter(ticket => ticket.status === "In Progress").length,
@@ -71,15 +71,43 @@ const Section1 = ({ tickets = [] }) => {
       totalMediumPriority: tickets.filter(ticket => ticket.priority === "Medium").length,
       totalLowPriority: tickets.filter(ticket => ticket.priority === "Low").length,
     };
-
+  
     if (['bU_adminCPI', 'bU_supervisorCPI', 'bU_managerCPI', 'bU_directorCPI'].includes(role)) {
-      counts.totalTickets = tickets.filter(ticket => ticket.issueType === "Streetlights & Traffic Management").length;
-      counts.totalNew = tickets.filter(ticket => ticket.issueType === "Road Furniture & Road Signs").length;
-      counts.totalInProgress = tickets.filter(ticket => ticket.issueType === "Potholes & Drainage").length;
-      counts.totalResolved = tickets.filter(ticket => ticket.issueType === "Strategic Planning").length;
-      counts.totalOverdue = tickets.length; // Total Tickets for CPI group
+      const cpiIssues = ["Streetlights & Traffic Management", "Road Furniture & Road Signs", "Potholes & Drainage", "Strategic Planning"];
+      counts = {
+        ...counts, // Keep the priority counts
+        totalTickets: tickets.filter(ticket => ticket.issueType === "Streetlights & Traffic Management").length,
+        totalNew: tickets.filter(ticket => ticket.issueType === "Road Furniture & Road Signs").length,
+        totalInProgress: tickets.filter(ticket => ticket.issueType === "Potholes & Drainage").length,
+        totalResolved: tickets.filter(ticket => ticket.issueType === "Strategic Planning").length,
+        totalOverdue: tickets.filter(ticket => cpiIssues.includes(ticket.issueType) && ticket.status === "Overdue").length,
+      };
+    } 
+    
+    else if (['bU_adminC', 'bU_supervisorC', 'bU_managerC', 'bU_directorC'].includes(role)) {
+      const communityIssues = ["Liquor License", "Building", "Development Control & Physical Planning", "Enforcement"];
+      counts = {
+        ...counts, // Keep the priority counts
+        totalTickets: tickets.filter(ticket => ticket.issueType === "Liquor License").length,
+        totalNew: tickets.filter(ticket => ticket.issueType === "Building").length,
+        totalInProgress: tickets.filter(ticket => ticket.issueType === "Development Control & Physical Planning").length,
+        totalResolved: tickets.filter(ticket => ticket.issueType === "Enforcement").length,
+        totalOverdue: tickets.filter(ticket => communityIssues.includes(ticket.issueType) && ticket.status === "Overdue").length,
+      };
+    } 
+    
+    else if (['bU_adminS_L', 'bU_supervisorS_L', 'bU_managerS_L', 'bU_directorS_L'].includes(role)) {
+      const safetyIssues = ["Urban Safety", "Waste Management", "Markets", "Parks & Gardens", "Eda City Bus"];
+      counts = {
+        ...counts, // Keep the priority counts
+        totalTickets: tickets.filter(ticket => ticket.issueType === "Urban Safety").length,
+        totalNew: tickets.filter(ticket => ticket.issueType === "Waste Management").length,
+        totalInProgress: tickets.filter(ticket => ticket.issueType === "Markets").length,
+        totalResolved: tickets.filter(ticket => ticket.issueType === "Parks & Gardens").length,
+        totalOverdue: tickets.filter(ticket => safetyIssues.includes(ticket.issueType) && ticket.status === "Overdue").length,
+      };
     }
-
+  
     return counts;
   };
 
@@ -91,7 +119,7 @@ const Section1 = ({ tickets = [] }) => {
     <div className="flex flex-col lg:flex-row gap-8">
       {/* Left Column */}
       <div className="lg:w-1/3">
-        <DonutChart tickets={tickets} role={role} name={name}  /> {/* Use the DonutChart component here */}
+        <DonutChart tickets={tickets} role={role} name={name} /> {/* Use the DonutChart component here */}
       </div>
 
       {/* Right Column */}
