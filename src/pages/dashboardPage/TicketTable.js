@@ -343,8 +343,8 @@ const TicketTable = ({
             {filteredTickets.filter((t) => t.status === "Closed").length}
           </span>
         </span>
-        {/* Invalid count - only for admin and supervisor */}
-        {(role === "admin" || role === "supervisor") && (
+        {/* Invalid count - for admin, supervisor, and operator */}
+        {(role === "admin" || role === "supervisor" || role === "operator") && (
           <span>
             Invalid:{" "}
             <span className="text-purple-400 bg-gray-700 px-3 py-1 rounded-full font-bold">

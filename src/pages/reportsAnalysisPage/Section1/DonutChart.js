@@ -18,7 +18,18 @@ const DonutChart = ({ tickets, role }) => {
 
     // Define counts based on the role
     let labels, counts;
-    if (role === "supervisorC") {
+    if (role === "admin" || role === "supervisorC") {
+      console.log("Filtering tickets for admin/supervisorC role");
+      const newCount = tickets.filter(ticket => ticket.status === "New").length;
+      const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
+      const resolvedCount = tickets.filter(ticket => ticket.status === "Resolved").length;
+      const overdueCount = tickets.filter(ticket => ticket.status === "Overdue").length;
+      const closedCount = tickets.filter(ticket => ticket.status === "Closed").length;
+      const invalidCount = tickets.filter(ticket => ticket.status === "Invalid").length;
+
+      labels = ["New", "In Progress", "Resolved", "Overdue", "Closed", "Invalid"];
+      counts = [newCount, inProgressCount, resolvedCount, overdueCount, closedCount, invalidCount];
+    } else if (role === "supervisorC") {
       console.log("Filtering tickets for supervisorC role");
       const newCount = tickets.filter(ticket => ticket.status === "New").length;
       const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
