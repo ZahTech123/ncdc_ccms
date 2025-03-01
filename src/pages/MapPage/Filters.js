@@ -39,7 +39,7 @@ const Filters = ({
   setPriority,
   resetFiltersAndZoom,
   selectedDirectorate,
-  setSelectedDirectorate, // Add setSelectedDirectorate
+  setSelectedDirectorate,
 }) => {
   // Get issue types based on selected directorate
   const getFilteredIssueTypes = () => {
@@ -53,7 +53,7 @@ const Filters = ({
   };
 
   return (
-    <div className="w-1/4 bg-gray-700 p-6 rounded-lg space-y-6">
+    <div className="w-1/4 bg-gray-700 p-6 rounded-lg space-y-6 overflow-y-auto custom-scrollbar" style={{ height: 'calc(100vh - 4rem)' }}>
       <h2 className="text-lg font-semibold text-white">Filters</h2>
 
       {/* City Dropdown */}
@@ -94,9 +94,7 @@ const Filters = ({
           onChange={(e) => setCategory(e.target.value)}
           className="w-full p-2 rounded-md bg-gray-600 text-white"
         >
-          {/* Default "Select Issue Type" option */}
           <option value="">Select Issue Type</option>
-          {/* Dynamically populated issue types */}
           {getFilteredIssueTypes().map((type) => (
             <option key={type} value={type}>
               {type}
@@ -144,12 +142,14 @@ const Filters = ({
       </div>
 
       {/* Apply Filter Button */}
-      <button
-        onClick={resetFiltersAndZoom}
-        className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold p-2 rounded-md transition-colors"
-      >
-        Reset Filters
-      </button>
+      <div className="space-y-2">
+        <button
+          onClick={resetFiltersAndZoom}
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold p-2 rounded-md transition-colors"
+        >
+          Reset Filters
+        </button>
+      </div>
     </div>
   );
 };

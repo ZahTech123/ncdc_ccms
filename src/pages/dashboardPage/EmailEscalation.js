@@ -5,11 +5,14 @@ emailjs.init("4aWPJtcDKE1eCcfDk"); // Replace with your actual Public Key
 
 export const sendEmail = async (ticket) => {
   try {
-    await emailjs.send("service_0lequ6f","template_iagffxk", {
-      to_email: "Heni.sarwom@qrfpng.com",
-      cc_email: "sarwomjohn@gmail.com", // CC email address
-      recipient_name: ticket.name || "Recipient", // Use dynamic data if available
+    // // Extract the comment from the description
+    // const descriptionParts = ticket.description.split('|');
+    // const comment = descriptionParts[descriptionParts.length - 1].trim();
 
+    await emailjs.send("service_0lequ6f", "template_iagffxk", {
+      to_email: "benjaminb@ncdc.gov.pg",
+      recipient_name: ticket.name || "Recipient", // Use dynamic data if available
+      cc_email: "heni.sarwom@qrfpng.com", 
       issue_type: ticket.issueType,
       status: ticket.status || "Submitted",
       date_submitted: ticket.dateSubmitted,
@@ -22,7 +25,7 @@ export const sendEmail = async (ticket) => {
       resident_feedback: "N/A",
       electorate: ticket.electorate,
       coordinates: `${ticket.latitude}, ${ticket.longitude}`,
-      description: ticket.description,
+      description: "Gerehu stage 2, canteen named Jamas Trading is operating without a licence", // Only the comment is passed here
       contact_information: "NCDC CCMS Response Team | contact@ncdc.gov.pg", 
     });
 

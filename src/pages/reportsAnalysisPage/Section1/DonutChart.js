@@ -18,8 +18,8 @@ const DonutChart = ({ tickets, role }) => {
 
     // Define counts based on the role
     let labels, counts;
-    if (role === "admin" || role === "supervisorC") {
-      console.log("Filtering tickets for admin/supervisorC role");
+    if (role === "admin" || role === "supervisorC" || role === "operator") {
+      console.log("Filtering tickets for admin/supervisorC/operator role");
       const newCount = tickets.filter(ticket => ticket.status === "New").length;
       const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
       const resolvedCount = tickets.filter(ticket => ticket.status === "Resolved").length;
@@ -61,17 +61,40 @@ const DonutChart = ({ tickets, role }) => {
       },
     };
 
-    const gradientNew = ctxDonut.createLinearGradient(0, 0, 0, 400);
-    gradientNew.addColorStop(0, "#34d399"); // Light green
-    gradientNew.addColorStop(1, "#059669"); // Dark green
-
-    const gradientInProgress = ctxDonut.createLinearGradient(0, 0, 0, 400);
-    gradientInProgress.addColorStop(0, "#f8df7c"); // Light gold
-    gradientInProgress.addColorStop(1, "#eab308"); // Dark gold
-
-    const gradientClosed = ctxDonut.createLinearGradient(0, 0, 0, 400);
-    gradientClosed.addColorStop(0, "#9ca3af"); // Light grey
-    gradientClosed.addColorStop(1, "#4b5563"); // Dark grey
+    // Define gradient colors for each segment
+    const gradientColors = labels.map((label) => {
+      const gradient = ctxDonut.createLinearGradient(0, 0, 0, 400);
+      switch (label) {
+        case "New":
+          gradient.addColorStop(0, "#34d399"); // Light green
+          gradient.addColorStop(1, "#059669"); // Dark green
+          break;
+        case "In Progress":
+          gradient.addColorStop(0, "#ddcb0e"); // Light yellow
+          gradient.addColorStop(1, "#f49c28"); // Dark yellow
+          break;
+        case "Resolved":
+          gradient.addColorStop(0, "#93c5fd"); // Light blue
+          gradient.addColorStop(1, "#2563eb"); // Dark blue
+          break;
+        case "Overdue":
+          gradient.addColorStop(0, "#fdba74"); // Light orange
+          gradient.addColorStop(1, "#ea580c"); // Dark orange
+          break;
+        case "Closed":
+          gradient.addColorStop(0, "#9ca3af"); // Light gray
+          gradient.addColorStop(1, "#4b5563"); // Dark gray
+          break;
+        case "Invalid":
+          gradient.addColorStop(0, "#fca5a5"); // Light red
+          gradient.addColorStop(1, "#dc2626"); // Dark red
+          break;
+        default:
+          gradient.addColorStop(0, "#9ca3af"); // Default to gray
+          gradient.addColorStop(1, "#4b5563");
+      }
+      return gradient;
+    });
 
     if (donutChartInstance.current) {
       donutChartInstance.current.destroy();
@@ -84,11 +107,7 @@ const DonutChart = ({ tickets, role }) => {
         datasets: [
           {
             data: counts,
-            backgroundColor: [
-              gradientNew,        // New - Green gradient
-              gradientInProgress, // In Progress - Gold gradient
-              gradientClosed      // Closed - Grey gradient
-            ],
+            backgroundColor: gradientColors,
             borderColor: "#1F2937",
             borderWidth: 0,
             hoverOffset: 4,

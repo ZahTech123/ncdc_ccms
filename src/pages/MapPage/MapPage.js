@@ -48,14 +48,16 @@ const MapPage = () => {
   // Filter tickets based on selected filters and role
   const filteredComplaints = useMemo(() => {
     return filterTickets(
-      filteredTickets, // Use filteredTickets instead of tickets
-      priority, // statusFilter
-      category, // issueTypeFilter
-      locationKeyword, // keywordSearch
-      role, // role
-      selectedDirectorate // Add selectedDirectorate as a filter criterion
+      filteredTickets,
+      priority,
+      category,
+      locationKeyword,
+      role,
+      selectedDirectorate,
+      selectedCity, // Add selectedCity to filter criteria
+      date // Add date to filter criteria
     );
-  }, [filteredTickets, category, locationKeyword, priority, role, selectedDirectorate]);
+  }, [filteredTickets, category, locationKeyword, priority, role, selectedDirectorate, selectedCity, date]);
 
   // Initialize map with 3D buildings
   useEffect(() => {
@@ -64,7 +66,7 @@ const MapPage = () => {
       style: "mapbox://styles/mapbox/streets-v12",
       center: [147.15144455964452, -9.478037785341655],
       zoom: 16,
-      pitch: 0,
+      pitch: 45, // Add pitch for 3D effect
       bearing: 30,
     });
 
@@ -80,10 +82,7 @@ const MapPage = () => {
         }
       }
 
-      if (mapInstance.getLayer("3d-buildings")) {
-        mapInstance.removeLayer("3d-buildings");
-      }
-
+      // Add 3D buildings layer
       mapInstance.addLayer(
         {
           id: "3d-buildings",
@@ -92,7 +91,7 @@ const MapPage = () => {
           type: "fill-extrusion",
           minzoom: 15,
           paint: {
-            "fill-extrusion-color": "#aaa",
+            "fill-extrusion-color": "#aaa", // Color of the buildings
             "fill-extrusion-height": [
               "interpolate",
               ["linear"],
@@ -100,13 +99,24 @@ const MapPage = () => {
               15,
               0,
               22,
-              ["get", "height"],
+              ["get", "height"], // Use building height data
             ],
-            "fill-extrusion-opacity": 0.6,
+            "fill-extrusion-opacity": 0.6, // Adjust opacity for better visibility
+            "fill-extrusion-base": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              15,
+              0,
+              22,
+              ["get", "min_height"], // Use building base height data
+            ],
           },
         },
-        labelLayerId
+        labelLayerId // Ensure the layer is added above labels
       );
+
+      console.log("3D buildings layer added successfully");
     });
 
     setMap(mapInstance);
@@ -242,7 +252,7 @@ const MapPage = () => {
   };
 
   return (
-    <div className="flex mt-2 p-8 space-x-6">
+    <div className="flex  p-8 space-x-6">
       <DynamicCards
         filteredComplaints={filteredComplaints}
         markersRef={markersRef}
@@ -251,7 +261,7 @@ const MapPage = () => {
         setShowModal={setShowModal}
       />
       <div className="w-3/5 bg-gray-800 p-6 rounded-lg space-y-6 relative">
-        <div id="map" className="w-full h-[500px] rounded-lg"></div>
+        <div id="map" className="w-full h-full rounded-lg"></div>
       </div>
       <Filters
         selectedCity={selectedCity}

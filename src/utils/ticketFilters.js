@@ -1,7 +1,17 @@
 // dataFilters.js
 
 // Filter tickets based on status, issueType, keyword search, and role
-export const filterTickets = (tickets, statusFilter, issueTypeFilter, keywordSearch, role) => {
+export const filterTickets = (
+    tickets,
+    priorityFilter,
+    issueTypeFilter,
+    keywordSearch,
+    role,
+    selectedDirectorate,
+    selectedCity,
+    dateFilter,
+    statusFilter
+) => {
     if (!role) {
         console.error("Role is null or undefined");
         return []; // Return an empty array if role is not provided
@@ -23,6 +33,49 @@ export const filterTickets = (tickets, statusFilter, issueTypeFilter, keywordSea
     };
 
     return tickets.filter((ticket) => {
+        // Filter by priority
+        if (priorityFilter && ticket.priority !== priorityFilter) {
+            return false;
+        }
+
+        // Filter by issue type
+        if (issueTypeFilter && ticket.issueType !== issueTypeFilter) {
+            return false;
+        }
+
+        // Filter by location keyword
+        if (keywordSearch && !ticket.suburb.toLowerCase().includes(keywordSearch.toLowerCase())) {
+            return false;
+        }
+
+        // Filter by directorate
+        if (selectedDirectorate && ticket.directorate !== selectedDirectorate) {
+            return false;
+        }
+
+        // Filter by city (electorate)
+        if (selectedCity && ticket.electorate !== selectedCity) {
+            return false;
+        }
+
+        // Filter by date
+        if (dateFilter) {
+            const ticketDate = new Date(ticket.dateSubmitted).toISOString().split('T')[0];
+            if (ticketDate !== dateFilter) {
+                return false;
+            }
+        }
+
+        // Filter by status
+        if (statusFilter && ticket.status !== statusFilter) {
+            return false;
+        }
+
+        // Role-based filtering (if needed)
+        if (role === "supervisorC" && ticket.directorate !== "Compliance") {
+            return false;
+        }
+
         let matchesDirectorate = true;
 
         if (role.startsWith("bU_")) {
