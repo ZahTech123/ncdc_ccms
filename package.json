@@ -9,12 +9,14 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-datalabels": "^2.2.0",
     "cra-template": "1.2.0",
+    "crypto-browserify": "^3.12.1",
     "d3-ease": "^3.0.1",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.3.0",
     "lodash.debounce": "^4.0.8",
     "mapbox-gl": "^3.10.0",
     "react": "^19.0.0",
+    "react-app-rewired": "^2.2.1",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-firebase-hooks": "^5.1.1",
@@ -23,6 +25,7 @@
     "react-modal": "^3.16.3",
     "react-router-dom": "^7.1.5",
     "react-scripts": "^5.0.1",
+    "swiper": "^11.2.4",
     "web-vitals": "^4.2.4"
   },
   "scripts": {

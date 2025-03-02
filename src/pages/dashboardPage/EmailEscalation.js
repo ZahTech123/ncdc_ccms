@@ -10,7 +10,7 @@ export const sendEmail = async (ticket) => {
     // const comment = descriptionParts[descriptionParts.length - 1].trim();
 
     await emailjs.send("service_0lequ6f", "template_iagffxk", {
-      to_email: "benjaminb@ncdc.gov.pg",
+      to_email: "sarwomjohn@gmail.com",
       recipient_name: ticket.name || "Recipient", // Use dynamic data if available
       cc_email: "heni.sarwom@qrfpng.com", 
       issue_type: ticket.issueType,
@@ -26,7 +26,8 @@ export const sendEmail = async (ticket) => {
       electorate: ticket.electorate,
       coordinates: `${ticket.latitude}, ${ticket.longitude}`,
       description: "Gerehu stage 2, canteen named Jamas Trading is operating without a licence", // Only the comment is passed here
-      contact_information: "NCDC CCMS Response Team | contact@ncdc.gov.pg", 
+      contact_information: "NCDC CCMS Response Team | contact@ncdc.gov.pg",
+      ticket_id: ticket.ticketId || "N/A", // Add the ticket ID here
     });
 
     console.log("Email sent successfully");

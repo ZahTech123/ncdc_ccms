@@ -156,7 +156,7 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                 {/* Ticket ID */}
                 <div className="flex justify-between">
                   <span className="font-semibold text-gray-800">Ticket ID:</span>
-                  <span className="text-gray-600">#{selectedComplaint.id}</span>
+                  <span className="text-gray-600">{selectedComplaint.ticketId}</span>
                 </div>
 
                 {/* Status */}

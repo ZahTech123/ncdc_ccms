@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import Section1 from './Section1/Section1';
 import Section2 from "./Section2/Section2";
-import Section3 from "./Section3";
+import Section3 from "./Section3/Section3";
 import { useTickets } from "../../context/TicketsContext";
 import { filterTicketsRoles } from "../../utils/ticketFilters";
 import { usePermissions } from "../../context/PermissionsContext"; // Updated import path
@@ -32,7 +32,7 @@ const ReportsAnalysis3 = () => {
         {/* Pass the data as `tickets` prop to Section1 */}
         <Section1 tickets={filteredTickets} />
         <Section2 tickets={filteredTickets} />
-        <Section3 />
+        <Section3 tickets={filteredTickets} />
       </div>
     </div>
   );

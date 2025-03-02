@@ -3,14 +3,13 @@
 // Filter tickets based on status, issueType, keyword search, and role
 export const filterTickets = (
     tickets,
-    priorityFilter,
+    statusFilter,
     issueTypeFilter,
     keywordSearch,
     role,
     selectedDirectorate,
     selectedCity,
-    dateFilter,
-    statusFilter
+    dateFilter
 ) => {
     if (!role) {
         console.error("Role is null or undefined");
@@ -33,13 +32,20 @@ export const filterTickets = (
     };
 
     return tickets.filter((ticket) => {
-        // Filter by priority
-        if (priorityFilter && ticket.priority !== priorityFilter) {
+        // Filter by status
+        if (statusFilter && ticket.status !== statusFilter) {
             return false;
         }
 
         // Filter by issue type
         if (issueTypeFilter && ticket.issueType !== issueTypeFilter) {
+            return false;
+        }
+
+        // Filter by keyword search
+        if (keywordSearch && !Object.values(ticket).some((value) =>
+            String(value).toLowerCase().includes(keywordSearch.toLowerCase())
+        )) {
             return false;
         }
 
@@ -64,11 +70,6 @@ export const filterTickets = (
             if (ticketDate !== dateFilter) {
                 return false;
             }
-        }
-
-        // Filter by status
-        if (statusFilter && ticket.status !== statusFilter) {
-            return false;
         }
 
         // Role-based filtering (if needed)

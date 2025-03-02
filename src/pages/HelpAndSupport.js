@@ -1,10 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const HelpAndSupport = () => {
-  return ( 
+  useEffect(() => {
+    // Prevent duplicate script injection
+    if (document.getElementById("chatbase-script")) return;
+
+    const script = document.createElement("script");
+    script.src = "https://www.chatbase.co/embed.min.js";
+    script.id = "chatbase-script";
+    script.async = true;
+    script.onload = () => {
+      window.chatbase =
+        window.chatbase ||
+        function () {
+          (window.chatbase.q = window.chatbase.q || []).push(arguments);
+        };
+      window.chatbase("init", { id: "u1KDFGlpC1ZGTR9aZXVKQ" });
+    };
+
+    document.body.appendChild(script);
+  }, []);
+
+  return (
     <div className="text-gray-300 mt-8 p-4">
       {/* Header */}
-      <header className="bg-yellow-500 text-white py-6 text-center  pr-4 pl-4">
+      <header className="bg-yellow-500 text-white py-6 text-center pr-4 pl-4">
         <h1 className="text-3xl font-semibold">How Can We Help?</h1>
         <p className="mt-2 text-gray-200">Find advice and answers from our support team fast or get in touch</p>
         <div className="mt-4">

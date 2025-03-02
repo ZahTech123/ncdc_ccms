@@ -89,11 +89,11 @@ const CardsGrid = ({ tickets, role, name }) => {
         },
         {
           icon: <FaCheckCircle />,
-          title: "Resolution Rate",
+          title: "Total Resolutions", // Updated title
           subheading: "Team Performance",
-          value: resolvedTickets, // Actual value
+          value: resolvedTickets, // Actual value (number of resolved tickets)
           badge: `↑ 5% from last month`, // Percentage value in badge
-          description: "Measures effectiveness in resolving escalated cases.",
+          description: "Total number of resolved tickets.", // Updated description
         },
       ].map((card, index) => (
         <div

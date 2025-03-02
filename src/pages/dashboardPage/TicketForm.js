@@ -83,6 +83,28 @@ const directorateIssueTypeMapping = {
   ],
 };
 
+const generateTicketId = (issueType, directorate) => {
+  // Get first two characters of issue type, uppercase
+  const issueCode = issueType.slice(0, 2).toUpperCase();
+  
+  // Get first character of directorate, uppercase
+  const directorateCode = directorate.charAt(0).toUpperCase();
+  
+  // Get current date and time in YYMMDD format
+  const now = new Date();
+  const dateCode = now.toISOString().slice(2, 10).replace(/-/g, '');
+  
+  // Generate random string (1 lowercase, 1 uppercase)
+  const randomChar = () => String.fromCharCode(Math.floor(Math.random() * 26) + 97);
+  const randomUpperChar = () => String.fromCharCode(Math.floor(Math.random() * 26) + 65);
+  
+  // Generate random numbers
+  const randomNum = () => Math.floor(Math.random() * 10);
+  
+  // Combine all parts
+  return `${issueCode}${directorateCode}${dateCode.slice(0, 2)}${randomChar()}${randomUpperChar()}${randomNum()}`;
+};
+
 const TicketForm = ({ onSubmit }) => {
   const [directorate, setDirectorate] = useState("");
   const [issueType, setIssueType] = useState("");
@@ -116,6 +138,7 @@ const TicketForm = ({ onSubmit }) => {
     const editedDescription = `Operator | ${formattedDate}, ${formattedTime} | New | ${description}|`;
 
     const ticket = {
+      ticketId: generateTicketId(issueType, directorate),
       directorate,
       issueType,
       description: editedDescription || defaultDescription,

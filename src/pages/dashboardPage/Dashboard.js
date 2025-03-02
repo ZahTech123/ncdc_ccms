@@ -208,23 +208,23 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
       <div className="flex flex-col md:flex-row gap-8">
         {/* Left Section - Ticket Table */}
         <TicketTable
-          filteredTickets={filteredTickets}
-          handleTicketTrackerClick={handleDashboardTrackerClick}
-          isExpanded={isExpanded}
-          setIsExpanded={setIsExpanded}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          issueTypeFilter={issueTypeFilter}
-          setIssueTypeFilter={setIssueTypeFilter}
-          keywordSearch={keywordSearch}
-          setKeywordSearch={setKeywordSearch}
-          searchSuggestions={searchSuggestions}
-          showSuggestions={showSuggestions}
-          setShowSuggestions={setShowSuggestions}
-          resetFilters={resetFilters}
-          isFormVisible={isFormVisible}
-          role={role}
-        />
+  filteredTickets={filteredTickets}
+  handleTicketTrackerClick={handleDashboardTrackerClick}
+  isExpanded={isExpanded}
+  setIsExpanded={setIsExpanded}
+  statusFilter={statusFilter}
+  setStatusFilter={setStatusFilter}
+  issueTypeFilter={issueTypeFilter}
+  setIssueTypeFilter={setIssueTypeFilter}
+  keywordSearch={keywordSearch}
+  setKeywordSearch={setKeywordSearch}
+  searchSuggestions={searchSuggestions}
+  showSuggestions={showSuggestions}
+  setShowSuggestions={setShowSuggestions}
+  resetFilters={resetFilters}
+  isFormVisible={isFormVisible}
+  role={role}
+/>
 
         {/* Right Section - Create Ticket Form */}
         {isFormVisible && (

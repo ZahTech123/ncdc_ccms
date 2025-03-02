@@ -32,6 +32,13 @@ const TicketTable = ({
     console.log("Selected Ticket Updated:", selectedTicket);
   }, [selectedTicket]);
 
+  // Add this useEffect to log filter changes
+  useEffect(() => {
+    console.log("Status Filter Changed:", statusFilter);
+    console.log("Issue Type Filter Changed:", issueTypeFilter);
+    console.log("Keyword Search Changed:", keywordSearch);
+  }, [statusFilter, issueTypeFilter, keywordSearch]);
+
   // Force the table to be expanded for roles that are not admin or operator
   const isTableExpanded =
     role !== "admin" && role !== "operator" ? true : isExpanded;
@@ -244,7 +251,7 @@ const TicketTable = ({
               <option value="Resolved">Resolved</option>
               <option value="Overdue">Overdue</option>
               <option value="Closed">Closed</option>
-              {(role === "admin" || role === "supervisor") && (
+              {(role === "admin" || role === "supervisor" || role === "supervisorC") && (
                 <option value="Invalid">Invalid</option>
               )}
             </select>
@@ -407,7 +414,7 @@ const TicketTable = ({
     <tr
       key={index}
       className="border-b border-gray-600 hover:bg-gray-700"
-    >
+     >
       {/* Render Verify button for supervisorC */}
       {role === "supervisorC" && (
         <td className="p-2 flex items-center gap-2">
@@ -448,9 +455,9 @@ const TicketTable = ({
 
       {/* Rest of the table row */}
       <td className="p-2">
-        {ticket.id.length > 15
-          ? ticket.id.substring(0, 15) + "..."
-          : ticket.id}
+        {ticket.ticketId && ticket.ticketId.length > 15
+          ? ticket.ticketId.substring(0, 15) + "..."
+          : ticket.ticketId}
       </td>
       <td className="p-2">{ticket.issueType}</td>
       <td className="p-2">{ticket.team}</td>

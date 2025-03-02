@@ -3,7 +3,7 @@ import { usePermissions } from "../../../context/PermissionsContext";
 import DonutChart from "./DonutChart"; // Import the DonutChart component
 import CardsGrid from "./CardsGrid"; // Import the CardsGrid component
 import Tables from "./Tables"; // Import the Tables component
-
+import "./section1.css";
 const Section1 = ({ tickets = [] }) => {
   const { userPermissions } = usePermissions();
   const { role, name } = userPermissions; // Destructure name from userPermissions
