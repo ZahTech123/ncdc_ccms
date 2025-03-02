@@ -420,8 +420,9 @@ const EditModal = ({ ticket, onClose, onSave, onDelete, onDropdownChange }) => {
           </div>
 
           {/* Modal Footer */}
-          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            {role !== "supervisorC" && (
+          <div className="mt-6 flex flex-col sm:flex-row justify-end items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            {/* Delete button - only visible for admin */}
+            {role === "admin" && (
               <button
                 type="button"
                 onClick={handleDeleteClick}

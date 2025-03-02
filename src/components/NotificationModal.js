@@ -171,7 +171,7 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
                 const truncatedTicketId = ticket.id.slice(0, 24);
 
                 return (
-                  <div key={ticket.id}>
+                  <div key={ticket.ticketId}>
                     {index === 0 && (
                       <div className="most-recent-notification">
                         <strong>Most Recent Notification</strong>

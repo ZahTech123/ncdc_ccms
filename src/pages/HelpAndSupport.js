@@ -3,19 +3,23 @@ import React, { useEffect } from 'react';
 const HelpAndSupport = () => {
   useEffect(() => {
     // Prevent duplicate script injection
-    if (document.getElementById("chatbase-script")) return;
+    if (document.getElementById("botpress-webchat")) return;
 
     const script = document.createElement("script");
-    script.src = "https://www.chatbase.co/embed.min.js";
-    script.id = "chatbase-script";
+    script.id = "botpress-webchat";
+    script.src = "https://cdn.botpress.cloud/webchat/v2/inject.js";
     script.async = true;
     script.onload = () => {
-      window.chatbase =
-        window.chatbase ||
-        function () {
-          (window.chatbase.q = window.chatbase.q || []).push(arguments);
-        };
-      window.chatbase("init", { id: "u1KDFGlpC1ZGTR9aZXVKQ" });
+      window.botpressWebChat.init({
+        composerPlaceholder: "Ask me anything...",
+        botId: "your-bot-id",
+        hostUrl: "https://cdn.botpress.cloud/webchat/v2",
+        messagingUrl: "https://messaging.botpress.cloud",
+        clientId: "your-client-id",
+        lazySocket: true,
+        themeName: "prism",
+        stylesheet: "https://cdn.botpress.cloud/webchat/v2/themes/prism/prism.css",
+      });
     };
 
     document.body.appendChild(script);
@@ -26,7 +30,9 @@ const HelpAndSupport = () => {
       {/* Header */}
       <header className="bg-yellow-500 text-white py-6 text-center pr-4 pl-4">
         <h1 className="text-3xl font-semibold">How Can We Help?</h1>
-        <p className="mt-2 text-gray-200">Find advice and answers from our support team fast or get in touch</p>
+        <p className="mt-2 text-gray-200">
+          Find advice and answers from our support team fast or get in touch
+        </p>
         <div className="mt-4">
           <input
             type="text"
@@ -53,29 +59,15 @@ const HelpAndSupport = () => {
         </div>
       </section>
 
-      {/* Featured Articles */}
-      <section className="max-w-4xl mx-auto mt-12">
-        <h2 className="text-xl font-semibold mb-4">Featured Articles</h2>
-        <ul className="bg-gray-800 p-6 rounded-lg shadow-md space-y-4 border border-gray-600">
-          {[
-            "How to Submit a Complaint",
-            "Understanding the Escalation Process",
-            "How to Track Your Complaint Status",
-            "Generating Weekly and Monthly Reports",
-            "Managing Complaint Categories and Priorities"
-          ].map((article, index) => (
-            <li key={index} className="flex justify-between items-center hover:text-white cursor-pointer">
-              <span>{article}</span>
-              <span>→</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* Botpress Chatbot Container */}
+      <div id="botpress-webchat-container" className="mt-12"></div>
 
       {/* Contact */}
       <section className="text-center mt-12">
         <h2 className="text-lg font-semibold">Didn't find an answer to your question?</h2>
-        <p className="mt-2">Get in touch with us for details on additional services, custom work pricing, or technical support.</p>
+        <p className="mt-2">
+          Get in touch with us for details on additional services, custom work pricing, or technical support.
+        </p>
         <button className="mt-4 bg-yellow-500 hover:bg-yellow-400 text-white px-6 py-2 rounded-lg shadow-md">
           CONTACT US
         </button>
