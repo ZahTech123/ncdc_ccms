@@ -9,6 +9,7 @@ import { easeQuadInOut } from "d3-ease";
 import { usePermissions } from "../../context/PermissionsContext"; // Updated import path
 import { useTickets } from "../../context/TicketsContext"; // Import useTickets
 import { filterTickets } from "../../utils/ticketFilters"; // Import filterTickets function
+import { FiSearch } from 'react-icons/fi'; // Import search icon from React Icons
 
 // Set Mapbox access token
 mapboxgl.accessToken = "pk.eyJ1Ijoiam9obnNraXBvbGkiLCJhIjoiY201c3BzcDYxMG9neDJscTZqeXQ4MGk4YSJ9.afrO8Lq1P6mIUbSyQ6VCsQ";
@@ -30,18 +31,15 @@ const MapPage = () => {
   const [priority, setPriority] = useState("");
   const [selectedDirectorate, setSelectedDirectorate] = useState(""); // Add selectedDirectorate state
   const markersRef = useRef([]);
-
-  // Log the selectedDirectorate state whenever it changes
-  useEffect(() => {
-    console.log("Selected Directorate (MapPage):", selectedDirectorate);
-  }, [selectedDirectorate]);
+  const mapContainerRef = useRef();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Automatically set the selectedDirectorate based on the first complaint's directorate
   useEffect(() => {
     if (filteredTickets.length > 0) {
       const firstComplaintDirectorate = filteredTickets[0].directorate;
       setSelectedDirectorate(firstComplaintDirectorate);
-      console.log("Setting selectedDirectorate to:", firstComplaintDirectorate);
     }
   }, [filteredTickets]);
 
@@ -62,15 +60,18 @@ const MapPage = () => {
   // Initialize map with 3D buildings
   useEffect(() => {
     const mapInstance = new mapboxgl.Map({
-      container: "map",
+      container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/streets-v12",
       center: [147.15144455964452, -9.478037785341655],
       zoom: 16,
-      pitch: 45, // Add pitch for 3D effect
+      pitch: 45,
       bearing: 30,
     });
 
+    // Add controls
     mapInstance.addControl(new mapboxgl.NavigationControl(), "top-right");
+    const fullscreenControl = new mapboxgl.FullscreenControl();
+    mapInstance.addControl(fullscreenControl);
 
     mapInstance.on("load", () => {
       const layers = mapInstance.getStyle().layers;
@@ -115,13 +116,20 @@ const MapPage = () => {
         },
         labelLayerId // Ensure the layer is added above labels
       );
-
-      console.log("3D buildings layer added successfully");
     });
+
+    // Listen for fullscreen change events
+    const handleFullscreenChange = () => {
+      const isFullscreen = document.fullscreenElement !== null;
+      console.log("Fullscreen change detected. Is fullscreen:", isFullscreen); // Debug log
+      setIsFullscreen(isFullscreen);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     setMap(mapInstance);
 
     return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
       if (mapInstance && mapInstance.remove) {
         mapInstance.remove();
       }
@@ -251,17 +259,52 @@ const MapPage = () => {
     }
   };
 
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Filter complaints based on search query
+  const searchedComplaints = useMemo(() => {
+    if (!searchQuery) return filteredComplaints;
+
+    return filteredComplaints.filter((complaint) =>
+      complaint.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [filteredComplaints, searchQuery]);
+
+  // Debug log for isFullscreen state
+  useEffect(() => {
+    console.log("isFullscreen state updated:", isFullscreen);
+  }, [isFullscreen]);
+
   return (
-    <div className="flex  p-8 space-x-6">
+    <div className="flex p-8 space-x-6">
       <DynamicCards
-        filteredComplaints={filteredComplaints}
+        filteredComplaints={searchedComplaints}
         markersRef={markersRef}
         flyToLocation={flyToLocation}
         setSelectedComplaint={setSelectedComplaint}
         setShowModal={setShowModal}
       />
       <div className="w-3/5 bg-gray-800 p-6 rounded-lg space-y-6 relative">
-        <div id="map" className="w-full h-full rounded-lg"></div>
+        {/* Search Bar (Only Visible in Fullscreen) */}
+        {isFullscreen && (
+          <div
+            className="absolute top-4 left-4 z-50 bg-white rounded-lg shadow-lg p-2 flex items-center w-96"
+            style={{ zIndex: 1000 }} // Ensure the search bar is on top
+          >
+            <FiSearch className="w-5 h-5 text-gray-500 mr-2" />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="outline-none flex-1"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+        )}
+        <div id="map" className="w-full h-full rounded-lg" ref={mapContainerRef}></div>
       </div>
       <Filters
         selectedCity={selectedCity}

@@ -74,6 +74,7 @@ const DynamicCards = ({
 
         return (
           <div className="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative">
+            {/* Main Card Content */}
             <div
               key={complaint.id}
               onClick={() => {
@@ -89,8 +90,6 @@ const DynamicCards = ({
                     marker
                   );
                 }
-                setSelectedComplaint(complaint);
-                setShowModal(true);
               }}
             >
               {/* Icon in the top-right corner */}
@@ -171,7 +170,7 @@ const DynamicCards = ({
               <div className="flex justify-between items-center mt-4">
                 <div className="flex items-center space-x-2">
                   <div className="text-sm text-gray-600">
-                    Ticket #{complaint.id}
+                    Ticket Id: {complaint.ticketId}
                   </div>
                 </div>
                 <span
@@ -222,14 +221,15 @@ const DynamicCards = ({
               </div>
             </div>
 
-            {/* See More Button with Bounce Effect */}
+            {/* See More Button */}
             <div
               className="mt-2 px-3 py-2 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative flex items-center justify-center text-black text-center border border-gray-300 transform active:scale-95"
               style={{
                 transition: "transform 0.1s ease-in-out, box-shadow 0.2s ease",
                 transformOrigin: "center",
               }}
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling to parent
                 setSelectedComplaint(complaint);
                 setShowModal(true);
               }}

@@ -183,11 +183,11 @@ const EditModal = ({ ticket, onClose, onSave, onDelete, onDropdownChange }) => {
       case "supervisorC":
         return ["Verified","Invalid"];
       case "admin":
-        return ["In Progress", "Resolved", "Overdue", "Closed", "Verified"];
+        return ["In Progress", "Resolved", "Closed", "Verified"];
       case "bU_adminC":
         return ["In Progress", "Closed"];
       default:
-        return ["In Progress", "Resolved", "Overdue", "Closed"];
+        return ["In Progress", "Resolved", "Closed"];
     }
   };
 

@@ -420,21 +420,33 @@ const TicketTable = ({
         <td className="p-2 flex items-center gap-2">
           <button
             className={`p-1 rounded-md text-sm ${
-              ticket.status === "In Progress" || ticket.status === "Invalid"
+              ticket.status === "In Progress" || 
+              ticket.status === "Invalid" ||
+              ticket.status === "Closed" || 
+              ticket.status === "Resolved"  // Added new conditions
                 ? "bg-gray-500 cursor-not-allowed"
                 : "bg-yellow-500 hover:bg-yellow-600"
             }`}
             onClick={() => 
               ticket.status !== "In Progress" && 
-              ticket.status !== "Invalid" && 
+              ticket.status !== "Invalid" &&
+              ticket.status !== "Closed" && 
+              ticket.status !== "Resolved" &&  // Added new conditions
               openEditModal(ticket)
             }
-            disabled={ticket.status === "In Progress" || ticket.status === "Invalid"}
+            disabled={
+              ticket.status === "In Progress" || 
+              ticket.status === "Invalid" ||
+              ticket.status === "Closed" || 
+              ticket.status === "Resolved"  // Added new conditions
+            }
           >
             {ticket.status === "In Progress"
               ? "Verified"
               : ticket.status === "Invalid"
               ? "Invalid"
+              : ticket.status === "Closed" || ticket.status === "Resolved"  // Added new conditions
+              ? "Completed"
               : "Verify"}
           </button>
         </td>

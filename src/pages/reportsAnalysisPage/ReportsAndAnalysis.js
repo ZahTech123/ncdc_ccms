@@ -27,7 +27,7 @@ const ReportsAnalysis3 = () => {
   }
 
   return (
-    <div className="bg-gray-900 text-white p-6">
+    <div className="bg-gray-900 text-white p-6" style={{ zIndex: -200000 }}>
       <div className="container mx-auto">
         {/* Pass the data as `tickets` prop to Section1 */}
         <Section1 tickets={filteredTickets} />

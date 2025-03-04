@@ -21,9 +21,6 @@ export const CreatePopupContent = (complaint) => {
   const popupContent = document.createElement("div");
   popupContent.className = "custom-popup";
 
-  // Log the incoming description
-  console.log("Incoming Description:", complaint.description);
-
   // Create and style the icon container
   const iconContainer = document.createElement("div");
   iconContainer.style.width = "24px";

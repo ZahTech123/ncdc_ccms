@@ -38,7 +38,6 @@ const Navbar = ({
   };
 
   const handleSave = async (ticketId) => {
-    console.log("Saving ticket: in Nav bar", ticketId);
     // Add your save logic here (e.g., update the ticket in Firestore)
   };
 

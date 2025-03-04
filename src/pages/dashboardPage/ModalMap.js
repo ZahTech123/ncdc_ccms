@@ -61,11 +61,15 @@ const ModalMap = () => {
   }, []);
 
   return (
-    <div>
-      <div id="map" className="w-full h-[500px] min-h-[500px]"></div>
-      <div className="mt-4">
-        <p>Latitude: {latitude !== null ? latitude : "No marker added yet"}</p>
-        <p>Longitude: {longitude !== null ? longitude : "No marker added yet"}</p>
+    <div style={{ zIndex: 10000 }}>
+      <div 
+        id="map" 
+        className="w-full h-[500px] min-h-[500px] bg-gray-800"
+        style={{ zIndex: 10001 }}
+      ></div>
+      <div className="mt-4 p-4 bg-gray-800 rounded-lg" style={{ zIndex: 10002 }}>
+        <p className="text-gray-200">Latitude: {latitude !== null ? latitude : "No marker added yet"}</p>
+        <p className="text-gray-200">Longitude: {longitude !== null ? longitude : "No marker added yet"}</p>
       </div>
     </div>
   );

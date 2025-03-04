@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
 import ModalMap from "./ModalMap";  // Ensure ModalMap exists or remove this line if not needed
-import { sendEmail } from "./EmailEscalation";
+import { sendEmail } from "./EmailTrigger";
 // Initialize EmailJS with your Public Key
 //emailjs.init("SimW6urql2il_yFhB");  // Replace with your Public Key
 
@@ -166,6 +166,7 @@ const TicketForm = ({ onSubmit }) => {
         bU_admin: false,
         bU_adminCPI: false,
       },
+      emailEscalation:false,
     };
 
     console.log("Ticket before onSubmit:", ticket);
@@ -359,17 +360,17 @@ const TicketForm = ({ onSubmit }) => {
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
         contentLabel="Select Location"
-        className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50"
+        className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50 z-70"
+        style={{ zIndex: 1000 }}
         overlayClassName="modal-overlay"
       >
         <div
-          className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-[800px]"
-          style={{ zIndex: 9999 }}
+          className="bg-gray-800 rounded-2xl shadow-lg p-6 w-full max-w-[800px] border border-white border-opacity-20 z-50"
         >
-          <h2 className="text-lg font-semibold text-gray-800 text-center mb-4">
+          <h2 className="text-lg font-semibold text-white text-center mb-4">
             Select Location
           </h2>
-          <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md">
+          <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md  ">
             <ModalMap onLocationSelect={handleLocationSelect} />
           </div>
           <div className="flex justify-end gap-4 mt-6">

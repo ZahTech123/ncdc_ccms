@@ -44,11 +44,9 @@ const Filters = ({
   // Get issue types based on selected directorate
   const getFilteredIssueTypes = () => {
     if (!selectedDirectorate) {
-      console.log("No directorate selected. Showing all issue types.");
       return allIssueTypes;
     }
 
-    console.log(`Selected Directorate: ${selectedDirectorate}`);
     return directorateIssueTypeMapping[selectedDirectorate] || allIssueTypes;
   };
 

@@ -17,15 +17,6 @@ const defaultImages = {
 };
 
 export default function MapPagePopUpModal({ selectedComplaint, setShowModal, setSelectedComplaint }) {
-  // Debugging: Log the selected complaint and image path
-  useEffect(() => {
-    if (selectedComplaint) {
-      console.log("Selected Complaint:", selectedComplaint);
-      const imagePath = defaultImages[selectedComplaint.issueType] || "/assets/images/default.jpg";
-      console.log("Computed Image Path:", imagePath);
-    }
-  }, [selectedComplaint]);
-
   // Function to restructure the description
   const restructureDescription = (description) => {
     if (!description) return "No description provided";
@@ -100,7 +91,7 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
   return (
     <div
       className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center"
-      style={{ zIndex: 10000 }}
+      style={{ zIndex: 100000 }}
     >
       <div
         className="bg-white shadow-lg rounded-2xl p-6 max-w-2xl animate-slide-down"
@@ -124,7 +115,6 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                     }`}
                     className="w-full max-h-52 object-cover rounded-lg shadow-md"
                     onError={(e) => {
-                      console.error("Firebase image failed to load:", e.target.src);
                       e.target.src = defaultImages[selectedComplaint.issueType] || "/assets/images/default.jpg"; // Fallback to default image
                     }}
                   />
@@ -139,7 +129,6 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                     alt={`Default for ${selectedComplaint.issueType}`}
                     className="w-full max-h-52 object-cover rounded-lg shadow-md"
                     onError={(e) => {
-                      console.error("Default image failed to load:", e.target.src);
                       e.target.src = "/assets/images/default.jpg"; // Fallback to default image
                     }}
                   />
@@ -212,8 +201,6 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                           const [day, month, year] = dateString.split('/');
                           dateString = `20${year}-${month}-${day}`; // Convert to ISO format: yyyy-mm-dd
                         }
-
-                        console.log('Formatted Date String:', dateString); // Debugging step
 
                         const date = new Date(dateString);
                         if (isNaN(date.getTime())) return 'Invalid Date'; // Handle invalid date
