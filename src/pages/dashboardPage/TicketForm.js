@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
 import ModalMap from "./ModalMap";  // Ensure ModalMap exists or remove this line if not needed
-import { sendEmail } from "./EmailTrigger";
+// import { sendEmail } from "./EmailTrigger";
 // Initialize EmailJS with your Public Key
 //emailjs.init("SimW6urql2il_yFhB");  // Replace with your Public Key
 
@@ -166,7 +166,25 @@ const TicketForm = ({ onSubmit }) => {
         bU_admin: false,
         bU_adminCPI: false,
       },
-      emailEscalation:false,
+      emailEscalation: false,
+      isNew: {
+        admin: true,
+        supervisorC: true,
+        operator: true,
+        bU_admin: true,
+        bU_adminCPI: true,
+        bU_adminC: true,
+        bU_supervisorC: true,
+        bU_managerC: true,
+        bU_directorC: true,
+        bU_adminS_L: true,
+        bU_supervisorS_L: true,
+        bU_managerS_L: true,
+        bU_directorS_L: true,
+        bU_supervisorCPI: true,
+        bU_managerCPI: true,
+        bU_directorCPI: true,
+      },
     };
 
     console.log("Ticket before onSubmit:", ticket);
@@ -183,7 +201,7 @@ const TicketForm = ({ onSubmit }) => {
     setLongitude("");
 
     // Send email
-    await sendEmail(ticket);
+   // await sendEmail(ticket);
   };
 
   const handleLocationSelect = (lat, lng) => {
@@ -324,7 +342,7 @@ const TicketForm = ({ onSubmit }) => {
           <button
             type="button"
             id="selectLocationButton"
-            className="w-full bg-gray-700 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600"
+            className=" bounce-effect w-full bg-gray-700 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600"
             onClick={() => setIsModalOpen(true)}
           >
             Select Location
@@ -349,7 +367,7 @@ const TicketForm = ({ onSubmit }) => {
           </button>
           <button
             type="submit"
-            className="w-1/2 bg-yellow-400 text-black py-2 px-4 rounded-md shadow hover:bg-yellow-300"
+            className=" bounce-effect  w-1/2 bg-yellow-400 text-black py-2 px-4 rounded-md shadow hover:bg-yellow-300"
           >
             Submit
           </button>
@@ -375,13 +393,13 @@ const TicketForm = ({ onSubmit }) => {
           </div>
           <div className="flex justify-end gap-4 mt-6">
             <button
-              className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition"
+              className=" bounce-effect  bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition"
               onClick={() => setIsModalOpen(false)}
             >
               Cancel
             </button>
             <button
-              className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg transition"
+              className=" bounce-effect  bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg transition"
               onClick={saveLocation}
             >
               Save Location

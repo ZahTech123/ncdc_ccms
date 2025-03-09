@@ -1,0 +1,24 @@
+/* globals.css */
+
+/* Define CSS variables for bounce effect */
+:root {
+    --bounce-scale: 0.95;
+    --bounce-duration: 0.1s;
+    --bounce-timing: ease-in-out;
+  }
+  
+  /* Reusable bounce effect class */
+  .bounce-effect {
+    transition: transform var(--bounce-duration) var(--bounce-timing), box-shadow 0.2s ease;
+    transform-origin: center;
+  }
+  
+  .bounce-effect:active {
+    transform: scale(var(--bounce-scale));
+  }
+  
+  /* Custom bounce effect for specific buttons */
+  .custom-bounce-effect {
+    --bounce-scale: 0.9;
+    --bounce-duration: 0.2s;
+  }

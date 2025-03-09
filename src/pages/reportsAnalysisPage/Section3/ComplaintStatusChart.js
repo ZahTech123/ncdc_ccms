@@ -21,7 +21,7 @@ const ComplaintStatusChart = ({ tickets = [] }) => {
     console.log("Unique issue types:", issueTypes);
 
     // Define all statuses to track
-    const statuses = ["New", "In Progress", "Closed", "Resolved", "Invalid"];
+    const statuses = ["New", "In Progress", "Closed", "Resolved", "Invalid", "Verified", "Valid", "Overdue"];
 
     // Initialize status counts for each issue type
     const statusCounts = issueTypes.reduce((acc, issue) => {
@@ -30,7 +30,10 @@ const ComplaintStatusChart = ({ tickets = [] }) => {
         "In Progress": 0,
         "Closed": 0,
         "Resolved": 0,
-        "Invalid": 0
+        "Invalid": 0,
+        "Verified": 0,
+        "Valid": 0,
+        "Overdue": 0
       };
       return acc;
     }, {});
@@ -53,11 +56,14 @@ const ComplaintStatusChart = ({ tickets = [] }) => {
         'In Progress': '#f59e0b', // Amber
         'Closed': '#6b7280', // Gray
         'Resolved': '#3b82f6', // Blue
-        'Invalid': '#ef4444' // Red
+        'Invalid': '#ef4444', // Red
+        'Verified': '#8b5cf6', // Purple
+        'Valid': '#22c55e', // Green
+        'Overdue': '#f97316' // Orange
       }[status],
       borderWidth: 1,
       borderRadius: 12,
-      borderSkipped: 'bottom',
+      borderSkipped: false, // Important: This ensures no borders are skipped for rounding
     }));
 
     const ctxBarChart = chartRef.current?.getContext("2d");
@@ -100,6 +106,12 @@ const ComplaintStatusChart = ({ tickets = [] }) => {
               right: 20,
               top: 20,
               bottom: 20
+            }
+          },
+          elements: {
+            bar: {
+              borderRadius: 12,
+              borderSkipped: false,
             }
           }
         },

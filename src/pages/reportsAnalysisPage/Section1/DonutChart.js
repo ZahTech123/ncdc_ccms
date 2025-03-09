@@ -26,9 +26,10 @@ const DonutChart = ({ tickets, role }) => {
       const overdueCount = tickets.filter(ticket => ticket.status === "Overdue").length;
       const closedCount = tickets.filter(ticket => ticket.status === "Closed").length;
       const invalidCount = tickets.filter(ticket => ticket.status === "Invalid").length;
+      const verifiedCount = tickets.filter(ticket => ticket.status === "Verified").length;
 
-      labels = ["New", "In Progress", "Resolved", "Overdue", "Closed", "Invalid"];
-      counts = [newCount, inProgressCount, resolvedCount, overdueCount, closedCount, invalidCount];
+      labels = ["New", "In Progress", "Resolved", "Overdue", "Closed", "Invalid", "Verified"];
+      counts = [newCount, inProgressCount, resolvedCount, overdueCount, closedCount, invalidCount, verifiedCount];
     } else if (role === "supervisorC") {
       console.log("Filtering tickets for supervisorC role");
       const newCount = tickets.filter(ticket => ticket.status === "New").length;
@@ -88,6 +89,10 @@ const DonutChart = ({ tickets, role }) => {
         case "Invalid":
           gradient.addColorStop(0, "#fca5a5"); // Light red
           gradient.addColorStop(1, "#dc2626"); // Dark red
+          break;
+        case "Verified":
+          gradient.addColorStop(0, "#a78bfa"); // Light purple
+          gradient.addColorStop(1, "#7c3aed"); // Dark purple
           break;
         default:
           gradient.addColorStop(0, "#9ca3af"); // Default to gray

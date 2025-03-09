@@ -1,5 +1,4 @@
-// DynamicCards.js
-import React, {  } from "react";
+import React, { useRef } from "react";
 import {
   FaTrash,
   FaLightbulb,
@@ -18,6 +17,22 @@ import {
 } from "react-icons/fa";
 import { HiOutlineQuestionMarkCircle } from "react-icons/hi2";
 import { createRoot } from "react-dom/client";
+import "../../styles/buttonBounce.css";
+
+const defaultImages = {
+  "Building": "/assets/images/Building.jpg",
+  "Development Control & Physical Planning": "/assets/images/Development Control & Physical Planning.jpg",
+  "Eda City Bus": "/assets/images/Eda City Bus.jpg",
+  "Enforcement": "/assets/images/Enforcement.jpg",
+  "Liquor License": "/assets/images/Liquor License.jpg",
+  "Markets": "/assets/images/Market.jpg",
+  "Parks & Gardens": "/assets/images/Parks & Gardens.jpg",
+  "Potholes and Drainage": "/assets/images/Potholes and Drainage.jpg",
+  "Road Furniture & Road Signs": "/assets/images/Road Furniture and Road Signs.jpg",
+  "Streetlights & Traffic Management": "/assets/images/T Street Lights and Traffic Managment.jpg",
+  "Strategic Planning": "/assets/images/T Stretegic Planning.jpg",
+  "Waste Management": "/assets/images/Waste Management.jpg",
+};
 
 const DynamicCards = ({
   filteredComplaints,
@@ -25,14 +40,34 @@ const DynamicCards = ({
   flyToLocation,
   setSelectedComplaint,
   setShowModal,
+  isFullscreen,
+  scrollToCard,
+  focusedCardId,
 }) => {
+  const cardsContainerRef = useRef(null);
+
+  // Sort complaints with focused card first
+  const sortedComplaints = focusedCardId
+    ? [...filteredComplaints].sort((a, b) =>
+        a.ticketId === focusedCardId ? -1 : b.ticketId === focusedCardId ? 1 : 0
+      )
+    : filteredComplaints;
+
   return (
     <div
       id="cityCardsContainer"
-      className="custom-scrollbar w-1/5 space-y-4 overflow-y-auto"
-      style={{ height: "500px", padding: "8px 8px 8px 8px" }}
+      ref={cardsContainerRef}
+      className={`custom-scrollbar space-y-4 overflow-y-auto ${
+        isFullscreen ? "" : "rounded-lg shadow-lg p-4"
+      }`}
+      style={{
+        height: isFullscreen ? "calc(100vh - 100px)" : "500px",
+        width: isFullscreen ? "320px" : "20%", // Adjust width as needed
+        padding: "8px",
+        backgroundColor: "transparent", // Ensure backdrop color is transparent in both modes
+      }}
     >
-      {filteredComplaints.map((complaint) => {
+      {sortedComplaints.map((complaint) => {
         const icon = {
           "Garbage and Sanitation": <FaTrash size={16} color="black" />,
           "Street Lights": <FaLightbulb size={16} color="black" />,
@@ -73,25 +108,48 @@ const DynamicCards = ({
         root.render(icon);
 
         return (
-          <div className="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative">
+          <div
+            id={`card-${complaint.ticketId}`} // Add unique ID for each card
+            className="bounce-effect bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative"
+            onClick={() => {
+              console.log("Card clicked:", complaint.ticketId);
+              if (complaint.latitude && complaint.longitude) {
+                console.log("Latitude:", complaint.latitude, "Longitude:", complaint.longitude);
+                flyToLocation(complaint); // Pass the entire complaint object
+              } else {
+                console.log("No latitude/longitude found for complaint:", complaint.ticketId);
+              }
+            }}
+          >
+            {/* Image at the top of the card (only in fullscreen mode) */}
+            {isFullscreen && (
+              <div
+                className="w-full h-32 mb-4"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent event bubbling to the card
+                  if (complaint.latitude && complaint.longitude) {
+                    flyToLocation(complaint); // Pass the entire complaint object
+                  }
+                }}
+              >
+                <img
+                  src={
+                    complaint.images && complaint.images.length > 0
+                      ? complaint.images[0]
+                      : defaultImages[complaint.issueType] || "/assets/images/default.jpg"
+                  }
+                  alt={`${complaint.issueType} at ${complaint.suburb || "unknown location"}`}
+                  className="w-full h-full object-cover rounded-lg"
+                  onError={(e) => {
+                    e.target.src =
+                      defaultImages[complaint.issueType] || "/assets/images/default.jpg"; // Fallback to default image
+                  }}
+                />
+              </div>
+            )}
+
             {/* Main Card Content */}
-            <div
-              key={complaint.id}
-              onClick={() => {
-                if (complaint.latitude && complaint.longitude) {
-                  const marker = markersRef.current.find(
-                    (m) =>
-                      m._lngLat.lng === complaint.longitude &&
-                      m._lngLat.lat === complaint.latitude
-                  );
-                  flyToLocation(
-                    complaint.longitude,
-                    complaint.latitude,
-                    marker
-                  );
-                }
-              }}
-            >
+            <div>
               {/* Icon in the top-right corner */}
               <div
                 style={{
@@ -170,7 +228,7 @@ const DynamicCards = ({
               <div className="flex justify-between items-center mt-4">
                 <div className="flex items-center space-x-2">
                   <div className="text-sm text-gray-600">
-                    Ticket Id: {complaint.ticketId}
+                    Ticket ID: {complaint.ticketId}
                   </div>
                 </div>
                 <span
@@ -190,21 +248,21 @@ const DynamicCards = ({
                           marginLeft: "-40px",
                         }
                       : {}),
-                      ...(complaint.status === "Verified"
-                        ? {
-                            marginLeft: "-40px",
-                          }
-                        : {}),
+                    ...(complaint.status === "Verified"
+                      ? {
+                          marginLeft: "-40px",
+                        }
+                      : {}),
                     ...(complaint.status === "Closed"
                       ? {
                           marginLeft: "-30px",
                         }
                       : {}),
-                      ...(complaint.status === "Overdue"
-                        ? {
-                            marginLeft: "-30px",
-                          }
-                        : {}),
+                    ...(complaint.status === "Overdue"
+                      ? {
+                          marginLeft: "-30px",
+                        }
+                      : {}),
                     ...(complaint.status === "Resolved"
                       ? {
                           backgroundColor: "#E5E7EB",
@@ -223,13 +281,9 @@ const DynamicCards = ({
 
             {/* See More Button */}
             <div
-              className="mt-2 px-3 py-2 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative flex items-center justify-center text-black text-center border border-gray-300 transform active:scale-95"
-              style={{
-                transition: "transform 0.1s ease-in-out, box-shadow 0.2s ease",
-                transformOrigin: "center",
-              }}
+              className="mt-2 px-3 py-2 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative flex items-center justify-center text-black text-center border border-gray-300 bounce-effect"
               onClick={(e) => {
-                e.stopPropagation(); // Prevent event bubbling to parent
+                e.stopPropagation(); // Prevent event bubbling to the card
                 setSelectedComplaint(complaint);
                 setShowModal(true);
               }}

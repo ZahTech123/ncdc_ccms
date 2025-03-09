@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 // Mapping of Directorates to their respective issue types
 const directorateIssueTypeMapping = {
@@ -40,6 +40,8 @@ const Filters = ({
   resetFiltersAndZoom,
   selectedDirectorate,
   setSelectedDirectorate,
+  zoomToBounds,
+  markerClicked  // Add this prop to check if a marker is clicked
 }) => {
   // Get issue types based on selected directorate
   const getFilteredIssueTypes = () => {
@@ -48,6 +50,36 @@ const Filters = ({
     }
 
     return directorateIssueTypeMapping[selectedDirectorate] || allIssueTypes;
+  };
+
+  // Trigger zoom bounds whenever filters change, but ONLY if no marker is clicked
+  useEffect(() => {
+    // Skip auto-zooming if a marker is clicked
+    if (markerClicked) return;
+    
+    // Small delay to allow markers to update first
+    const timer = setTimeout(() => {
+      zoomToBounds();
+    }, 200);
+    
+    return () => clearTimeout(timer);
+  }, [selectedCity, category, date, locationKeyword, priority, selectedDirectorate, zoomToBounds, markerClicked]);
+
+  // Create a single handler for reset button
+  const handleReset = () => {
+    // First clear all filters
+    setSelectedCity("");
+    setCategory("");
+    setDate("");
+    setLocationKeyword("");
+    setPriority("");
+    setSelectedDirectorate("");
+    
+    // Then immediately trigger a zoom to bounds
+    // Using setTimeout to ensure state updates first
+    setTimeout(() => {
+      zoomToBounds();
+    }, 50);
   };
 
   return (
@@ -142,8 +174,8 @@ const Filters = ({
       {/* Apply Filter Button */}
       <div className="space-y-2">
         <button
-          onClick={resetFiltersAndZoom}
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold p-2 rounded-md transition-colors"
+          onClick={handleReset}
+          className="bounce-effect w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold p-2 rounded-md transition-colors"
         >
           Reset Filters
         </button>

@@ -76,26 +76,26 @@ const Navbar = ({
             className="h-10 w-auto"
           />
 
-          <NavLink to="/dashboard" className="nav-link">
+          <NavLink to="/dashboard" className="nav-link bounce-effect">
             <LuTickets className="icon" /> Tickets
           </NavLink>
 
-          <NavLink to="/reportsAndAnalysis" className="nav-link">
+          <NavLink to="/reportsAndAnalysis" className="nav-link bounce-effect">
             <MdSpaceDashboard className="icon" /> Dashboard
           </NavLink>
 
-          <NavLink to="/mapPage" className="nav-link">
+          <NavLink to="/mapPage" className="nav-link bounce-effect">
             <FaMapMarkedAlt className="icon" /> Map Page
           </NavLink>
 
-          <NavLink to="/helpAndSupport" className="nav-link">
+          <NavLink to="/helpAndSupport" className="nav-link bounce-effect">
             <FaQuestionCircle className="icon" /> Help/Support
           </NavLink>
         </div>
 
         <div className="right-section">
           {/* Notification Icon */}
-          <div className="notification-icon-container" onClick={toggleNotification}>
+          <div className=" bounce-effect notification-icon-container" onClick={toggleNotification}>
             <FaBell className="icon" />
             {unreadTickets.length > 0 && (
               <span className="notification-badge">
@@ -109,7 +109,7 @@ const Navbar = ({
 
           {/* User Icon and Name */}
           <div className="user-info">
-            <div className="user-icon-container" ref={dropdownRef}>
+            <div className="user-icon-container bounce-effect " ref={dropdownRef}>
               <FaUserCircle
                 className="icon cursor-pointer"
                 onClick={toggleDropdown}

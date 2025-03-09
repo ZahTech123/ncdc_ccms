@@ -93,7 +93,7 @@ export const CreatePopupContent = (complaint) => {
   const ticketIdText = document.createElement("p");
   ticketIdText.style.fontWeight = "bold";
   ticketIdText.style.color = "black";
-  ticketIdText.textContent = `Ticket ID: #${complaint.id}`;
+  ticketIdText.textContent = `Ticket ID: ${complaint.ticketId}`;
   ticketIdSection.appendChild(ticketIdText);
 
   const statusBadge = document.createElement("span");

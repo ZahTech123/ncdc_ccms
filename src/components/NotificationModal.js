@@ -45,20 +45,20 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
   // Filter and sort tickets
   const sortedTickets = newTickets
     .filter((ticket) => {
+      // Add safety check for isRead
+      if (!ticket.isRead || typeof ticket.isRead !== 'object') {
+        return true; // Treat as unread if isRead is missing or invalid
+      }
+      
       // Check if the current role is bU_adminC
       if (role === "bU_adminC") {
-        // Filter tickets where directorate is "Compliance" and status is "Verified"
         return (
           ticket.directorate === "Compliance" &&
           ticket.status === "Verified"
         );
       }
 
-      // For other roles, use the existing filtering logic
-      if (typeof ticket.isRead === 'object' && ticket.isRead !== null) {
-        return !ticket.isRead[role]; // Return true if the ticket is unread for the current role
-      }
-      return !ticket.isRead; // Fallback for boolean isRead
+      return !ticket.isRead[role]; // Return true if the ticket is unread for the current role
     })
     .sort((a, b) => new Date(b.dateSubmitted) - new Date(a.dateSubmitted)); // Sort by date in descending order (most recent first)
 

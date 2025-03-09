@@ -150,148 +150,47 @@ body {
 
 
 
+/* Smooth transition for the form */
+.ticket-form-container {
+  transition: all 0.3s ease-in-out;
+  overflow: hidden; /* Prevent content from overflowing during transition */
+}
+
+/* When collapsed */
+.ticket-form-collapsed {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* When expanded */
+.ticket-form-expanded {
+  width: 25%; /* Adjust based on your layout */
+  opacity: 1;
+}
+
+/* Smooth transition for the table */
+.table-container {
+  transition: all 0.3s ease-in-out;
+}
+
+/* When expanded */
+.table-expanded {
+  width: 100%;
+}
+
+/* When collapsed */
+.table-collapsed {
+  width: 75%; /* Adjust based on your layout */
+}
+
 
 
 /* Ensure the modal is on top with a higher z-index */
-/* Modal styling */
-.modal {
-  position: fixed; /* Fixed positioning */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 9999; /* Higher value than other elements */
-  background-color: rgba(0, 0, 0, 0.5); /* Optional backdrop */
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
-/* Card styling */
-.ticket-card {
-  background-color: #1f2937; /* Match your card background color */
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 1000px; /* Increased width */
-  position: relative;
-}
 
-/* Close button */
-.close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
 
-/* Flex container for alignment */
-.ticket-tracker-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  width: 100%;
-  gap: 1rem; /* Equal spacing between elements */
-}
-
-/* Ensure buttons and circles are aligned */
-.ticket-button, .icon-container, .user-container {
-  position: relative;
-  z-index: 2; /* Ensure they are above the connecting line */
-  flex: 1; /* Equal distribution */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Connecting line */
-.connecting-line {
-  position: absolute;
-  height: 8px;
-  width: calc(100% - 240px); /* Adjust width dynamically */
-  background: linear-gradient(to right, #facc22, #f83600);
-  top: 50%;
-  left: 120px; /* Start after the first button */
-  transform: translateY(-50%);
-  z-index: 0; /* Ensure it's behind the circles and buttons */
-}
-
-/* Dashed line with gradient */
-.dashed-line {
-  background: linear-gradient(to right, #f59e0b, #6b7280);
-  height: 2px;
-  width: 1.5rem;
-  border: none;
-  border-top: 2px dashed #6b7280;
-  margin: 0 10px; /* Add spacing between circles */
-}
-
-/* Button Styling */
-.ticket-button .btn {
-  width: 120px; /* Make buttons consistent */
-  height: 40px; /* Make buttons consistent */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 30px; /* Same rounded shape for all buttons */
-  font-weight: bold;
-  text-align: center;
-  font-size: 14px;
-}
-
-/* Icon container */
-.icon-container {
-  position: relative;
-  width: 100px; /* Same size for all icons */
-  height: 100px; /* Same size for all icons */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background: linear-gradient(to right, #e65100, #ffeb3b); /* Gradient border */
-  padding: 6px;
-  z-index: 1; /* Ensure it's not on top of modals */
-}
-
-/* Spacer */
-.spacer {
-  width: 88px; /* Adjusted to maintain gap */
-  height: 88px; /* Adjusted to maintain gap */
-  background-color: #1f2937; /* Match background color for spacing effect */
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Inner circle */
-.inner-circle {
-  width: 80px; /* Adjusted to maintain gap */
-  height: 80px; /* Adjusted to maintain gap */
-  background-color: #d0d0d0; /* Inner gray circle */
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.5); /* Stronger shadow to pop out */
-}
-
-/* Gradient for Supervisor icon */
-.user-container {
-  position: relative;
-  width: 100px; /* Same size for all icons */
-  height: 100px; /* Same size for all icons */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background: conic-gradient(#e65100 70%, #1f2937 70%);
-  padding: 6px;
+.mapboxgl-ctrl-icon:hover {
+  background-color: #f0f0f0;
 }

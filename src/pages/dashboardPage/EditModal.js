@@ -426,7 +426,7 @@ const EditModal = ({ ticket, onClose, onSave, onDelete, onDropdownChange }) => {
               <button
                 type="button"
                 onClick={handleDeleteClick}
-                className="bg-red-500 hover:bg-red-600 p-2 rounded-md transition-colors w-full sm:w-auto"
+                className=" bounce-effect  bg-red-500 hover:bg-red-600 p-2 rounded-md transition-colors w-full sm:w-auto"
                 disabled={isLoading}
               >
                 {isLoading ? "Deleting..." : "Delete"}
@@ -436,7 +436,7 @@ const EditModal = ({ ticket, onClose, onSave, onDelete, onDropdownChange }) => {
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
               <button
                 type="submit"
-                className="bg-yellow-400 hover:bg-yellow-500 p-2 rounded-md transition-colors text-black w-full sm:w-auto"
+                className=" bounce-effect  bg-yellow-400 hover:bg-yellow-500 p-2 rounded-md transition-colors text-black w-full sm:w-auto"
                 disabled={isLoading}
               >
                 {isLoading ? "Saving..." : role === "supervisorC" ? "Submit" : "Save Changes"}
@@ -444,7 +444,7 @@ const EditModal = ({ ticket, onClose, onSave, onDelete, onDropdownChange }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600 border border-gray-100 border-opacity-30 w-full sm:w-auto"
+                className=" bounce-effect  p-2 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600 border border-gray-100 border-opacity-30 w-full sm:w-auto"
                 disabled={isLoading}
               >
                 Cancel
@@ -471,14 +471,14 @@ const EditModal = ({ ticket, onClose, onSave, onDelete, onDropdownChange }) => {
               <button
                 type="button"
                 onClick={() => setShowConfirmDelete(false)}
-                className="p-2 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600 border border-gray-100 border-opacity-30"
+                className=" bounce-effect  p-2 text-white py-2 px-4 rounded-md shadow hover:bg-gray-600 border border-gray-100 border-opacity-30"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="bg-red-500 hover:bg-red-600 p-2 rounded-md transition-colors"
+                className=" bounce-effect  bg-red-500 hover:bg-red-600 p-2 rounded-md transition-colors"
               >
                 Delete
               </button>

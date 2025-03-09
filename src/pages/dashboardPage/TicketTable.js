@@ -299,11 +299,11 @@ const TicketTable = ({
           </div>
         </div>
         <div className="flex items-center space-x-6">
-          <button className="text-sm bg-gray-700 p-2 rounded-md">
+          <button className=" bounce-effect  text-sm bg-gray-700 p-2 rounded-md">
             Import request
           </button>
           <button
-            className="text-sm bg-gray-700 p-2 rounded-md flex items-center space-x-2"
+            className=" bounce-effect  text-sm bg-gray-700 p-2 rounded-md flex items-center space-x-2"
             onClick={resetFilters}
           >
             <span>Reset Filters</span>

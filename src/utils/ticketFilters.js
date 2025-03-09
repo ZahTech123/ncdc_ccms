@@ -73,9 +73,9 @@ export const filterTickets = (
         }
 
         // Role-based filtering (if needed)
-        if (role === "supervisorC" && ticket.directorate !== "Compliance") {
-            return false;
-        }
+        // if (role === "supervisorC" && ticket.directorate !== "Compliance") {
+        //     return false;
+        // }
 
         let matchesDirectorate = true;
 

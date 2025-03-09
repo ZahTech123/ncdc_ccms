@@ -4,7 +4,7 @@ import { doc, setDoc, onSnapshot, collection } from "firebase/firestore"; // Imp
 import { db } from "./firebaseConfig"; // Import Firestore instance
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/dashboardPage/Dashboard";
-import MapPage from "./pages/MapPage/MapPage";
+import MapPage from "./pages/MapPage/MapComponents/MapPage";
 import Modal from "react-modal";
 import ReportsAndAnalysis from "./pages/reportsAnalysisPage/ReportsAndAnalysis";
 import HelpAndSupport from "./pages/HelpAndSupport";
@@ -15,6 +15,29 @@ import { NotificationsProvider, useNotifications } from "./context/Notifications
 import "./styles/scrollbar.css";
 import { TicketsProvider } from "./context/TicketsContext";
 import { filterUnreadTickets } from "./utils/ticketFilters"; // Import the filtering function
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>Something went wrong. Please try again later.</div>;
+    }
+
+    return this.props.children; 
+  }
+}
 
 const App = () => {
   useEffect(() => {
@@ -68,7 +91,9 @@ const AppContent = () => {
               admin: role === 'admin' ? true : false,
               operator: role === 'operator' ? true : false,
               supervisorC: role === 'supervisorC' ? true : false,
-              bU_adminC: role === 'bU_adminC' ? true : false, // Add bU_adminC to isRead
+              bU_adminC: role === 'bU_adminC' ? true : false,
+              bU_admin: role === 'bU_admin' ? true : false,
+              bU_adminCPI: role === 'bU_adminCPI' ? true : false,
             }
           },
           { merge: true }
@@ -121,7 +146,9 @@ const AppContent = () => {
             path="/reportsAndAnalysis"
             element={
               <ProtectedRoute>
-                <ReportsAndAnalysis />
+                <ErrorBoundary>
+                  <ReportsAndAnalysis />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -148,3 +175,5 @@ const AppContent = () => {
 };
 
 export default App;
+
+

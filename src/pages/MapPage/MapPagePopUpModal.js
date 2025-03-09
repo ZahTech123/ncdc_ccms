@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-
+import React, { } from 'react';
+import "../../styles/buttonBounce.css";
 // Mapping of issueType to default image paths
 const defaultImages = {
   "Building": "/assets/images/Building.jpg",
@@ -251,7 +251,7 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                   setShowModal(false);
                   setSelectedComplaint(null);
                 }}
-                className="px-5 py-2 bg-gray-800 text-white rounded-lg shadow-md hover:bg-gray-900 transition-all"
+                className=" bounce-effect px-5 py-2 bg-gray-800 text-white rounded-lg shadow-md hover:bg-gray-900 transition-all"
               >
                 Close
               </button>

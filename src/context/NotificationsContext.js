@@ -1,4 +1,3 @@
-// src/context/NotificationsContext.js
 import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
 
 export const NotificationsContext = createContext();
@@ -8,7 +7,18 @@ export const NotificationsProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState({ admin: 0, operator: 0, supervisorC: 0 });
 
   const addNotification = useCallback((notification) => {
-    setNewTickets(prev => [...prev, notification]);
+    setNewTickets(prev => [
+      ...prev,
+      {
+        ...notification,
+        isRead: {
+          admin: false,
+          operator: false,
+          supervisorC: false,
+          ...notification.isRead // Allow overriding if needed
+        }
+      }
+    ]);
   }, []);
 
   const markAsRead = useCallback((ticketId, role) => {
@@ -41,9 +51,9 @@ export const NotificationsProvider = ({ children }) => {
 
   useEffect(() => {
     const counts = {
-      admin: newTickets.filter(ticket => !ticket.isRead.admin).length,
-      operator: newTickets.filter(ticket => !ticket.isRead.operator).length,
-      supervisorC: newTickets.filter(ticket => !ticket.isRead.supervisorC).length
+      admin: newTickets.filter(ticket => ticket.isRead && !ticket.isRead.admin).length,
+      operator: newTickets.filter(ticket => ticket.isRead && !ticket.isRead.operator).length,
+      supervisorC: newTickets.filter(ticket => ticket.isRead && !ticket.isRead.supervisorC).length
     };
     setUnreadCount(counts);
   }, [newTickets]);
