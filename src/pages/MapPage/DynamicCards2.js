@@ -112,12 +112,8 @@ const DynamicCards = ({
             id={`card-${complaint.ticketId}`} // Add unique ID for each card
             className="bounce-effect bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative"
             onClick={() => {
-              console.log("Card clicked:", complaint.ticketId);
               if (complaint.latitude && complaint.longitude) {
-                console.log("Latitude:", complaint.latitude, "Longitude:", complaint.longitude);
                 flyToLocation(complaint); // Pass the entire complaint object
-              } else {
-                console.log("No latitude/longitude found for complaint:", complaint.ticketId);
               }
             }}
           >

@@ -9,9 +9,6 @@ Chart.register(BarElement, LinearScale, CategoryScale, ChartDataLabels);
 const BarChart = () => {
   const { filteredTickets } = useTickets();
 
-  // Log initial filtered tickets
-  console.log('Initial filtered tickets for BarChart:', filteredTickets);
-
   // Process tickets data for the chart
   const statusCounts = {
     New: 0,
@@ -27,8 +24,6 @@ const BarChart = () => {
       statusCounts[ticket.status]++;
     }
   });
-
-  console.log('Processed status counts:', statusCounts);
 
   return (
     <Bar

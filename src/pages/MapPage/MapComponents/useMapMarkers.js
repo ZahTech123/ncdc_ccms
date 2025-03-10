@@ -11,9 +11,10 @@ export const useMapMarkers = (
   initialLoad,
   setSelectedComplaint,
   setShowModal,
-  setMarkerClicked // Parameter to handle marker click state
+  setMarkerClicked
 ) => {
   const markersRef = useRef([]);
+  const markersDataRef = useRef([]); // Store marker data for recreation after style changes
   
   // Animation state reference
   const animationRef = useRef({
@@ -133,7 +134,6 @@ export const useMapMarkers = (
           [role]: false
         }
       });
-      console.log('Ticket isNew status updated in Firebase');
     } catch (error) {
       console.error('Error updating ticket in Firebase:', error);
     }
@@ -172,15 +172,46 @@ export const useMapMarkers = (
     map.on('moveend', onMoveEnd);
   }, [map, handleAnimationComplete, zoomToMarker]);
 
+  // Function to create a marker and attach event listeners
+  const createMarker = useCallback((complaint) => {
+    if (!map || !complaint.latitude || !complaint.longitude) return null;
+    
+    const popupContent = CreatePopupContent(complaint);
+    const marker = new mapboxgl.Marker({
+      color: getMarkerColor(complaint.status),
+    })
+      .setLngLat([complaint.longitude, complaint.latitude])
+      .setPopup(new mapboxgl.Popup().setDOMContent(popupContent))
+      .addTo(map);
+
+    marker.getPopup().on("open", () => {
+      const seeMoreBtn = document.getElementById(`seeMoreBtn-${complaint.id}`);
+      if (seeMoreBtn) {
+        seeMoreBtn.addEventListener("click", () => {
+          setSelectedComplaint(complaint);
+          setShowModal(true);
+        });
+      }
+    });
+
+    marker.getElement().addEventListener("click", () => {
+      handleMarkerClick(complaint, marker);
+    });
+    
+    return marker;
+  }, [map, handleMarkerClick, setSelectedComplaint, setShowModal]);
+
   // Function to update markers
   const updateMarkers = useCallback(() => {
     if (!map) return;
 
     // Skip marker updates if we're in an active marker interaction
     if (markerInteractionRef.current.inProgress) {
-      console.log('Skipping marker update during active marker interaction');
       return;
     }
+
+    // Store the latest complaints data for potential recreation
+    markersDataRef.current = filteredComplaints;
 
     // Remove only markers that are no longer in filteredComplaints
     markersRef.current = markersRef.current.filter(marker => {
@@ -190,7 +221,6 @@ export const useMapMarkers = (
       );
       
       if (!markerExists) {
-        console.log('Removing marker:', marker._lngLat);
         marker.remove();
       }
       return markerExists;
@@ -207,39 +237,39 @@ export const useMapMarkers = (
       );
 
       if (!markerExists) {
-        const popupContent = CreatePopupContent(complaint);
-        const marker = new mapboxgl.Marker({
-          color: getMarkerColor(complaint.status),
-        })
-          .setLngLat([complaint.longitude, complaint.latitude])
-          .setPopup(new mapboxgl.Popup().setDOMContent(popupContent))
-          .addTo(map);
+        const marker = createMarker(complaint);
+        if (marker) {
+          markersRef.current.push(marker);
 
-        marker.getPopup().on("open", () => {
-          const seeMoreBtn = document.getElementById(`seeMoreBtn-${complaint.id}`);
-          if (seeMoreBtn) {
-            seeMoreBtn.addEventListener("click", () => {
-              setSelectedComplaint(complaint);
-              setShowModal(true);
-            });
+          // Only fly to new tickets if it's not the initial load
+          if (complaint.isNew && complaint.isNew[role] && !initialLoad) {
+            setTimeout(() => {
+              flyToNewTicket(complaint.longitude, complaint.latitude, marker);
+            }, 500);
           }
-        });
-
-        marker.getElement().addEventListener("click", () => {
-          handleMarkerClick(complaint, marker);
-        });
-
-        markersRef.current.push(marker);
-
-        // Only fly to new tickets if it's not the initial load
-        if (complaint.isNew && complaint.isNew[role] && !initialLoad) {
-          setTimeout(() => {
-            flyToNewTicket(complaint.longitude, complaint.latitude, marker);
-          }, 500);
         }
       }
     });
-  }, [map, filteredComplaints, handleMarkerClick, initialLoad, role, flyToNewTicket, setSelectedComplaint, setShowModal]);
+  }, [map, filteredComplaints, initialLoad, role, flyToNewTicket, createMarker]);
+
+  // Function to completely remove all markers
+  const clearAllMarkers = useCallback(() => {
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+  }, []);
+
+  // Function to recreate all markers (used after style changes)
+  const recreateAllMarkers = useCallback(() => {
+    clearAllMarkers();
+    
+    // Recreate markers from the stored data
+    const newMarkers = markersDataRef.current
+      .filter(complaint => complaint.latitude && complaint.longitude)
+      .map(complaint => createMarker(complaint))
+      .filter(Boolean); // Filter out null values
+    
+    markersRef.current = newMarkers;
+  }, [clearAllMarkers, createMarker]);
 
   // IMPROVED ZOOM TO BOUNDS FUNCTION
   const zoomToBounds = useCallback(() => {
@@ -247,14 +277,12 @@ export const useMapMarkers = (
 
     // Extra protection: don't zoom to bounds if we're in an active marker interaction
     if (markerInteractionRef.current.inProgress) {
-      console.log('Skipping zoomToBounds during marker interaction');
       return;
     }
 
     // Check how long since last marker zoom - don't override recent marker zooms
     const timeSinceLastMarkerZoom = Date.now() - markerInteractionRef.current.lastMarkerZoom;
     if (timeSinceLastMarkerZoom < 2000) { // 2 seconds protection
-      console.log('Skipping zoomToBounds due to recent marker zoom');
       return;
     }
 
@@ -280,17 +308,26 @@ export const useMapMarkers = (
     });
   }, [map, filteredComplaints, setMarkerClicked]);
 
-  // Update markers when filtered complaints change
+  // Listen for style.load events and recreate markers
   useEffect(() => {
     if (!map) return;
+    
+    const handleStyleLoad = () => {
+      // Wait a short moment for the style to fully load
+      setTimeout(() => {
+        recreateAllMarkers();
+      }, 300);
+    };
+    
+    map.on('style.load', handleStyleLoad);
+    
+    return () => {
+      map.off('style.load', handleStyleLoad);
+    };
+  }, [map, recreateAllMarkers]);
 
-    // Log when marker update effect runs
-    console.log('Marker update effect triggered', {
-      timestamp: new Date().toISOString(),
-      complaintCount: filteredComplaints.length,
-      initialLoad
-    });
-
+  // Update markers when filtered complaints change
+  useEffect(() => {
     updateMarkers();
   }, [map, filteredComplaints, updateMarkers, initialLoad]);
 
@@ -311,7 +348,6 @@ export const useMapMarkers = (
                 [role]: false
               }
             });
-            console.log(`Updated ticket ${complaint.id} as read for role ${role}`);
           } catch (error) {
             console.error(`Error updating ticket ${complaint.id}:`, error);
           }
@@ -332,6 +368,8 @@ export const useMapMarkers = (
     handleMarkerClick,
     updateMarkers,
     zoomToBounds,
-    zoomToMarker // Export the new dedicated function
+    zoomToMarker,
+    clearAllMarkers,
+    recreateAllMarkers 
   };
 };

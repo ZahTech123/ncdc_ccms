@@ -13,6 +13,7 @@ import { useMapInitialization } from './useMapInitialization';
 import { useMapMarkers } from './useMapMarkers';
 import BottomStats from './BottomStats/BottomStats';
 import FullscreenFilters from './FullscreenFilters';
+import NavbarTopRight from '../TopRightBar/TopRightBar';
 
 // Main MapPage component
 const MapPage = () => {
@@ -40,6 +41,34 @@ const MapPage = () => {
   const [showStats, setShowStats] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [markerClicked, setMarkerClicked] = useState(false); // Track marker clicks
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Use the custom hook for map initialization with the currentStyleIndex
+  const { currentStyleIndex, toggleMapStyle } = useMapInitialization(
+    mapContainerRef, 
+    setMap, 
+    setIsFullscreen, 
+    isDarkMode
+  );
+
+  // Toggle map style and sync with dark mode state
+// Toggle map style and sync with dark mode state
+const handleToggleMapStyle = () => {
+  toggleMapStyle();
+  
+  // Only toggle isDarkMode if we're switching between light/dark modes
+  // and not when we're toggling to/from satellite view
+  if (currentStyleIndex === 0) {
+    // Switching from streets (0) to dark (1)
+    setIsDarkMode(true);
+  } else if (currentStyleIndex === 1) {
+    // Switching from dark (1) to satellite (2)
+    // Keep isDarkMode as true here to maintain the UI state
+  } else {
+    // Switching from satellite (2) back to streets (0)
+    setIsDarkMode(false);
+  }
+};
 
   // Prevent zoom to bounds if marker interaction is recent
   const lastInteractionRef = useRef({
@@ -53,10 +82,7 @@ const MapPage = () => {
     lastUpdate: Date.now(),
     pendingZoom: false
   });
-
-  // Use the custom hook for map initialization
-  useMapInitialization(mapContainerRef, setMap, setIsFullscreen);
-
+  
   // Filter tickets based on selected filters and role
   const filteredComplaints = useMemo(() => {
     // Mark that filters have changed and may need a zoom update
@@ -101,31 +127,28 @@ const MapPage = () => {
       console.error("Invalid latitude or longitude for complaint:", complaint.ticketId);
       return;
     }
-  
-    console.log("Handling marker click for complaint:", complaint.ticketId);
-  
+
     // Set the marker clicked state to true - this will prevent auto-zooming
     setMarkerClicked(true);
-  
+
     // Update last interaction reference to prevent auto-zooming
     lastInteractionRef.current = {
       timestamp: Date.now(),
       isMarkerInteraction: true,
     };
-  
+
     // Find the matching marker
     const marker = markersRef.current.find(
       (m) =>
         m._lngLat.lng === complaint.longitude &&
         m._lngLat.lat === complaint.latitude
     );
-  
+
     if (!marker) {
       console.error("Marker not found for complaint:", complaint.ticketId);
       return;
     }
-  
-    console.log("Calling zoomToMarker with:", complaint.longitude, complaint.latitude, marker);
+
     zoomToMarker(complaint.longitude, complaint.latitude, marker);
   }, [markersRef, zoomToMarker]);
 
@@ -176,7 +199,6 @@ const MapPage = () => {
       // Check if enough time has passed since last marker interaction
       const timeSinceInteraction = Date.now() - lastInteractionRef.current.timestamp;
       if (timeSinceInteraction < 5000) { // 5 seconds protection
-        console.log('Skipping filter zoom due to recent marker interaction');
         return;
       }
     }
@@ -338,6 +360,16 @@ const MapPage = () => {
       <div
         className={`${isFullscreen ? 'w-full h-screen' : 'w-3/5 bg-gray-800 p-6 rounded-lg space-y-6'} relative`}
       >
+        {/* Top-right NavBar when in fullscreen mode */}
+        {isFullscreen && (
+          <div className="absolute top-4 right-4 z-10">
+            <NavbarTopRight
+              toggleMapStyle={handleToggleMapStyle}
+              currentStyleIndex={currentStyleIndex}
+            />
+          </div>
+        )}
+        
         {/* Live Data Feed */}
         {isFullscreen && <LiveDataFeed />}
 
@@ -379,6 +411,8 @@ const MapPage = () => {
             manualZoomOut={resetViewAndZoom}
             markerClicked={markerClicked}
             disableAutoZoom={true}
+            toggleFilters={toggleFilters}
+            showStats={showStats}
           />
         )}
 
@@ -400,6 +434,8 @@ const MapPage = () => {
           toggleFilters={toggleFilters}
           isFiltersOpen={showFilters}
           markerClicked={markerClicked}
+          fullscreenTopOffset={90}
+          normalTopOffset={20}
         />
       </div>
       {!isFullscreen && (

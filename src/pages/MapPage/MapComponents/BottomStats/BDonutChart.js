@@ -10,9 +10,6 @@ const DonutChart = ({ COLORS }) => {
   const donutChartRef = useRef(null);
   const donutChartInstance = useRef(null);
 
-  // Log initial filtered tickets
-  console.log('Initial filtered tickets for DonutChart:', filteredTickets);
-
   // Process tickets data by priority
   const priorityData = useMemo(() => {
     const counts = {
@@ -33,7 +30,6 @@ const DonutChart = ({ COLORS }) => {
       { name: 'Low', value: counts.Low }
     ];
 
-    console.log('Processed priority data:', processedData);
     return processedData;
   }, [filteredTickets]);
 

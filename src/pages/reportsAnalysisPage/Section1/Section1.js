@@ -6,9 +6,7 @@ import Tables from "./Tables"; // Import the Tables component
 import "./section1.css";
 const Section1 = ({ tickets = [] }) => {
   const { userPermissions } = usePermissions();
-  const { role, name } = userPermissions; // Destructure name from userPermissions
-  console.log("Section1 - Current user role:", role);
-  console.log("Section1 - Current user name:", name); // Log the name for debugging
+  const { role, name } = userPermissions;
 
   const getLabels = (role) => {
     if (['bU_adminC', 'bU_supervisorC', 'bU_managerC', 'bU_directorC'].includes(role)) {
@@ -112,8 +110,6 @@ const Section1 = ({ tickets = [] }) => {
   };
 
   const ticketCounts = getTicketCounts(tickets);
-
-  console.log("Section1 tickets:", tickets);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">

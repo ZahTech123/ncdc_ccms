@@ -6,8 +6,6 @@ const LineGraph = ({ tickets }) => {
     const lineChartInstance = useRef(null);
 
     useEffect(() => {
-        console.log("Tickets data in LineGraph:", tickets);
-
         if (!tickets || tickets.length === 0) return;
 
         // Define the 3 electorates to track

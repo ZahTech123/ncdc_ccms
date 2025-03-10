@@ -6,11 +6,6 @@ const DonutChart = ({ tickets, role }) => {
   const donutChartRef = useRef(null);
   const donutChartInstance = useRef(null);
 
-  // Log the role when the component mounts
-  useEffect(() => {
-    console.log("Confirming role in DonutChart. Role:", role);
-  }, [role]);
-
   useEffect(() => {
     if (!donutChartRef.current) return;
 
@@ -19,7 +14,6 @@ const DonutChart = ({ tickets, role }) => {
     // Define counts based on the role
     let labels, counts;
     if (role === "admin" || role === "supervisorC" || role === "operator") {
-      console.log("Filtering tickets for admin/supervisorC/operator role");
       const newCount = tickets.filter(ticket => ticket.status === "New").length;
       const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
       const resolvedCount = tickets.filter(ticket => ticket.status === "Resolved").length;
@@ -31,7 +25,6 @@ const DonutChart = ({ tickets, role }) => {
       labels = ["New", "In Progress", "Resolved", "Overdue", "Closed", "Invalid", "Verified"];
       counts = [newCount, inProgressCount, resolvedCount, overdueCount, closedCount, invalidCount, verifiedCount];
     } else if (role === "supervisorC") {
-      console.log("Filtering tickets for supervisorC role");
       const newCount = tickets.filter(ticket => ticket.status === "New").length;
       const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
       const closedCount = tickets.filter(ticket => ticket.status === "Closed").length;
@@ -39,7 +32,6 @@ const DonutChart = ({ tickets, role }) => {
       labels = ["New", "In Progress", "Closed"];
       counts = [newCount, inProgressCount, closedCount];
     } else {
-      console.log("Filtering tickets for other roles");
       const verifiedCount = tickets.filter(ticket => ticket.status === "Verified").length;
       const inProgressCount = tickets.filter(ticket => ticket.status === "In Progress").length;
       const closedCount = tickets.filter(ticket => ticket.status === "Closed").length;
@@ -49,7 +41,6 @@ const DonutChart = ({ tickets, role }) => {
     }
 
     const totalComplaints = counts.reduce((a, b) => a + b, 0);
-    console.log("Total complaints:", totalComplaints);
 
     // Custom plugin to increase spacing between legend and chart
     const legendSpacingPlugin = {

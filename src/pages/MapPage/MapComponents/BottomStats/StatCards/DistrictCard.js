@@ -6,9 +6,6 @@ const DistrictCard = () => {
   const [activeDistrict, setActiveDistrict] = useState('northwest');
   const [isDistrictMenuOpen, setIsDistrictMenuOpen] = useState(false);
 
-  // Log initial filtered tickets
-  console.log('Initial filtered tickets:', filteredTickets);
-
   // Move districtMapping inside useMemo or wrap it in its own useMemo
   const districtMapping = useMemo(() => ({
     northwest: "Moresby North-West Open",
@@ -22,7 +19,6 @@ const DistrictCard = () => {
     const filtered = filteredTickets.filter(ticket => 
       ticket.electorate === electorate
     );
-    console.log(`Filtered tickets for ${activeDistrict}:`, filtered);
     return filtered;
   }, [filteredTickets, activeDistrict, districtMapping]);
 
@@ -34,13 +30,6 @@ const DistrictCard = () => {
 
     // Calculate the percentage of total tickets for the selected district out of all tickets
     const totalTicketsPercentage = filteredTickets.length > 0 ? Math.round((totalTickets / filteredTickets.length) * 100) : 0;
-
-    console.log('District statistics:', {
-      totalTickets,
-      resolvedTickets,
-      resolvedPercentage,
-      totalTicketsPercentage
-    });
 
     return {
       totalTickets,
@@ -88,18 +77,13 @@ const DistrictCard = () => {
   };
 
   const toggleDistrictMenu = () => {
-    console.log('Toggling district menu. Current state:', isDistrictMenuOpen);
     setIsDistrictMenuOpen(!isDistrictMenuOpen);
   };
 
   const selectDistrict = (district) => {
-    console.log('Selected district:', district);
     setActiveDistrict(district);
     setIsDistrictMenuOpen(false);
   };
-
-  // Log active district data
-  console.log('Active district data:', activeDistrictData);
 
   return (
     <div className="col-span-1 bg-white p-4 rounded-lg shadow-sm flex flex-col relative" style={{ height: "100%" }}>

@@ -1,11 +1,6 @@
 import React from "react";
 
 const ComplaintsByElectorate = ({ tickets = [] }) => {
-    // Log tickets received by ComplaintsByElectorate
-    console.log("ComplaintsByElectorate received tickets:", tickets);
-    console.log("ComplaintsByElectorate tickets type:", typeof tickets);
-    console.log("ComplaintsByElectorate tickets is array?", Array.isArray(tickets));
-
     const calculateElectorateData = () => {
         const electorateMap = new Map();
 

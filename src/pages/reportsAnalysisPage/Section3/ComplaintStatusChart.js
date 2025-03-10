@@ -4,13 +4,6 @@ import 'chartjs-adapter-date-fns';
 
 const ComplaintStatusChart = ({ tickets = [] }) => {
   const chartRef = useRef(null);
-
-  // Log tickets received by ComplaintStatusChart
-  console.log("ComplaintStatusChart received tickets:", tickets);
-  console.log("ComplaintStatusChart tickets type:", typeof tickets);
-  console.log("ComplaintStatusChart tickets is array?", Array.isArray(tickets));
-
-  // Use the tickets prop instead of hardcoded data
   const complaints = useMemo(() => tickets, [tickets]);
 
   useEffect(() => {
@@ -18,7 +11,6 @@ const ComplaintStatusChart = ({ tickets = [] }) => {
 
     // Extract unique issue types from tickets
     const issueTypes = [...new Set(complaints.map(complaint => complaint.issueType))];
-    console.log("Unique issue types:", issueTypes);
 
     // Define all statuses to track
     const statuses = ["New", "In Progress", "Closed", "Resolved", "Invalid", "Verified", "Valid", "Overdue"];
@@ -44,8 +36,6 @@ const ComplaintStatusChart = ({ tickets = [] }) => {
         statusCounts[issueType][status]++;
       }
     });
-
-    console.log("Status counts by issue type:", statusCounts);
 
     // Prepare datasets for Chart.js
     const datasets = statuses.map((status, index) => ({

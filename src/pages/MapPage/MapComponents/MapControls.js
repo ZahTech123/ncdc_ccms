@@ -11,8 +11,15 @@ const MapControls = ({
   markersRef,
   toggleStats,
   toggleFilters,
-  isFiltersOpen
+  isFiltersOpen,
+  fullscreenTopOffset = 120, // Default value if not provided
+  normalTopOffset = 65 // Default value if not provided
 }) => {
+  // Base position from top - now dynamic based on screen mode
+  const controlsTopOffset = isFullscreen ? fullscreenTopOffset : normalTopOffset;
+  // Spacing between buttons
+  const buttonSpacing = 40;
+
   // Function to handle switching to the previous marker
   const handlePreviousMarker = () => {
     if (!map || !markersRef.current || markersRef.current.length === 0) return;
@@ -86,7 +93,7 @@ const MapControls = ({
   // Calculate the right position based on whether filters are open
   const getRightPosition = () => {
     if (!isFullscreen) return '34px';
-    return isFiltersOpen ? '360px' : '10px'; // Increased from 310px to 360px to account for the increased filter panel margin
+    return isFiltersOpen ? '360px' : '20px'; // Increased from 310px to 360px to account for the increased filter panel margin
   };
 
   const rightPosition = getRightPosition();
@@ -137,148 +144,111 @@ const MapControls = ({
     }
   };
 
-  // Create the button style function to reduce repetition
-  const getButtonStyle = (topPosition) => {
+  // Create the button style function using the index to calculate position
+  const getButtonStyle = (index) => {
     return {
       width: '30px',
       height: '30px',
       color: 'black',
-      top: topPosition,
+      top: `${controlsTopOffset + (index * buttonSpacing)}px`,
       right: rightPosition,
     };
   };
 
+  // Define the control buttons with their respective handlers
+  const controlButtons = [
+    {
+      icon: isFullscreen ? <FiMinimize className="w-4 h-4" /> : <FiMaximize className="w-4 h-4" />,
+      onClick: toggleFullScreen,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiPlus className="w-4 h-4" />,
+      onClick: handleZoomIn,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiMinus className="w-4 h-4" />,
+      onClick: handleZoomOut,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiRotateCcw className="w-4 h-4" />,
+      onClick: () => {
+        if (map) {
+          const currentBearing = map.getBearing();
+          map.easeTo({
+            bearing: currentBearing - 45,
+            duration: 700,
+            easing: (t) => t * t * (3 - 2 * t),
+          });
+        }
+      },
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiRotateCw className="w-4 h-4" />,
+      onClick: () => {
+        if (map) {
+          const currentBearing = map.getBearing();
+          map.easeTo({
+            bearing: currentBearing + 45,
+            duration: 700,
+            easing: (t) => t * t * (3 - 2 * t),
+          });
+        }
+      },
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiArrowUp className="w-4 h-4" />,
+      onClick: handleIncreasePitch,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiArrowDown className="w-4 h-4" />,
+      onClick: handleDecreasePitch,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiTarget className="w-4 h-4" />,
+      onClick: zoomToBounds,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiArrowLeft className="w-4 h-4" />,
+      onClick: handlePreviousMarker,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiArrowRight className="w-4 h-4" />,
+      onClick: handleNextMarker,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FaChartLine className="w-4 h-4" />,
+      onClick: toggleStats,
+      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+    },
+    {
+      icon: <FiFilter className="w-4 h-4" />,
+      onClick: toggleFilters,
+      className: `absolute z-50 p-2 rounded-lg shadow-lg flex items-center justify-center ${isFiltersOpen ? 'bg-yellow-500 text-white' : 'bg-white text-black'}`
+    }
+  ];
+
   return (
     <>
-      {/* Fullscreen Button */}
-      <button
-        onClick={toggleFullScreen}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('20px')}
-      >
-        {isFullscreen ? (
-          <FiMinimize className="w-4 h-4" />
-        ) : (
-          <FiMaximize className="w-4 h-4" />
-        )}
-      </button>
-
-      {/* Zoom In Button */}
-      <button
-        onClick={handleZoomIn}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('60px')}
-      >
-        <FiPlus className="w-4 h-4" />
-      </button>
-
-      {/* Zoom Out Button */}
-      <button
-        onClick={handleZoomOut}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('100px')}
-      >
-        <FiMinus className="w-4 h-4" />
-      </button>
-
-      {/* Rotate Left Button */}
-      <button
-        onClick={() => {
-          if (map) {
-            const currentBearing = map.getBearing();
-            map.easeTo({
-              bearing: currentBearing - 45,
-              duration: 700,
-              easing: (t) => t * t * (3 - 2 * t),
-            });
-          }
-        }}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('140px')}
-      >
-        <FiRotateCcw className="w-4 h-4" />
-      </button>
-
-      {/* Rotate Right Button */}
-      <button
-        onClick={() => {
-          if (map) {
-            const currentBearing = map.getBearing();
-            map.easeTo({
-              bearing: currentBearing + 45,
-              duration: 700,
-              easing: (t) => t * t * (3 - 2 * t),
-            });
-          }
-        }}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('180px')}
-      >
-        <FiRotateCw className="w-4 h-4" />
-      </button>
-
-      {/* Increase Pitch Button (more 3D) */}
-      <button
-        onClick={handleIncreasePitch}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('220px')}
-      >
-        <FiArrowUp className="w-4 h-4" />
-      </button>
-
-      {/* Decrease Pitch Button (more 2D) */}
-      <button
-        onClick={handleDecreasePitch}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('260px')}
-      >
-        <FiArrowDown className="w-4 h-4" />
-      </button>
-
-      {/* Reset View Button */}
-      <button
-        onClick={zoomToBounds}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('300px')}
-      >
-        <FiTarget className="w-4 h-4" />
-      </button>
-
-      {/* Previous Marker Button */}
-      <button
-        onClick={handlePreviousMarker}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('340px')}
-      >
-        <FiArrowLeft className="w-4 h-4" />
-      </button>
-
-      {/* Next Marker Button */}
-      <button
-        onClick={handleNextMarker}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('380px')}
-      >
-        <FiArrowRight className="w-4 h-4" />
-      </button>
-
-      {/* Stats Toggle Button */}
-      <button
-        onClick={toggleStats}
-        className="absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-        style={getButtonStyle('420px')}
-      >
-        <FaChartLine className="w-4 h-4" />
-      </button>
-
-      {/* Filter Toggle Button */}
-      <button
-        onClick={toggleFilters}
-        className={`absolute z-50 p-2 rounded-lg shadow-lg flex items-center justify-center ${isFiltersOpen ? 'bg-yellow-500 text-white' : 'bg-white text-black'}`}
-        style={getButtonStyle('460px')}
-      >
-        <FiFilter className="w-4 h-4" />
-      </button>
+      {controlButtons.map((button, index) => (
+        <button
+          key={index}
+          onClick={button.onClick}
+          className={button.className}
+          style={getButtonStyle(index)}
+        >
+          {button.icon}
+        </button>
+      ))}
     </>
   );
 };

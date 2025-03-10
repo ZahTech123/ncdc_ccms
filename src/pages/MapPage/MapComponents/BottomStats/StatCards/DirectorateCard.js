@@ -6,15 +6,11 @@ const DirectorateCard = () => {
   const [activeDirectorate, setActiveDirectorate] = useState('compliance');
   const [isDirectorateMenuOpen, setIsDirectorateMenuOpen] = useState(false);
 
-  // Log initial filtered tickets
-  console.log('Initial filtered tickets:', filteredTickets);
-
   // Process tickets data for the selected directorate
   const directorateTickets = useMemo(() => {
     const filtered = filteredTickets.filter(ticket => 
       ticket.directorate?.toLowerCase() === activeDirectorate.toLowerCase()
     );
-    console.log(`Filtered tickets for ${activeDirectorate}:`, filtered);
     return filtered;
   }, [filteredTickets, activeDirectorate]);
 
@@ -26,13 +22,6 @@ const DirectorateCard = () => {
 
     // Calculate the percentage of total tickets for the selected directorate out of all tickets
     const totalTicketsPercentage = filteredTickets.length > 0 ? Math.round((totalTickets / filteredTickets.length) * 100) : 0;
-
-    console.log('Directorate statistics:', {
-      totalTickets,
-      resolvedTickets,
-      resolvedPercentage,
-      totalTicketsPercentage
-    });
 
     return {
       totalTickets,
@@ -79,18 +68,13 @@ const DirectorateCard = () => {
   };
 
   const toggleDirectorateMenu = () => {
-    console.log('Toggling directorate menu. Current state:', isDirectorateMenuOpen);
     setIsDirectorateMenuOpen(!isDirectorateMenuOpen);
   };
 
   const selectDirectorate = (directorate) => {
-    console.log('Selected directorate:', directorate);
     setActiveDirectorate(directorate);
     setIsDirectorateMenuOpen(false);
   };
-
-  // Log active directorate data
-  console.log('Active directorate data:', activeDirectorateData);
 
   return (
     <div className="col-span-1 bg-white p-4 rounded-lg shadow-sm flex flex-col relative" style={{ height: "100%" }}>

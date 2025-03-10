@@ -9,27 +9,20 @@ import { usePermissions } from "../../context/PermissionsContext"; // Updated im
 
 const ReportsAnalysis3 = () => {
   const { tickets } = useTickets();
-  const { userPermissions } = usePermissions(); // Get user permissions
+  const { userPermissions } = usePermissions();
   const { role } = userPermissions;
 
   const filteredTickets = useMemo(() => {
     return filterTicketsRoles(tickets, role);
   }, [tickets, role]);
 
-  // Log the full data and its type
-  console.log("ReportsAndAnalysis received data (full):", filteredTickets);
-  console.log("Data type of filteredTickets:", typeof filteredTickets);
-  console.log("Is filteredTickets an array?", Array.isArray(filteredTickets));
-
-  // Check if filteredTickets is empty
   if (filteredTickets.length === 0) {
-    console.log("No tickets data available");
+    return null;
   }
 
   return (
-    <div className="bg-gray-900 text-white p-6" style={{ zIndex: -200000 }}>
+    <div className="bg-gray-900 text-white p-6" >
       <div className="container mx-auto">
-        {/* Pass the data as `tickets` prop to Section1 */}
         <Section1 tickets={filteredTickets} />
         <Section2 tickets={filteredTickets} />
         <Section3 tickets={filteredTickets} />

@@ -3,12 +3,6 @@ import ComplaintStatusChart from "./ComplaintStatusChart";
 import GeneratedReports from "./GeneratedReports";
 
 const Section3 = ({ tickets = [] }) => {
-  // Log tickets received by Section3
-  console.log("Section3 received tickets:", tickets);
-  console.log("Section3 tickets type:", typeof tickets);
-  console.log("Section3 tickets is array?", Array.isArray(tickets));
-
-  // Reports data remains here
   const reports = [
     { date: '24/01/2025' },
     { date: '2/12/2024' },
@@ -17,12 +11,11 @@ const Section3 = ({ tickets = [] }) => {
   ];
 
   const handleGenerateReport = () => {
-    console.log('Generating report...');
+    // Generate report logic
   };
 
   const handleReportClick = (date) => {
-    console.log(`Downloading report from ${date}`);
-    // Add your download logic here
+    // Download report logic
   };
 
   return (
