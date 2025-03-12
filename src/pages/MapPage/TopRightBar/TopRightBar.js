@@ -1,6 +1,20 @@
 import React from "react";
+import { usePermissions } from "../../../context/PermissionsContext";
 
-const NavbarTopRight = ({ toggleMapStyle, currentStyleIndex }) => {
+const NavbarTopRight = ({
+  toggleMapStyle,
+  currentStyleIndex,
+  toggleAllTabs,
+  allTabsVisible,
+  toggleStats,
+  toggleFilters,
+  isFiltersOpen,
+  toggleSidebar,
+  isSidebarOpen,
+}) => {
+  const { userPermissions } = usePermissions();
+  const { name } = userPermissions;
+
   // Function to get appropriate icon based on current style
   const renderMapIcon = () => {
     switch (currentStyleIndex) {
@@ -89,6 +103,10 @@ const NavbarTopRight = ({ toggleMapStyle, currentStyleIndex }) => {
     return titles[currentStyleIndex];
   };
 
+  // Check if any tab is open to determine the toggle all button state
+  const isAnyTabOpen = allTabsVisible || isFiltersOpen || isSidebarOpen;
+  const toggleAllButtonTitle = isAnyTabOpen ? "Hide all tabs" : "Show all tabs";
+
   return (
     <div className="flex items-center bg-transparent">
       <div className="relative flex items-center space-x-4">
@@ -97,7 +115,7 @@ const NavbarTopRight = ({ toggleMapStyle, currentStyleIndex }) => {
           onClick={toggleMapStyle}
           className={`w-12 h-12 rounded-full overflow-hidden border shadow-lg absolute -left-16 flex items-center justify-center ${getButtonStyle()}`}
           title={getButtonTitle()}
-          aria-label={getButtonTitle()} // Add aria-label
+          aria-label={getButtonTitle()}
         >
           <span className={getIconColor()}>
             {renderMapIcon()}
@@ -106,8 +124,28 @@ const NavbarTopRight = ({ toggleMapStyle, currentStyleIndex }) => {
 
         {/* Rest of the Navbar */}
         <div className="flex items-center space-x-4 bg-white shadow-md rounded-full px-6 py-3 pl-14">
-          {/* Status Indicator */}
-          <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+          {/* Master Toggle Button */}
+          <button 
+            onClick={toggleAllTabs}
+            className="w-8 h-8 flex items-center justify-center text-gray-700 hover:text-gray-900"
+            title={toggleAllButtonTitle}
+            aria-label={toggleAllButtonTitle}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+              />
+            </svg>
+          </button>
 
           {/* Notification Bell */}
           <button className="relative">
@@ -166,7 +204,7 @@ const NavbarTopRight = ({ toggleMapStyle, currentStyleIndex }) => {
                 />
               </svg>
             </div>
-            <span className="text-gray-500 font-medium">User Name</span>
+            <span className="text-gray-500 font-medium">{name}</span>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import DistrictCard from './DistrictCard';
+import DistrictCard from './BottomStats';
 import DirectorateCard from './DirectorateCard';
 
 const StatCards = () => {

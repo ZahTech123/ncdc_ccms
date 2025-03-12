@@ -13,7 +13,8 @@ const Sidebar = ({
   flyToLocation,
   setSelectedComplaint,
   setShowModal,
-  isFullscreen
+  isFullscreen,
+  toggleSidebar, // New prop to toggle sidebar visibility
 }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
@@ -260,7 +261,7 @@ const Sidebar = ({
       {/* Burger Icon and Search Bar */}
       <div className="absolute top-4 left-4 z-50 flex items-center gap-2">
         <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          onClick={toggleSidebar} // Use the toggleSidebar function
           className="bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
           style={{ width: '40px', height: '40px' }}
         >

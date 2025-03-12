@@ -342,6 +342,25 @@ const handleToggleMapStyle = () => {
     handleMarkerClick(complaint);
   }, [handleMarkerClick]);
 
+
+const toggleAllTabs = useCallback(() => {
+  // Check if ANY tab is currently open
+  const isAnyTabOpen = showStats || showFilters || isSidebarOpen;
+  
+  // If any tab is open, close ALL tabs
+  // If all tabs are closed, open ALL tabs
+  const newState = !isAnyTabOpen;
+  
+  // Set all tabs to the new state
+  setShowStats(newState);
+  setShowFilters(newState);
+  setIsSidebarOpen(newState);
+}, [showStats, showFilters, isSidebarOpen]);
+
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen(prev => !prev);
+  }, []);
+
   return (
     <div
       ref={parentContainerRef}
@@ -362,13 +381,18 @@ const handleToggleMapStyle = () => {
       >
         {/* Top-right NavBar when in fullscreen mode */}
         {isFullscreen && (
-          <div className="absolute top-4 right-4 z-10">
-            <NavbarTopRight
-              toggleMapStyle={handleToggleMapStyle}
-              currentStyleIndex={currentStyleIndex}
-            />
-          </div>
-        )}
+  <div className="absolute top-4 right-4 z-10">
+    <NavbarTopRight
+      toggleMapStyle={handleToggleMapStyle}
+      currentStyleIndex={currentStyleIndex}
+      toggleAllTabs={toggleAllTabs}
+      toggleStats={toggleStats}
+      allTabsVisible={showStats}
+      toggleSidebar={toggleSidebar} // Add this line to pass the toggleSidebar function
+      isSidebarOpen={isSidebarOpen} // Also pass the sidebar state
+    />
+  </div>
+)}
         
         {/* Live Data Feed */}
         {isFullscreen && <LiveDataFeed />}
@@ -376,6 +400,7 @@ const handleToggleMapStyle = () => {
         {/* Sidebar */}
         {isFullscreen && (
           <Sidebar
+          toggleSidebar={toggleSidebar} // Pass the toggle function
             isSidebarOpen={isSidebarOpen}
             setIsSidebarOpen={setIsSidebarOpen}
             searchQuery={searchQuery}
