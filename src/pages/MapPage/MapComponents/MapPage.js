@@ -327,8 +327,10 @@ const handleToggleMapStyle = () => {
 
   // Toggle Stats visibility
   const toggleStats = useCallback(() => {
-    setShowStats(prev => !prev);
-  }, []);
+    if (isFullscreen) {
+      setShowStats(prev => !prev);
+    }
+  }, [isFullscreen]);
 
   // Close filters when exiting fullscreen
   useEffect(() => {
@@ -360,6 +362,8 @@ const toggleAllTabs = useCallback(() => {
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);
+
+
 
   return (
     <div
@@ -490,7 +494,8 @@ const toggleAllTabs = useCallback(() => {
           setSelectedComplaint={setSelectedComplaint}
         />
       )}
-      {showStats && <BottomStats />}
+       {/* Show BottomStats only in fullscreen mode */}
+       {isFullscreen && showStats && <BottomStats />}
     </div>
   );
 };
