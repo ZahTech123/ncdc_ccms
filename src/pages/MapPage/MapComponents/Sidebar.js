@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { FiSearch, FiMenu } from 'react-icons/fi';
 import DynamicCards2 from '../DynamicCards2';
+import TicketSummary from '../TicketSummary';
 
 const Sidebar = ({
   isSidebarOpen,
@@ -8,13 +9,14 @@ const Sidebar = ({
   searchQuery,
   setSearchQuery,
   handleSearchChange,
-  searchedComplaints = [], // Default to an empty array
+  searchedComplaints = [],
   markersRef,
   flyToLocation,
   setSelectedComplaint,
   setShowModal,
   isFullscreen,
-  toggleSidebar, // New prop to toggle sidebar visibility
+  toggleSidebar,
+  role,
 }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
@@ -258,85 +260,100 @@ const Sidebar = ({
 
   return (
     <>
-      {/* Burger Icon and Search Bar */}
-      <div className="absolute top-4 left-4 z-50 flex items-center gap-2">
-        <button
-          onClick={toggleSidebar} // Use the toggleSidebar function
-          className="bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-          style={{ width: '40px', height: '40px' }}
-        >
-          <FiMenu className="w-5 h-5 text-gray-500" />
-        </button>
+      {/* Top Bar with Burger Icon, Search Bar, and Ticket Summary */}
+      <div className="absolute top-5 left-4 z-50 flex flex-col gap-2">
+        {/* First row: Burger, Search, and Ticket Summary */}
+        <div className="flex items-start gap-2">
+          {/* Burger Icon */}
+          <button
+            onClick={toggleSidebar}
+            className="bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+            style={{ width: '40px', height: '40px' }}
+          >
+            <FiMenu className="w-5 h-5 text-gray-500" />
+          </button>
 
-        <div className="relative">
-          <div className="bg-white rounded-lg shadow-lg p-2 flex items-center w-96">
-            <FiSearch className="w-5 h-5 text-gray-500 mr-2" />
-            <input
-              type="text"
-              placeholder="Search by any ticket info..."
-              className="outline-none flex-1 text-black"
-              value={localSearchQuery}
-              onChange={handleInputChange}
-              onFocus={() => {
-                if (localSearchQuery.trim() !== '') {
-                  setShowSuggestions(true);
-                }
-              }}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            />
-          </div>
+          {/* Search Bar and Ticket Summary */}
+          <div className="flex flex-row gap-2">
+            {/* Search Bar */}
+            <div className="relative">
+              <div className="bg-white rounded-lg shadow-lg p-2 flex items-center w-96">
+                <FiSearch className="w-5 h-5 text-gray-500 mr-2" />
+                <input
+                  type="text"
+                  placeholder="Search by any ticket info..."
+                  className="outline-none flex-1 text-black"
+                  value={localSearchQuery}
+                  onChange={handleInputChange}
+                  onFocus={() => {
+                    if (localSearchQuery.trim() !== '') {
+                      setShowSuggestions(true);
+                    }
+                  }}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                />
+              </div>
 
-          {/* Suggestions Dropdown - Only show when there's a search query */}
-          {showSuggestions && localSearchQuery.trim() !== '' && (
-            <div className="absolute mt-1 w-full bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
-              {filteredSuggestions.length > 0 ? (
-                filteredSuggestions.map((complaint) => {
-                  const displayInfo = getDisplayInfo(complaint, localSearchQuery);
-                  if (!displayInfo) return null;
+              {/* Suggestions Dropdown - Only show when there's a search query */}
+              {showSuggestions && localSearchQuery.trim() !== '' && (
+                <div className="absolute mt-1 w-full bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
+                  {filteredSuggestions.length > 0 ? (
+                    filteredSuggestions.map((complaint) => {
+                      const displayInfo = getDisplayInfo(complaint, localSearchQuery);
+                      if (!displayInfo) return null;
 
-                  return (
-                    <div
-                      key={complaint.id}
-                      className="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0"
-                      onMouseDown={() => handleSuggestionClick(complaint)}
-                    >
-                      <p className={`text-sm font-medium ${complaint._matches.ticketId ? "text-blue-700" : "text-gray-700"}`}>
-                        {highlightMatch(displayInfo.primaryInfo, localSearchQuery)}
-                      </p>
-                      <div className="flex justify-between items-center mt-1">
-                        <p className="text-xs text-gray-500">
-                          {displayInfo.leftInfo}
-                        </p>
-                        <p className="text-xs text-gray-700">
-                          {displayInfo.rightInfo.length > 0 ? displayInfo.rightInfo.reduce((prev, curr, i) =>
-                            [prev, i > 0 ? <span key={`dot-${i}`}> • </span> : null, curr].filter(Boolean)
-                          ) : null}
-                        </p>
-                      </div>
-                      {displayInfo.addInfo && displayInfo.addInfo}
+                      return (
+                        <div
+                          key={complaint.id}
+                          className="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0"
+                          onMouseDown={() => handleSuggestionClick(complaint)}
+                        >
+                          <p className={`text-sm font-medium ${complaint._matches.ticketId ? "text-blue-700" : "text-gray-700"}`}>
+                            {highlightMatch(displayInfo.primaryInfo, localSearchQuery)}
+                          </p>
+                          <div className="flex justify-between items-center mt-1">
+                            <p className="text-xs text-gray-500">
+                              {displayInfo.leftInfo}
+                            </p>
+                            <p className="text-xs text-gray-700">
+                              {displayInfo.rightInfo.length > 0 ? displayInfo.rightInfo.reduce((prev, curr, i) => [
+                                prev, 
+                                i > 0 ? <span key={`dot-${i}`}> • </span> : null, 
+                                curr
+                              ].filter(Boolean)) : null}
+                            </p>
+                          </div>
+                          {displayInfo.addInfo && displayInfo.addInfo}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="p-2 text-sm text-gray-500">No results found for "{localSearchQuery}"</div>
+                  )}
+                  {filteredSuggestions.length > 0 && (
+                    <div className="p-2 text-xs text-gray-400 text-center bg-gray-50">
+                      {filteredSuggestions.length} result{filteredSuggestions.length !== 1 ? 's' : ''} found
                     </div>
-                  );
-                })
-              ) : (
-                <div className="p-2 text-sm text-gray-500">No results found for "{localSearchQuery}"</div>
-              )}
-              {filteredSuggestions.length > 0 && (
-                <div className="p-2 text-xs text-gray-400 text-center bg-gray-50">
-                  {filteredSuggestions.length} result{filteredSuggestions.length !== 1 ? 's' : ''} found
+                  )}
                 </div>
               )}
             </div>
-          )}
+
+            {/* Ticket Summary */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-2 overflow-x-auto">
+              <TicketSummary tickets={searchedComplaints} role={role} />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Sidebar Content */}
       <div
-        className="absolute top-20 left-4 z-50 transform transition-all duration-300 ease-in-out rounded-lg "
+        className="absolute top-28 left-4 z-50 transform transition-all duration-300 ease-in-out rounded-lg"
         style={{
           transform: isSidebarOpen ? 'translateX(0)' : 'translateX(-110%)',
           opacity: isSidebarOpen ? 1 : 0,
-          height: 'calc(100vh - 100px)',
+          height: 'calc(100vh - 140px)', // Adjusted to account for the extra height of ticket summary
           width: '320px',
         }}
       >

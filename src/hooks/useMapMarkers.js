@@ -2,45 +2,67 @@ import { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { CreatePopupContent } from '../pages/MapPage/CreatePopupContent';
 
-const useMapMarkers = (map, filteredComplaints, flyToLocation, initialLoad, setInitialLoad) => {
+const useMapMarkers = (
+  map,
+  filteredComplaints,
+  role,
+  updateTicket,
+  initialLoad,
+  setSelectedComplaint,
+  setShowModal,
+  setMarkerClicked,
+  isFullscreen
+) => {
   const markersRef = useRef([]);
+  const markerInteractionRef = useRef({
+    inProgress: false,
+    lastMarkerZoom: 0,
+  });
 
-  const flyToLocation = useCallback((lng, lat) => {
-    if (!map) return;
-    
-    // Remove any existing animations
-    map.stop();
-    
-    // First, set the zoom level immediately
-    map.setZoom(18);
-    
-    // Then ease to the location
-    map.easeTo({
-      center: [lng, lat],
-      zoom: 18,
-      essential: true,
-      duration: 1000,
-      pitch: 60,
-      bearing: 0
-    });
+  console.log("useMapMarkers - initial isFullscreen value:", isFullscreen);
 
-    // Add a listener to maintain the zoom level
-    const maintainZoom = () => {
+  const zoomToMarker = useCallback(
+    (longitude, latitude, marker) => {
+      if (!map) return;
+
+      console.log(`Zooming to marker - Fullscreen mode: ${isFullscreen}`);
+
+      // Remove any existing animations
+      map.stop();
+      
+      // First, set the zoom level immediately
       map.setZoom(18);
-    };
-    
-    // Add listeners to prevent zoom changes
-    map.on('zoomstart', maintainZoom);
-    map.on('zoomend', maintainZoom);
-    map.on('moveend', maintainZoom);
+      
+      // Then ease to the location
+      const offsetLatitude = isFullscreen ? latitude - 1 : latitude - 0.0009;
+      map.easeTo({
+        center: [longitude, offsetLatitude],
+        zoom: 18,
+        essential: true,
+        duration: 1000,
+        pitch: 60,
+        bearing: 0
+      });
 
-    // Cleanup listeners when component unmounts
-    return () => {
-      map.off('zoomstart', maintainZoom);
-      map.off('zoomend', maintainZoom);
-      map.off('moveend', maintainZoom);
-    };
-  }, [map]);
+      // Add a listener to maintain the zoom level
+      const maintainZoom = () => {
+        map.setZoom(18);
+      };
+      
+      // Add listeners to prevent zoom changes
+      map.on('zoomstart', maintainZoom);
+      map.on('zoomend', maintainZoom);
+      map.on('moveend', maintainZoom);
+
+      // Cleanup listeners when component unmounts
+      return () => {
+        map.off('zoomstart', maintainZoom);
+        map.off('zoomend', maintainZoom);
+        map.off('moveend', maintainZoom);
+      };
+    },
+    [map, setMarkerClicked, isFullscreen]
+  );
 
   useEffect(() => {
     if (!map) return;
@@ -89,14 +111,14 @@ const useMapMarkers = (map, filteredComplaints, flyToLocation, initialLoad, setI
         });
 
         marker.getElement().addEventListener("click", () => {
-          flyToLocation(complaint.longitude, complaint.latitude, marker);
+          zoomToMarker(complaint.longitude, complaint.latitude, marker);
         });
 
         markersRef.current.push(marker);
 
         if (complaint.isNew && !initialLoad) {
           setTimeout(() => {
-            flyToLocation(complaint.longitude, complaint.latitude, marker);
+            zoomToMarker(complaint.longitude, complaint.latitude, marker);
             setTimeout(() => {
               if (!marker.getPopup().isOpen()) {
                 marker.togglePopup();
@@ -113,7 +135,7 @@ const useMapMarkers = (map, filteredComplaints, flyToLocation, initialLoad, setI
       setInitialLoad(false);
     }
 
-  }, [map, filteredComplaints, flyToLocation, initialLoad]);
+  }, [map, filteredComplaints, zoomToMarker, initialLoad]);
 
   const getMarkerColor = (status) => {
     switch (status) {
@@ -130,7 +152,7 @@ const useMapMarkers = (map, filteredComplaints, flyToLocation, initialLoad, setI
     }
   };
 
-  return { markersRef, flyToLocation };
+  return { markersRef, zoomToMarker };
 };
 
 export default useMapMarkers; 

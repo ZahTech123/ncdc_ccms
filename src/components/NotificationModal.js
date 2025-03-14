@@ -94,7 +94,7 @@ const NotificationModal = ({ isOpen, onClose, newTickets = [], updateTicketAsRea
         });
       }
     }
-
+    console.log("NotificationModal is rendering"); // Debugging
     // Find the most recent entry based on the timestamp
     let mostRecentEntry = groupedEntries[0]; // Default to the first entry
     for (const entry of groupedEntries) {

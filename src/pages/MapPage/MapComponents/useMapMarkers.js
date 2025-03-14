@@ -11,22 +11,39 @@ export const useMapMarkers = (
   initialLoad,
   setSelectedComplaint,
   setShowModal,
-  setMarkerClicked
+  setMarkerClicked,
+  isFullscreen
 ) => {
   const markersRef = useRef([]);
   const markersDataRef = useRef([]); // Store marker data for recreation after style changes
   
+  // Store the current fullscreen value in a ref so it's always up-to-date
+  const isFullscreenRef = useRef(isFullscreen);
+  
+  // Keep the ref updated whenever isFullscreen changes
+  useEffect(() => {
+    isFullscreenRef.current = isFullscreen;
+    console.log("useMapMarkers - isFullscreen ref updated:", isFullscreenRef.current);
+  }, [isFullscreen]);
+  
+  console.log("useMapMarkers - initial isFullscreen value:", isFullscreen);
+  
+  // Log isFullscreen whenever it changes
+  useEffect(() => {
+    console.log("useMapMarkers - isFullscreen:", isFullscreen);
+  }, [isFullscreen]);
+
   // Animation state reference
   const animationRef = useRef({
     isAnimating: false,
     currentTicketId: null,
-    timeoutId: null
+    timeoutId: null,
   });
 
   // Keep track of marker interaction state
   const markerInteractionRef = useRef({
     inProgress: false,
-    lastMarkerZoom: 0
+    lastMarkerZoom: 0,
   });
 
   // Helper function to get marker color based on status
@@ -50,11 +67,15 @@ export const useMapMarkers = (
     (longitude, latitude, marker) => {
       if (!map) return;
 
+      // Access the current fullscreen state from the ref instead of the closure value
+      const currentIsFullscreen = isFullscreenRef.current;
+      console.log(`Zooming to marker - Fullscreen mode: ${currentIsFullscreen}`);
+
       // Set marker clicked state to true to prevent auto-zooming from filters
       if (setMarkerClicked) {
         setMarkerClicked(true);
       }
-      
+
       // Set interaction state
       markerInteractionRef.current.inProgress = true;
       markerInteractionRef.current.lastMarkerZoom = Date.now();
@@ -66,8 +87,8 @@ export const useMapMarkers = (
         }
       });
 
-      // Fly to the marker location
-      const offsetLatitude = latitude - 0.0009;
+      // Fly to the marker location - use the currentIsFullscreen value from the ref
+      const offsetLatitude = currentIsFullscreen ? latitude : latitude - 0.0009;
       map.flyTo({
         center: [longitude, offsetLatitude],
         zoom: 18,
@@ -79,23 +100,21 @@ export const useMapMarkers = (
         easing: easeQuadInOut,
       });
 
+      console.log(`Value of latitude ${offsetLatitude} and this is the mode ${currentIsFullscreen}`);
+
       // Open the popup for this marker
       if (marker) {
         marker.togglePopup();
       }
-      
+
       // After the animation completes, we check if we need to maintain the marker clicked state
-      map.once('moveend', () => {
-        // Leave the marker clicked state as true, don't reset it
-        // This prevents auto-zooming from taking over
-        
-        // Add an additional protection: prevent any auto-zooming for the next 2 seconds
+      map.once("moveend", () => {
         setTimeout(() => {
           markerInteractionRef.current.inProgress = false;
         }, 2000);
       });
     },
-    [map, setMarkerClicked]
+    [map, setMarkerClicked] // Remove isFullscreen from dependency array since we're using the ref
   );
 
   // Keep the original flyToLocation for compatibility
@@ -115,95 +134,122 @@ export const useMapMarkers = (
   );
 
   // Function to handle animation completion
-  const handleAnimationComplete = useCallback(async (complaint, marker) => {
-    try {
-      // Update local state
-      const updatedComplaint = { 
-        ...complaint, 
-        isNew: {
-          ...complaint.isNew,
-          [role]: false
-        }
-      };
-      setSelectedComplaint(updatedComplaint);
+  const handleAnimationComplete = useCallback(
+    async (complaint, marker) => {
+      try {
+        // Update local state
+        const updatedComplaint = {
+          ...complaint,
+          isNew: {
+            ...complaint.isNew,
+            [role]: false,
+          },
+        };
+        setSelectedComplaint(updatedComplaint);
 
-      // Update Firebase
-      await updateTicket(complaint.id, {
-        isNew: {
-          ...complaint.isNew,
-          [role]: false
-        }
-      });
-    } catch (error) {
-      console.error('Error updating ticket in Firebase:', error);
-    }
+        // Update Firebase
+        await updateTicket(complaint.id, {
+          isNew: {
+            ...complaint.isNew,
+            [role]: false,
+          },
+        });
+      } catch (error) {
+        console.error("Error updating ticket in Firebase:", error);
+      }
 
-    // Clean up animation state
-    animationRef.current.isAnimating = false;
-    animationRef.current.currentTicketId = null;
-  }, [role, updateTicket, setSelectedComplaint]);
+      // Clean up animation state
+      animationRef.current.isAnimating = false;
+      animationRef.current.currentTicketId = null;
+    },
+    [role, updateTicket, setSelectedComplaint]
+  );
 
   // Function to handle marker click and animation
-  const handleMarkerClick = useCallback((complaint, marker) => {
-    if (!map) return;
+  const handleMarkerClick = useCallback(
+    (complaint, marker) => {
+      if (!map) return;
 
-    // If animation is already running for this ticket, return
-    if (animationRef.current.isAnimating && 
-        animationRef.current.currentTicketId === complaint.id) {
-      return;
-    }
+      // If animation is already running for this ticket, return
+      if (
+        animationRef.current.isAnimating &&
+        animationRef.current.currentTicketId === complaint.id
+      ) {
+        return;
+      }
 
-    // Set animation state
-    animationRef.current.isAnimating = true;
-    animationRef.current.currentTicketId = complaint.id;
-    
-    // Use the dedicated marker zoom function
-    zoomToMarker(complaint.longitude, complaint.latitude, marker);
+      // Set animation state
+      animationRef.current.isAnimating = true;
+      animationRef.current.currentTicketId = complaint.id;
 
-    // Listen for the 'moveend' event to detect when the animation completes
-    const onMoveEnd = async () => {
-      // Update the state and Firebase
-      await handleAnimationComplete(complaint, marker);
+      // Use the dedicated marker zoom function
+      zoomToMarker(complaint.longitude, complaint.latitude, marker);
 
-      // Clean up the event listener
-      map.off('moveend', onMoveEnd);
-    };
+      // Listen for the 'moveend' event to detect when the animation completes
+      const onMoveEnd = async () => {
+        // Update the state and Firebase
+        await handleAnimationComplete(complaint, marker);
 
-    map.on('moveend', onMoveEnd);
-  }, [map, handleAnimationComplete, zoomToMarker]);
+        // Clean up the event listener
+        map.off("moveend", onMoveEnd);
+      };
+
+      map.on("moveend", onMoveEnd);
+    },
+    [map, handleAnimationComplete, zoomToMarker]
+  );
 
   // Function to create a marker and attach event listeners
-  const createMarker = useCallback((complaint) => {
-    if (!map || !complaint.latitude || !complaint.longitude) return null;
-    
-    const popupContent = CreatePopupContent(complaint);
-    const marker = new mapboxgl.Marker({
-      color: getMarkerColor(complaint.status),
-    })
-      .setLngLat([complaint.longitude, complaint.latitude])
-      .setPopup(new mapboxgl.Popup().setDOMContent(popupContent))
-      .addTo(map);
+  const createMarker = useCallback(
+    (complaint) => {
+      // Fix: Check both map AND map.getContainer() to ensure map is fully initialized
+      if (!map || !map.getContainer || !complaint.latitude || !complaint.longitude) return null;
 
-    marker.getPopup().on("open", () => {
-      const seeMoreBtn = document.getElementById(`seeMoreBtn-${complaint.id}`);
-      if (seeMoreBtn) {
-        seeMoreBtn.addEventListener("click", () => {
-          setSelectedComplaint(complaint);
-          setShowModal(true);
+      try {
+        // Create popup content
+        const popupContent = CreatePopupContent(complaint);
+
+        // Create the marker with proper error handling
+        const marker = new mapboxgl.Marker({
+          color: getMarkerColor(complaint.status),
+        }).setLngLat([complaint.longitude, complaint.latitude]);
+
+        // Add popup to marker
+        marker.setPopup(new mapboxgl.Popup().setDOMContent(popupContent));
+
+        // Only add marker to the map if the map is ready
+        if (map && map.getContainer && document.body.contains(map.getContainer())) {
+          marker.addTo(map);
+        }
+
+        // Add event listeners
+        marker.getPopup().on("open", () => {
+          const seeMoreBtn = document.getElementById(`seeMoreBtn-${complaint.id}`);
+          if (seeMoreBtn) {
+            seeMoreBtn.addEventListener("click", () => {
+              setSelectedComplaint(complaint);
+              setShowModal(true);
+            });
+          }
         });
-      }
-    });
 
-    marker.getElement().addEventListener("click", () => {
-      handleMarkerClick(complaint, marker);
-    });
-    
-    return marker;
-  }, [map, handleMarkerClick, setSelectedComplaint, setShowModal]);
+        marker.getElement().addEventListener("click", () => {
+          handleMarkerClick(complaint, marker);
+        });
+
+        return marker;
+      } catch (error) {
+        console.error(`Error creating marker for complaint ${complaint.id}:`, error);
+        return null;
+      }
+    },
+    [map, handleMarkerClick, setSelectedComplaint, setShowModal]
+  );
 
   // Function to update markers
   const updateMarkers = useCallback(() => {
-    if (!map) return;
+    // Fix: Additional check to ensure map is fully initialized
+    if (!map || !map.getContainer || !document.body.contains(map.getContainer())) return;
 
     // Skip marker updates if we're in an active marker interaction
     if (markerInteractionRef.current.inProgress) {
@@ -214,12 +260,13 @@ export const useMapMarkers = (
     markersDataRef.current = filteredComplaints;
 
     // Remove only markers that are no longer in filteredComplaints
-    markersRef.current = markersRef.current.filter(marker => {
-      const markerExists = filteredComplaints.some(complaint => 
-        complaint.longitude === marker._lngLat.lng &&
-        complaint.latitude === marker._lngLat.lat
+    markersRef.current = markersRef.current.filter((marker) => {
+      const markerExists = filteredComplaints.some(
+        (complaint) =>
+          complaint.longitude === marker._lngLat.lng &&
+          complaint.latitude === marker._lngLat.lat
       );
-      
+
       if (!markerExists) {
         marker.remove();
       }
@@ -227,13 +274,14 @@ export const useMapMarkers = (
     });
 
     // Add new markers for new complaints
-    filteredComplaints.forEach(complaint => {
+    filteredComplaints.forEach((complaint) => {
       if (!complaint.latitude || !complaint.longitude) return;
 
       // Check if marker already exists
-      const markerExists = markersRef.current.some(marker => 
-        marker._lngLat.lng === complaint.longitude &&
-        marker._lngLat.lat === complaint.latitude
+      const markerExists = markersRef.current.some(
+        (marker) =>
+          marker._lngLat.lng === complaint.longitude &&
+          marker._lngLat.lat === complaint.latitude
       );
 
       if (!markerExists) {
@@ -254,22 +302,25 @@ export const useMapMarkers = (
 
   // Function to completely remove all markers
   const clearAllMarkers = useCallback(() => {
-    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
   }, []);
 
   // Function to recreate all markers (used after style changes)
   const recreateAllMarkers = useCallback(() => {
+    // Fix: Only proceed if map is fully initialized
+    if (!map || !map.getContainer || !document.body.contains(map.getContainer())) return;
+
     clearAllMarkers();
-    
+
     // Recreate markers from the stored data
     const newMarkers = markersDataRef.current
-      .filter(complaint => complaint.latitude && complaint.longitude)
-      .map(complaint => createMarker(complaint))
+      .filter((complaint) => complaint.latitude && complaint.longitude)
+      .map((complaint) => createMarker(complaint))
       .filter(Boolean); // Filter out null values
-    
+
     markersRef.current = newMarkers;
-  }, [clearAllMarkers, createMarker]);
+  }, [clearAllMarkers, createMarker, map]);
 
   // IMPROVED ZOOM TO BOUNDS FUNCTION
   const zoomToBounds = useCallback(() => {
@@ -282,7 +333,8 @@ export const useMapMarkers = (
 
     // Check how long since last marker zoom - don't override recent marker zooms
     const timeSinceLastMarkerZoom = Date.now() - markerInteractionRef.current.lastMarkerZoom;
-    if (timeSinceLastMarkerZoom < 2000) { // 2 seconds protection
+    if (timeSinceLastMarkerZoom < 2000) {
+      // 2 seconds protection
       return;
     }
 
@@ -308,36 +360,42 @@ export const useMapMarkers = (
     });
   }, [map, filteredComplaints, setMarkerClicked]);
 
-  // Listen for style.load events and recreate markers
+  // Fix: Improved handling of style.load events with proper cleanup
   useEffect(() => {
     if (!map) return;
-    
+
     const handleStyleLoad = () => {
-      // Wait a short moment for the style to fully load
-      setTimeout(() => {
-        recreateAllMarkers();
-      }, 300);
+      // Ensure map is still valid before recreating markers
+      if (map && map.getContainer && document.body.contains(map.getContainer())) {
+        // Wait a short moment for the style to fully load
+        setTimeout(() => {
+          recreateAllMarkers();
+        }, 300);
+      }
     };
-    
-    map.on('style.load', handleStyleLoad);
-    
+
+    map.on("style.load", handleStyleLoad);
+
     return () => {
-      map.off('style.load', handleStyleLoad);
+      if (map && map.off) {
+        map.off("style.load", handleStyleLoad);
+      }
     };
   }, [map, recreateAllMarkers]);
 
-  // Update markers when filtered complaints change
+  // Update markers when filtered complaints change, but only if map is ready
   useEffect(() => {
+    if (!map || !map.getContainer || !document.body.contains(map.getContainer())) return;
     updateMarkers();
-  }, [map, filteredComplaints, updateMarkers, initialLoad]);
+  }, [map, filteredComplaints, updateMarkers]); // We can remove isFullscreen from here since it's not directly used
 
   // Handle page visibility change
   useEffect(() => {
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'hidden') {
+      if (document.visibilityState === "hidden") {
         // If user navigates away from the page, update all new tickets
         const newTickets = filteredComplaints.filter(
-          complaint => complaint.isNew?.[role]
+          (complaint) => complaint.isNew?.[role]
         );
 
         for (const complaint of newTickets) {
@@ -345,8 +403,8 @@ export const useMapMarkers = (
             await updateTicket(complaint.id, {
               isNew: {
                 ...complaint.isNew,
-                [role]: false
-              }
+                [role]: false,
+              },
             });
           } catch (error) {
             console.error(`Error updating ticket ${complaint.id}:`, error);
@@ -355,9 +413,9 @@ export const useMapMarkers = (
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [filteredComplaints, role, updateTicket]);
 
@@ -370,6 +428,6 @@ export const useMapMarkers = (
     zoomToBounds,
     zoomToMarker,
     clearAllMarkers,
-    recreateAllMarkers 
+    recreateAllMarkers,
   };
 };
