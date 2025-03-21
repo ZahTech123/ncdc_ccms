@@ -8,9 +8,10 @@ export const sendEmail = async (ticket) => {
     // // Extract the comment from the description
     // const descriptionParts = ticket.description.split('|');
     // const comment = descriptionParts[descriptionParts.length - 1].trim();
+   
 
     await emailjs.send("service_0lequ6f", "template_iagffxk", {
-      to_email: "sarwomjohn@gmail.com",
+      to_email:  "benjaminb@ncdc.gov.pg",
       recipient_name: ticket.name || "Recipient", // Use dynamic data if available
       cc_email: "heni.sarwom@qrfpng.com", 
       issue_type: ticket.issueType,

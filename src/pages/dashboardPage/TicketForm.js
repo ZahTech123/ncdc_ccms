@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
 import ModalMap from "./ModalMap";  // Ensure ModalMap exists or remove this line if not needed
-// import { sendEmail } from "./EmailTrigger";
-// Initialize EmailJS with your Public Key
-//emailjs.init("SimW6urql2il_yFhB");  // Replace with your Public Key
+import { sendEmail } from "./EmailTrigger";
+import emailjs from '@emailjs/browser';  // Import emailjs properly
+
+//Initialize EmailJS with your Public Key
+emailjs.init("SimW6urql2il_yFhB");  // Replace with your Public Key
 
 // Mapping of suburbs to electorates
 const suburbElectorateMapping = {
@@ -200,8 +202,8 @@ const TicketForm = ({ onSubmit }) => {
     setLatitude("");
     setLongitude("");
 
-    // Send email
-   // await sendEmail(ticket);
+    //Send email
+   await sendEmail(ticket);
   };
 
   const handleLocationSelect = (lat, lng) => {
