@@ -47,7 +47,7 @@ const Sidebar = ({
           'suburb',
           'electorate',
           'directorate',
-          'status',
+          'status',  // This includes "Verified" if present in tickets
           'issueType',
           'currentHandler',
           'description'
@@ -277,7 +277,7 @@ const Sidebar = ({
           <div className="flex flex-row gap-2">
             {/* Search Bar */}
             <div className="relative">
-              <div className="bg-white rounded-lg shadow-lg p-2 flex items-center w-96">
+              <div className="bg-white rounded-lg shadow-lg p-2 flex items-center w-80">
                 <FiSearch className="w-5 h-5 text-gray-500 mr-2" />
                 <input
                   type="text"

@@ -1,5 +1,6 @@
-import React, { } from 'react';
+import React from 'react';
 import "../../styles/buttonBounce.css";
+
 // Mapping of issueType to default image paths
 const defaultImages = {
   "Building": "/assets/images/Building.jpg",
@@ -7,87 +8,54 @@ const defaultImages = {
   "Eda City Bus": "/assets/images/Eda City Bus.jpg",
   "Enforcement": "/assets/images/Enforcement.jpg",
   "Liqur License": "/assets/images/Liqur License.jpg",
-  "Market": "/assets/images/Market.jpg",
+  "Markets": "/assets/images/Market.jpg",
   "Parks & Gardens": "/assets/images/Parks & Gardens.jpg",
   "Potholes and Drainage": "/assets/images/Potholes and Drainage.jpg",
   "Road Furniture and Road Signs": "/assets/images/Road Furniture and Road Signs.jpg",
   "T Street Lights and Traffic Managment": "/assets/images/T Street Lights and Traffic Managment.jpg",
   "T Stretegic Planning": "/assets/images/T Stretegic Planning.jpg",
+  "Urban Safety": "/assets/images/Urban Safety.jpg",
   "Waste Management": "/assets/images/Waste Management.jpg",
 };
 
 export default function MapPagePopUpModal({ selectedComplaint, setShowModal, setSelectedComplaint }) {
-  // Function to restructure the description
-  const restructureDescription = (description) => {
-    if (!description) return "No description provided";
-
-    // Split the description into parts based on the handler pattern
-    const parts = description.split(/(\w+\s*\|\s*\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)\s*\|\s*\w+\s*\|\s*)/g);
-
-    const handlers = [];
-    let currentHandler = null;
-
-    parts.forEach((part) => {
-      if (part.trim()) {
-        // Check if the part matches a handler pattern (e.g., "Operator | 2/19/2025, 08:11 AM | New |")
-        const handlerMatch = part.match(/^(\w+)\s*\|\s*(\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM))\s*\|\s*(\w+)\s*\|\s*(.*)$/);
-
-        if (handlerMatch) {
-          // If it's a new handler, push the previous one (if any) and start a new one
-          if (currentHandler) {
-            handlers.push(currentHandler);
-          }
-          currentHandler = {
-            name: handlerMatch[1].trim(),
-            date: handlerMatch[2].trim(),
-            status: handlerMatch[3].trim(),
-            comment: handlerMatch[4].trim(),
-          };
-        } else if (currentHandler) {
-          // If it's not a handler pattern, treat it as part of the current handler's comment
-          currentHandler.comment += ` ${part.trim()}`;
-        }
+  // Function to parse the description into its components
+  const parseDescription = (description) => {
+    if (!description) {
+      return [{
+        handler: "Unknown",
+        timestamp: "Unknown",
+        status: "Unknown",
+        comment: "No comment",
+      }];
+    }
+  
+    // Split the description into individual entries
+    const entries = description.split("|");
+  
+    // Group the entries into chunks of 4 (handler, timestamp, status, comment)
+    const groupedEntries = [];
+    for (let i = 0; i < entries.length; i += 4) {
+      // Ensure we don't go out of bounds
+      if (i + 3 < entries.length) {
+        groupedEntries.push({
+          handler: entries[i].trim(),
+          timestamp: entries[i + 1].trim(),
+          status: entries[i + 2].trim(),
+          comment: entries[i + 3].trim(),
+        });
       }
-    });
-
-    // Push the last handler if it exists
-    if (currentHandler) {
-      handlers.push(currentHandler);
     }
-
-    // If no handlers were found, return the original description
-    if (handlers.length === 0) {
-      return <p className="text-gray-600">{description}</p>;
-    }
-
-    // Reverse the handlers to show the most recent comment first
-    handlers.reverse();
-
-    // Format the handlers as per the desired output
-    return handlers.map((handler, index) => {
-      // Convert the date to the desired format (dd/mm/yy 00:00)
-      const formattedDate = new Date(handler.date).toLocaleString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-
-      return (
-        <div key={index}>
-          <div className="flex justify-between items-center">
-            <strong>{handler.name}</strong>
-            <span className="text-sm text-gray-500">{formattedDate}</span>
-          </div>
-          <p>{handler.comment}</p>
-          {index < handlers.length - 1 && <hr className="my-2" />}
-        </div>
-      );
+  
+    // Sort the grouped entries by timestamp in descending order (most recent first)
+    groupedEntries.sort((a, b) => {
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      return dateB - dateA; // Sort in descending order
     });
+  
+    return groupedEntries;
   };
-
   return (
     <div
       className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center"
@@ -119,7 +87,7 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                     }}
                   />
                   <p className="text-sm text-gray-500 text-center mt-2">
-                    Image from Firebase: {selectedComplaint.images[0]}
+                    Directorate: {selectedComplaint.directorate || "Unassigned"}
                   </p>
                 </>
               ) : (
@@ -133,7 +101,7 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
                     }}
                   />
                   <p className="text-sm text-gray-500 text-center mt-2">
-                    Default Image: {defaultImages[selectedComplaint.directorate] || "/assets/images/default.jpg"}
+                    Directorate: {selectedComplaint.directorate || "Unassigned"}
                   </p>
                 </>
               )}
@@ -236,11 +204,25 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
 
                 {/* Description */}
                 <div>
-                  <span className="font-semibold text-gray-800 block">Description:</span>
-                  <div className="mt-1 leading-relaxed h-40 overflow-y-auto map-modal-scrollbar p-4">
-                    {restructureDescription(selectedComplaint.description)}
-                  </div>
-                </div>
+  <span className="font-semibold text-gray-800 block">Description:</span>
+  <div className="mt-1 leading-relaxed h-40 overflow-y-auto map-modal-scrollbar p-4">
+    {parseDescription(selectedComplaint.description).map((entry, index) => (
+      <div key={index}>
+        <div className="flex justify-between items-center">
+          <strong>{entry.handler}</strong>
+          <span className="text-sm text-gray-500">{entry.timestamp}</span>
+        </div>
+        <p>{entry.comment}</p>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-500">Status: {entry.status}</span>
+        </div>
+        {index < parseDescription(selectedComplaint.description).length - 1 && (
+          <hr className="my-2" />
+        )}
+      </div>
+    ))}
+  </div>
+</div>
               </div>
             </div>
 
@@ -261,49 +243,4 @@ export default function MapPagePopUpModal({ selectedComplaint, setShowModal, set
       </div>
     </div>
   );
-}
-
-// Add custom styles for the scrollbar and animation
-const styles = `
-.map-modal-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.map-modal-scrollbar::-webkit-scrollbar-track {
-  background: rgba(241, 241, 241, 0.5); /* Slightly less transparent track */
-  border-radius: 4px;
-}
-
-.map-modal-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(136, 136, 136, 0.2); /* Slightly less transparent thumb */
-  border-radius: 4px;
-}
-
-.map-modal-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(85, 85, 85, 0.2); /* Slightly less transparent thumb on hover */
-}
-
-.animate-slide-down {
-  animation: slide-down 0.3s ease-in-out forwards;
-}
-
-@keyframes slide-down {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-`;
-
-// Inject the custom styles into the document
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.type = "text/css";
-  styleSheet.innerText = styles;
-  document.head.appendChild(styleSheet);
 }

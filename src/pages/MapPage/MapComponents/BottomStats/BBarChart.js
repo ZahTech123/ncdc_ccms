@@ -3,6 +3,8 @@ import { Bar } from "react-chartjs-2";
 import { Chart, BarElement, LinearScale, CategoryScale } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { useTickets } from "../../../../context/TicketsContext";
+// Fixed import path
+import { statusColors } from "../../../../styles/colors";
 
 Chart.register(BarElement, LinearScale, CategoryScale, ChartDataLabels);
 
@@ -16,29 +18,31 @@ const BarChart = () => {
     Resolved: 0,
     Overdue: 0,
     Closed: 0,
-    Invalid: 0
+    Invalid: 0,
+    Verified: 0
   };
 
-  filteredTickets.forEach(ticket => {
-    if (statusCounts.hasOwnProperty(ticket.status)) {
-      statusCounts[ticket.status]++;
-    }
-  });
+  // Make sure filteredTickets exists and is an array before trying to iterate
+  if (filteredTickets && Array.isArray(filteredTickets)) {
+    filteredTickets.forEach(ticket => {
+      if (statusCounts.hasOwnProperty(ticket.status)) {
+        statusCounts[ticket.status]++;
+      }
+    });
+  }
+
+  console.log("Status Colors:", statusColors); // Debugging line
 
   return (
     <Bar
       data={{
-        labels: ["New", "In Progress", "Resolved", "Overdue", "Closed", "Invalid"],
+        labels: Object.keys(statusCounts),
         datasets: [
           {
             label: "Tickets by Status",
             data: Object.values(statusCounts),
-            backgroundColor: [
-              "#9333ea", "#0d9488", "#eab308", "#f87171", "#2563eb", "#6b7280"
-            ],
-            borderColor: [
-              "#9333ea", "#0d9488", "#eab308", "#f87171", "#2563eb", "#6b7280"
-            ],
+            backgroundColor: Object.keys(statusCounts).map(status => statusColors[status]),
+            borderColor: Object.keys(statusCounts).map(status => statusColors[status]),
             borderWidth: 0,
             barThickness: 10,
             borderSkipped: false,

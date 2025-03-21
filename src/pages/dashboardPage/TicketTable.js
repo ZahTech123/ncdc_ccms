@@ -385,12 +385,13 @@ const TicketTable = ({
   <tr className="border-b border-gray-600">
     {/* Conditionally render the Actions column */}
     {(userPermissions.canEditTicket || role === "bU_adminC" || 
-      role === "supervisorC" || role === "admin" ||
-      role === "bU_supervisorC" || role === "bU_managerC" || role === "bU_directorC" ||
-      role === "bU_adminS_L" || role === "bU_supervisorS_L" || role === "bU_managerS_L" || role === "bU_directorS_L" ||
-      role === "bU_adminCPI" || role === "bU_supervisorCPI" || role === "bU_managerCPI" || role === "bU_directorCPI") && (
-      <th className="p-2 text-left">Actions</th>
-    )}
+  role === "supervisorC" || role === "admin" ||
+  role === "bU_supervisorC" || role === "bU_managerC" || role === "bU_directorC" ||
+  role === "bU_adminS_L" || role === "bU_supervisorS_L" || role === "bU_managerS_L" || role === "bU_directorS_L" ||
+  role === "bU_adminCPI" || role === "bU_supervisorCPI" || role === "bU_managerCPI" || role === "bU_directorCPI") && 
+  role !== "operator" && (
+  <th className="p-2 text-left">Actions</th>
+)}
     <th className="p-2 text-left">Ticket ID</th>
     <th className="p-2 text-left">Issue Type</th>
     <th className="p-2 text-left">Assigned to</th>
