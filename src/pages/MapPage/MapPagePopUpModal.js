@@ -7,7 +7,7 @@ const defaultImages = {
   "Development Control & Physical Planning": "/assets/images/Development Control & Physical Planning.jpg",
   "Eda City Bus": "/assets/images/Eda City Bus.jpg",
   "Enforcement": "/assets/images/Enforcement.jpg",
-  "Liqur License": "/assets/images/Liqur License.jpg",
+  "Liquor License": "/assets/images/Liquor License.jpg",
   "Markets": "/assets/images/Market.jpg",
   "Parks & Gardens": "/assets/images/Parks & Gardens.jpg",
   "Potholes and Drainage": "/assets/images/Potholes and Drainage.jpg",
