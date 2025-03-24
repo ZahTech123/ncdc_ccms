@@ -4,7 +4,7 @@ const HelpAndSupport = () => {
   const [showTopics, setShowTopics] = useState(true);
   const [userInput, setUserInput] = useState('');
   // API key is hardcoded and not visible/editable by users
-  const apiKey = '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';
+  const apiKey = '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';
   const [response, setResponse] = useState('Welcome to the NCDC Complaint and Case Management System support. How can I help you today?');
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
