@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 
 const HelpAndSupport = () => {
   const [showTopics, setShowTopics] = useState(true);
-  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const [apiKey, setApiKey] = useState('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');
+  // API key is hardcoded and not visible/editable by users
+  const apiKey = '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';
   const [response, setResponse] = useState('Welcome to the NCDC Complaint and Case Management System support. How can I help you today?');
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
-  const [knowledgeBaseContent, setKnowledgeBaseContent] = useState('');
   const [isKnowledgeBaseLoaded, setIsKnowledgeBaseLoaded] = useState(false);
   
   // The document ID from your shared Google Doc
   const KNOWLEDGE_BASE_DOC_ID = '1xpZQc4_E4cmDx2yK0gY2HXFh_7XxMt5WHGaXkv8v8Cw';
+  
+  // Store knowledge base content in state but never expose to UI
+  const [knowledgeBaseContent, setKnowledgeBaseContent] = useState('');
   
   // Load knowledge base on component mount
   useEffect(() => {
@@ -134,12 +136,6 @@ const HelpAndSupport = () => {
       return; // Don't send empty messages
     }
     
-    if (!apiKey) {
-      setResponse('Error: API key is required');
-      setIsError(true);
-      return;
-    }
-    
     // Clear input field
     setUserInput('');
     
@@ -207,14 +203,16 @@ const HelpAndSupport = () => {
     setShowTopics(!showTopics);
   };
 
-  const toggleAdvancedSettings = () => {
-    setShowAdvancedSettings(!showAdvancedSettings);
-  };
-
-  // Function to reload the knowledge base
-  const reloadKnowledgeBase = () => {
-    fetchKnowledgeBase();
-  };
+  // Function to reload knowledge base - still works in the background
+  // but no longer exposed in the UI
+  useEffect(() => {
+    // Set up automatic reload every 30 minutes
+    const reloadInterval = setInterval(() => {
+      fetchKnowledgeBase();
+    }, 30 * 60 * 1000); // 30 minutes in milliseconds
+    
+    return () => clearInterval(reloadInterval);
+  }, []);
 
   return (
     <div className="text-gray-300 mt-8 p-4">
@@ -227,54 +225,7 @@ const HelpAndSupport = () => {
         {/* Chat Interface */}
         <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden mb-8">
           <div id="chat-container" className="w-full">
-            {/* Advanced Settings Toggle */}
-            <div className="flex justify-end p-2 bg-gray-700 border-b border-gray-600">
-              <button 
-                onClick={toggleAdvancedSettings}
-                className="text-xs text-gray-400 hover:text-white"
-              >
-                {showAdvancedSettings ? "Hide Advanced Settings" : "Show Advanced Settings"}
-              </button>
-            </div>
-            
-            {/* API Key Section - Hidden by default */}
-            {showAdvancedSettings && (
-              <>
-                <div className="p-4 bg-gray-700 border-b border-gray-600">
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-                    <label htmlFor="apiKey" className="text-white whitespace-nowrap">API Key:</label>
-                    <input 
-                      type="text" 
-                      id="apiKey" 
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                      className="flex-1 p-2 text-gray-800 bg-gray-200 rounded w-full md:w-auto"
-                      placeholder="Enter your OpenRouter API key"
-                    />
-                  </div>
-                </div>
-                
-                {/* Knowledge Base Status */}
-                <div className="p-4 bg-gray-700 border-b border-gray-600">
-                  <div className="flex flex-col md:flex-row items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-lg">Knowledge Base Status</h3>
-                      <p className="text-sm text-gray-400">
-                        {isKnowledgeBaseLoaded 
-                          ? "✅ Knowledge base loaded successfully" 
-                          : "❌ Knowledge base not loaded"}
-                      </p>
-                    </div>
-                    <button 
-                      onClick={reloadKnowledgeBase}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded mt-2 md:mt-0"
-                    >
-                      Reload Knowledge Base
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
+            {/* Advanced Settings section completely removed from UI */}
             
             {/* Chat Display with improved formatting */}
             <div className="p-6 min-h-[200px] max-h-[300px] overflow-y-auto">
