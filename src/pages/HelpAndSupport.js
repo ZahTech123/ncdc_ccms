@@ -4,7 +4,7 @@ const HelpAndSupport = () => {
   const [showTopics, setShowTopics] = useState(true);
   const [userInput, setUserInput] = useState('');
   // API key is hardcoded and not visible/editable by users
-  const apiKey = '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';
+  const apiKey = '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';
   const [response, setResponse] = useState('Welcome to the NCDC Complaint and Case Management System support. How can I help you today?');
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -222,6 +222,26 @@ const HelpAndSupport = () => {
       </header>
 
       <div className="max-w-4xl mx-auto mt-6">
+        {/* Welcome content MOVED HERE - above the chat interface */}
+        <section className="mb-8">
+          <h2 className="text-center text-xl font-semibold mb-6">Welcome to NCDC CCMS Support</h2>
+          <div className="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-600">
+            <h3 className="font-semibold text-lg text-white mb-2">About the System</h3>
+            <p className="text-gray-400 mt-2">
+              The NCDC Complaint and Case Management System (CCMS) is designed to streamline 
+              the handling, escalation, and resolution of municipal service complaints in Port Moresby. 
+              This support chat can help you understand how to use the system effectively.
+            </p>
+            <div className="mt-4 p-3 bg-gray-700 rounded">
+              <h4 className="font-medium text-white">How to use this chat</h4>
+              <p className="text-gray-400 mt-1">
+                Simply type your question in the chat box above and press send. Our system will 
+                provide you with relevant information about the CCMS system based on our knowledge base.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Chat Interface */}
         <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden mb-8">
           <div id="chat-container" className="w-full">
@@ -270,52 +290,31 @@ const HelpAndSupport = () => {
           </button>
         </div>
 
-        {/* Collapsible Topics and Articles */}
+        {/* Sample Questions Section - kept below */}
         {showTopics && (
-          <>
-            <section className="mt-6">
-              <h2 className="text-center text-xl font-semibold mb-6">Welcome to NCDC CCMS Support</h2>
-              <div className="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-600">
-                <h3 className="font-semibold text-lg text-white mb-2">About the System</h3>
-                <p className="text-gray-400 mt-2">
-                  The NCDC Complaint and Case Management System (CCMS) is designed to streamline 
-                  the handling, escalation, and resolution of municipal service complaints in Port Moresby. 
-                  This support chat can help you understand how to use the system effectively.
-                </p>
-                <div className="mt-4 p-3 bg-gray-700 rounded">
-                  <h4 className="font-medium text-white">How to use this chat</h4>
-                  <p className="text-gray-400 mt-1">
-                    Simply type your question in the chat box above and press send. Our system will 
-                    provide you with relevant information about the CCMS system based on our knowledge base.
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section className="mt-12">
-              <h2 className="text-xl font-semibold mb-4">Sample Questions</h2>
-              <ul className="bg-gray-800 p-6 rounded-lg shadow-md space-y-4 border border-gray-600">
-                {[
-                  "What is the primary purpose of the system?",
-                  "How do I submit a new complaint?",
-                  "What are the different status levels for complaints?",
-                  "How does the escalation process work?",
-                  "What reporting capabilities are available?"
-                ].map((question, index) => (
-                  <li 
-                    key={index} 
-                    className="flex justify-between items-center hover:text-white cursor-pointer"
-                    onClick={() => {
-                      setUserInput(question);
-                    }}
-                  >
-                    <span>{question}</span>
-                    <span>→</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </>
+          <section className="mt-6">
+            <h2 className="text-xl font-semibold mb-4">Sample Questions</h2>
+            <ul className="bg-gray-800 p-6 rounded-lg shadow-md space-y-4 border border-gray-600">
+              {[
+                "What is the primary purpose of the system?",
+                "How do I submit a new complaint?",
+                "What are the different status levels for complaints?",
+                "How does the escalation process work?",
+                "What reporting capabilities are available?"
+              ].map((question, index) => (
+                <li 
+                  key={index} 
+                  className="flex justify-between items-center hover:text-white cursor-pointer"
+                  onClick={() => {
+                    setUserInput(question);
+                  }}
+                >
+                  <span>{question}</span>
+                  <span>→</span>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
       </div>
 
