@@ -91,6 +91,7 @@ const ReportsAnalysis3 = () => {
         endDate={endDate}
         onStartDateChange={handleStartDateChange}
         onEndDateChange={handleEndDateChange}
+        ticketData={filteredTickets}
         onClearFilters={clearDateFilters}
         resultsCount={filteredTickets.length}
       />

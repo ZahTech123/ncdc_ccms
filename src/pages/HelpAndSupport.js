@@ -1,228 +1,205 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const HelpAndSupport = () => {
-  const [showTopics, setShowTopics] = useState(true);
   const [userInput, setUserInput] = useState('');
-  // API key is hardcoded and not visible/editable by users
-  const apiKey = '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';
-  const [response, setResponse] = useState('Welcome to the NCDC Complaint and Case Management System support. How can I help you today?');
+  const [messages, setMessages] = useState([
+    { role: 'assistant', content: 'Welcome to the NCDC Complaint and Case Management System support. How can I help you today?' }
+  ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
   const [isKnowledgeBaseLoaded, setIsKnowledgeBaseLoaded] = useState(false);
+  const messagesContainerRef = useRef(null);
   
-  // The document ID from your shared Google Doc
+  // Groq API configuration
+  const API_KEY = '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';
+  const MODEL = 'llama-3.3-70b-versatile';
+  
+  // Knowledge Base configuration
   const KNOWLEDGE_BASE_DOC_ID = '1xpZQc4_E4cmDx2yK0gY2HXFh_7XxMt5WHGaXkv8v8Cw';
-  
-  // Store knowledge base content in state but never expose to UI
   const [knowledgeBaseContent, setKnowledgeBaseContent] = useState('');
-  
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   // Load knowledge base on component mount
   useEffect(() => {
+    const fetchKnowledgeBase = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`https://docs.google.com/document/d/${KNOWLEDGE_BASE_DOC_ID}/export?format=txt`);
+        if (!response.ok) throw new Error('Failed to load knowledge base');
+        const content = await response.text();
+        setKnowledgeBaseContent(content);
+        setIsKnowledgeBaseLoaded(true);
+      } catch (error) {
+        console.error('Error loading knowledge base:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     fetchKnowledgeBase();
+    
+    // Refresh knowledge base every 30 minutes
+    const interval = setInterval(fetchKnowledgeBase, 30 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Function to fetch the Google Doc content
-  const fetchKnowledgeBase = async () => {
-    setIsLoading(true);
-    try {
-      // This is a proxy approach since client-side JS can't directly access Google Docs
-      // In a production environment, you would use a backend service for this
-      const response = await fetch(`https://docs.google.com/document/d/${KNOWLEDGE_BASE_DOC_ID}/export?format=txt`);
+  const formatResponse = (text) => {
+    const paragraphs = text.split('\n\n');
+    
+    return paragraphs.map((paragraph, index) => {
+      if (!paragraph.trim()) return null;
       
-      if (!response.ok) {
-        throw new Error('Failed to load knowledge base document');
+      // Handle bold text (**bold**)
+      if (paragraph.includes('**')) {
+        const parts = paragraph.split('**');
+        return (
+          <p key={`p-bold-${index}`} className="my-3">
+            {parts.map((part, i) => 
+              i % 2 === 1 ? (
+                <strong key={`strong-${i}`} className="font-semibold">{part}</strong>
+              ) : (
+                <span key={`span-${i}`}>{part}</span>
+              )
+            )}
+          </p>
+        );
       }
       
-      const content = await response.text();
-      setKnowledgeBaseContent(content);
-      setIsKnowledgeBaseLoaded(true);
-      setIsLoading(false);
-      // Keep the welcome message rather than changing it
-    } catch (error) {
-      setIsLoading(false);
-      setIsError(true);
-      console.error(`Error loading knowledge base: ${error.message}`);
-      // Don't show the error in the chat interface
-    }
-  };
-
-  // Function to format text with better structure
-  const formatResponse = (text) => {
-    // Remove formatting that we don't want (emojis, ## headers, etc.)
-    let cleanedText = text
-      // eslint-disable-next-line no-control-regex
-      .replace(/🌌|[^\x00-\x7F]/g, '') // Remove emojis and non-ASCII characters
-      .replace(/##\s*/g, '')          // Remove ## header markers
-      .replace(/\*\*/g, '');          // Remove bold formatting (** symbols)
-    
-    // Check if the response contains numbered sections
-    if (cleanedText.match(/\d+\.\s/)) {
-      // First, split by potential section markers like numbers with periods (1., 2., etc.)
-      const sections = cleanedText.split(/(?=\d+\.\s)/);
-      
-      return (
-        <div className="formatted-response">
-          {sections.map((section, index) => {
-            // For the intro paragraph (usually doesn't start with a number)
-            if (index === 0 && !section.match(/^\d+\.\s/)) {
-              return <p key={`intro`} className="my-3">{section.trim()}</p>;
-            }
-            
-            // For numbered sections, create a proper heading and content
-            const sectionMatch = section.match(/^(\d+\.\s)(.*?)(?=\s-|\n|$)/);
-            
-            if (sectionMatch) {
-              const [, number, title] = sectionMatch;
-              const content = section.substring(sectionMatch[0].length).trim();
-              
-              // Split content into bullet points if they exist
-              const bulletPoints = content.split(/(?=\s-\s|\s•\s)/);
-              
+      // Handle bullet points (* or -)
+      if (paragraph.match(/^[*\-•]\s/) || paragraph.match(/\n[*\-•]\s/)) {
+        const items = paragraph.split(/\n(?=[*\-•]\s)/);
+        return (
+          <ul key={`ul-${index}`} className="list-disc pl-6 my-2 space-y-1">
+            {items.map((item, i) => {
+              const content = item.replace(/^[*\-•]\s/, '').trim();
               return (
-                <div key={`section-${index}`} className="mb-4">
-                  <h3 className="text-lg font-semibold mt-4 mb-2">{number}{title}</h3>
-                  {bulletPoints.map((point, i) => {
-                    // Clean up bullet points from either • or - formats
-                    const cleanPoint = point.replace(/^\s[-•]\s/, '').trim();
-                    if (cleanPoint) {
-                      return <p key={`bullet-${i}`} className="pl-4 my-1">• {cleanPoint}</p>;
-                    }
-                    return null;
-                  })}
-                </div>
+                <li key={`li-${i}`} className="my-1.5">
+                  {content.split('\n').map((line, lineIndex) => (
+                    <p key={`line-${lineIndex}`} className={lineIndex > 0 ? 'mt-1' : ''}>
+                      {line.trim()}
+                    </p>
+                  ))}
+                </li>
               );
-            }
-            
-            // Fallback for any other content
-            return <p key={`p-${index}`} className="my-2">{section.trim()}</p>;
-          })}
-          
-          {/* Handle any final sections like "Next Steps" that might not have number markers */}
-          {cleanedText.includes("Next Steps:") && (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">Next Steps:</h3>
-              {cleanedText
-                .split("Next Steps:")[1]
-                .split(/(?=\s[-•]\s)/)
-                .map((step, i) => {
-                  const cleanStep = step.replace(/^\s[-•]\s/, '').trim();
-                  if (cleanStep) {
-                    return <p key={`next-${i}`} className="pl-4 my-1">• {cleanStep}</p>;
-                  }
-                  return null;
-                })}
-            </div>
-          )}
-        </div>
-      );
-    } else {
-      // If there are no numbered sections, just render paragraphs
-      const paragraphs = cleanedText.split(/\n+/);
-      return (
-        <div className="formatted-response">
-          {paragraphs.map((paragraph, index) => (
-            <p key={`p-${index}`} className="my-2">{paragraph.trim()}</p>
-          ))}
-        </div>
-      );
-    }
+            })}
+          </ul>
+        );
+      }
+      
+      // Handle numbered lists
+      if (paragraph.match(/^\d+\.\s/)) {
+        const items = paragraph.split(/\n(?=\d+\.\s)/);
+        return (
+          <ol key={`ol-${index}`} className="list-decimal pl-6 my-2 space-y-1">
+            {items.map((item, i) => {
+              const content = item.replace(/^\d+\.\s/, '').trim();
+              return (
+                <li key={`li-${i}`} className="my-1.5">
+                  {content.split('\n').map((line, lineIndex) => (
+                    <p key={`line-${lineIndex}`} className={lineIndex > 0 ? 'mt-1' : ''}>
+                      {line.trim()}
+                    </p>
+                  ))}
+                </li>
+              );
+            })}
+          </ol>
+        );
+      }
+      
+      // Regular paragraph
+      return <p key={`p-${index}`} className="my-3">{paragraph}</p>;
+    });
   };
 
-  // Function to send message to OpenRouter API with context from knowledge base
   const sendMessage = async () => {
     const input = userInput.trim();
+    if (!input) return;
     
-    if (!input) {
-      return; // Don't send empty messages
-    }
-    
-    // Clear input field
+    // Add user message
+    setMessages(prev => [...prev, { role: 'user', content: input }]);
     setUserInput('');
-    
-    // Show loading message
-    setResponse('Loading...');
     setIsLoading(true);
-    setIsError(false);
     
     try {
-      // Use the knowledge base content as context
-      const systemPrompt = isKnowledgeBaseLoaded 
-        ? `You are a helpful assistant. Use ONLY the following information to answer the user's question. If the information doesn't contain the answer, say you don't know but only based on the provided context. Don't make up information.\n\nCONTEXT:\n${knowledgeBaseContent}`
-        : "You are a helpful assistant. The knowledge base isn't loaded yet. Please ask the user to reload the page or check the document permissions.";
+      // Create system prompt with knowledge base
+      const systemPrompt = isKnowledgeBaseLoaded
+        ? `You are an expert on the NCDC Complaint and Case Management System. 
+           Strictly use ONLY the following information to answer questions in a direct, professional manner. 
+           Do not begin responses with "According to the NCDC documentation" - instead, 
+           provide the information directly as if you are the system itself.
+           If the answer isn't in this context, say "This information is not available in the system documentation."
+           
+           NCDC DOCUMENTATION:
+           ${knowledgeBaseContent}`
+        : "The NCDC knowledge base is still loading. Please try again shortly.";
       
-      const response = await fetch(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://www.webstylepress.com',
-            'X-Title': 'WebStylePress',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-r1:free',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: input }
-            ]
-          })
-        }
-      );
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...messages.map(msg => ({ role: msg.role, content: msg.content })),
+            { role: 'user', content: input }
+          ],
+          temperature: 0.7,
+          max_tokens: 1024
+        })
+      });
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error ${response.status}: ${errorText}`);
-      }
+      if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
       
       const data = await response.json();
+      let aiResponse = data.choices[0].message.content;
       
-      // Extract response content from API response
-      const markdownText = data?.choices?.[0]?.message?.content || 'No response received.';
+      // Remove any remaining "According to..." phrases that might slip through
+      aiResponse = aiResponse.replace(/^According to (the )?NCDC documentation(,)?\s*/i, '');
       
-      // Display the response
-      setResponse(markdownText);
-      setIsLoading(false);
-      
+      // Add AI response
+      setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
     } catch (error) {
-      setResponse(`Error: ${error.message}`);
+      console.error('Error:', error);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Sorry, there was an error processing your request. Please try again.' 
+      }]);
+    } finally {
       setIsLoading(false);
-      setIsError(true);
     }
   };
 
-  // Handle Enter key press
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       sendMessage();
     }
   };
 
-  const toggleTopics = () => {
-    setShowTopics(!showTopics);
+  const clearConversation = () => {
+    setMessages([
+      { role: 'assistant', content: 'Welcome to the NCDC Complaint and Case Management System support. How can I help you today?' }
+    ]);
   };
-
-  // Function to reload knowledge base - still works in the background
-  // but no longer exposed in the UI
-  useEffect(() => {
-    // Set up automatic reload every 30 minutes
-    const reloadInterval = setInterval(() => {
-      fetchKnowledgeBase();
-    }, 30 * 60 * 1000); // 30 minutes in milliseconds
-    
-    return () => clearInterval(reloadInterval);
-  }, []);
 
   return (
     <div className="text-gray-300 mt-8 p-4">
       <header className="bg-yellow-500 text-white py-6 text-center pr-4 pl-4 rounded-t-lg">
         <h1 className="text-3xl font-semibold">How Can We Help?</h1>
-        <p className="mt-2 text-gray-200">Find advice and answers from our NCDC Complaint and Case Management System</p>
+        <p className="mt-2 text-gray-200">NCDC Complaint and Case Management System Support</p>
       </header>
 
       <div className="max-w-4xl mx-auto mt-6">
-        {/* Welcome content MOVED HERE - above the chat interface */}
+        {/* Welcome content */}
         <section className="mb-8">
           <h2 className="text-center text-xl font-semibold mb-6">Welcome to NCDC CCMS Support</h2>
           <div className="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-600">
@@ -242,80 +219,83 @@ const HelpAndSupport = () => {
           </div>
         </section>
 
-        {/* Chat Interface */}
         <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden mb-8">
-          <div id="chat-container" className="w-full">
-            {/* Advanced Settings section completely removed from UI */}
-            
-            {/* Chat Display with improved formatting */}
-            <div className="p-6 min-h-[200px] max-h-[300px] overflow-y-auto">
-              {isLoading ? (
-                <div className="text-gray-400 italic">Loading...</div>
-              ) : isError ? (
-                <div className="text-red-400">{response}</div>
-              ) : (
-                formatResponse(response)
-              )}
+          <div className="w-full">
+            <div 
+              ref={messagesContainerRef}
+              className="p-6 min-h-[200px] max-h-[500px] overflow-y-auto"
+            >
+              {messages.map((message, index) => (
+                <div 
+                  key={index} 
+                  className={`mb-4 p-4 rounded-lg ${message.role === 'user' 
+                    ? 'bg-blue-900 ml-auto max-w-[80%]' 
+                    : 'bg-gray-700 mr-auto max-w-[80%]'}`}
+                >
+                  {message.role === 'assistant' ? formatResponse(message.content) : message.content}
+                </div>
+              ))}
+              {isLoading && <div className="text-gray-400 italic">Processing...</div>}
             </div>
             
-            {/* Input Area */}
             <div className="p-4 bg-gray-700 border-t border-gray-600">
               <div className="flex gap-2">
                 <textarea 
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type your question here..."
+                  placeholder="Type your question..."
                   className="flex-1 p-3 text-gray-800 bg-gray-200 rounded"
                   rows="2"
+                  disabled={!isKnowledgeBaseLoaded}
                 />
-                <button 
-                  onClick={sendMessage}
-                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded"
-                >
-                  Send
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={sendMessage}
+                    disabled={isLoading || !isKnowledgeBaseLoaded}
+                    className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded disabled:opacity-50"
+                  >
+                    Send
+                  </button>
+                  <button 
+                    onClick={clearConversation}
+                    className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded"
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
+              {!isKnowledgeBaseLoaded && (
+                <p className="text-yellow-400 text-sm mt-2">
+                  System is loading documentation. Please wait before sending questions.
+                </p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Toggle button for showing/hiding topics */}
-        <div className="text-center mb-6">
-          <button 
-            onClick={toggleTopics}
-            className="bg-yellow-500 hover:bg-yellow-400 text-white px-4 py-2 rounded-lg"
-          >
-            {showTopics ? "Hide Resources" : "Show Resources"}
-          </button>
-        </div>
-
-        {/* Sample Questions Section - kept below */}
-        {showTopics && (
-          <section className="mt-6">
-            <h2 className="text-xl font-semibold mb-4">Sample Questions</h2>
-            <ul className="bg-gray-800 p-6 rounded-lg shadow-md space-y-4 border border-gray-600">
-              {[
-                "What is the primary purpose of the system?",
-                "How do I submit a new complaint?",
-                "What are the different status levels for complaints?",
-                "How does the escalation process work?",
-                "What reporting capabilities are available?"
-              ].map((question, index) => (
-                <li 
-                  key={index} 
-                  className="flex justify-between items-center hover:text-white cursor-pointer"
-                  onClick={() => {
-                    setUserInput(question);
-                  }}
-                >
-                  <span>{question}</span>
-                  <span>→</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        {/* Sample Questions section (now always visible) */}
+        <section className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">Sample Questions</h2>
+          <ul className="bg-gray-800 p-6 rounded-lg shadow-md space-y-4 border border-gray-600">
+            {[
+              "How do I submit a new complaint?",
+              "What are the complaint status levels?",
+              "How to escalate a case?",
+              "What reports are available?",
+              "How to update a case status?"
+            ].map((question, index) => (
+              <li 
+                key={index} 
+                className="flex justify-between items-center hover:text-white cursor-pointer"
+                onClick={() => setUserInput(question)}
+              >
+                <span>{question}</span>
+                <span>→</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
 
       <footer className="text-center mt-12 py-6">
@@ -324,8 +304,7 @@ const HelpAndSupport = () => {
           <a href="/faq" className="text-yellow-500 hover:text-yellow-400">FAQ</a>
           <a href="/contact" className="text-yellow-500 hover:text-yellow-400">Contact</a>
         </p>
-        <p className="mt-4 text-gray-500">&copy; {new Date().getFullYear()} QRF Limited. All rights reserved.</p>
-        <p className="text-gray-500">Empowering businesses with seamless complaint resolution.</p>
+        <p className="mt-4 text-gray-500">&copy; {new Date().getFullYear()} NCDC. All rights reserved.</p>
       </footer>
     </div>
   );
