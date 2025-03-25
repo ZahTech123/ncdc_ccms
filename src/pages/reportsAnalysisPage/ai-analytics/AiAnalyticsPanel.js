@@ -210,17 +210,30 @@ const AiAnalyticsPanel = ({
         );
       }
       
-      // Handle issue type analysis sections
-      if (section.match(/Issue Type Analysis/i) || section.match(/Priority Analysis/i)) {
-        const title = section.split('\n')[0].trim();
-        const content = section.split('\n').slice(1).join('\n');
+      // Handle section titles with content (new improved formatting)
+      if (section.match(/^[A-Z][a-zA-Z ]+:/)) {
+        const [title, ...contentLines] = section.split('\n');
+        const cleanTitle = title.replace(':', '').trim();
+        const content = contentLines.join('\n').trim();
+        
         return (
-          <div key={`analysis-${index}`} className="my-4">
-            <h4 className="text-md font-semibold text-blue-300 mb-2">{title}</h4>
+          <div key={`section-${index}`} className="my-4">
+            <h4 className="text-md font-semibold text-blue-300 mb-2">{cleanTitle}</h4>
             <div className="bg-gray-700/20 p-3 rounded">
               {content.split('\n').map((line, i) => {
                 if (!line.trim()) return null;
                 
+                // Handle numbered list items
+                if (line.match(/^\d+\.\s/)) {
+                  return (
+                    <div key={i} className="flex items-start my-1 ml-4">
+                      <span className="mr-2">{line.split(' ')[0]}</span>
+                      <span>{line.substring(line.indexOf(' ') + 1)}</span>
+                    </div>
+                  );
+                }
+                
+                // Handle bullet points
                 if (line.match(/^-\s/)) {
                   return (
                     <div key={i} className="flex items-start my-1">
@@ -230,6 +243,7 @@ const AiAnalyticsPanel = ({
                   );
                 }
                 
+                // Handle key-value pairs
                 if (line.match(/:\s/)) {
                   const parts = line.split(':');
                   return (
@@ -240,6 +254,7 @@ const AiAnalyticsPanel = ({
                   );
                 }
                 
+                // Default line formatting
                 return (
                   <p key={i} className="my-2">
                     {line}
@@ -267,15 +282,6 @@ const AiAnalyticsPanel = ({
               </div>
             ))}
           </div>
-        );
-      }
-      
-      // Handle section titles
-      if (section.match(/^[A-Z][a-zA-Z ]+:$/)) {
-        return (
-          <h4 key={`title-${index}`} className="text-md font-semibold text-blue-300 mt-4 mb-2">
-            {section.replace(':', '')}
-          </h4>
         );
       }
       
