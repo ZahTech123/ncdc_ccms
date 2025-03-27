@@ -223,6 +223,51 @@ const TicketTable = ({
     }
   };
 
+
+
+
+// Add this above the TicketTable component
+const allIssueTypes = [
+  "Urban Safety", "Waste Management", "Markets", "Parks & Gardens", "Eda City Bus",
+  "Liquor License", "Building", "Development Control & Physical Planning", "Enforcement",
+  "Streetlights & Traffic Management", "Road Furniture & Road Signs", "Potholes & Drainage", "Strategic Planning"
+];
+
+const roleToIssueTypes = {
+  // Compliance Directorate
+  "bU_adminC": ["Liquor License", "Building", "Development Control & Physical Planning", "Enforcement"],
+  "bU_supervisorC": ["Liquor License", "Building", "Development Control & Physical Planning", "Enforcement"],
+  "bU_managerC": ["Liquor License", "Building", "Development Control & Physical Planning", "Enforcement"],
+  "bU_directorC": ["Liquor License", "Building", "Development Control & Physical Planning", "Enforcement"],
+  
+  // Sustainability & Lifestyle Directorate
+  "bU_adminS_L": ["Urban Safety", "Waste Management", "Markets", "Parks & Gardens", "Eda City Bus"],
+  "bU_supervisorS_L": ["Urban Safety", "Waste Management", "Markets", "Parks & Gardens", "Eda City Bus"],
+  "bU_managerS_L": ["Urban Safety", "Waste Management", "Markets", "Parks & Gardens", "Eda City Bus"],
+  "bU_directorS_L": ["Urban Safety", "Waste Management", "Markets", "Parks & Gardens", "Eda City Bus"],
+  
+  // City Planning & Infrastructure Directorate
+  "bU_adminCPI": ["Streetlights & Traffic Management", "Road Furniture & Road Signs", "Potholes & Drainage", "Strategic Planning"],
+  "bU_supervisorCPI": ["Streetlights & Traffic Management", "Road Furniture & Road Signs", "Potholes & Drainage", "Strategic Planning"],
+  "bU_managerCPI": ["Streetlights & Traffic Management", "Road Furniture & Road Signs", "Potholes & Drainage", "Strategic Planning"],
+  "bU_directorCPI": ["Streetlights & Traffic Management", "Road Furniture & Road Signs", "Potholes & Drainage", "Strategic Planning"],
+  
+  // These roles see all issue types
+  "admin": allIssueTypes,
+  "supervisor": allIssueTypes,
+  "operator": allIssueTypes,
+  "supervisorC": ["Liquor License", "Building", "Development Control & Physical Planning", "Enforcement"]
+};
+
+// Helper function to get issue types for a role
+const getIssueTypesForRole = (role) => {
+  return roleToIssueTypes[role] || allIssueTypes; // Default to all if role not found
+};
+
+
+
+
+
   return (
     <div
       className={`table-container ${
@@ -258,35 +303,20 @@ const TicketTable = ({
           </div>
 
           <select
-            id="issueTypeFilter"
-            className="bg-gray-700 text-sm p-2 rounded-md"
-            value={issueTypeFilter}
-            onChange={(e) => setIssueTypeFilter(e.target.value)}
-          >
-            <option value="" disabled className="text-gray-500">
-              Filter by Issue Type
-            </option>
-            <option value="Urban Safety">Urban Safety</option>
-            <option value="Waste Management">Waste Management</option>
-            <option value="Markets">Markets</option>
-            <option value="Parks & Gardens">Parks & Gardens</option>
-            <option value="Eda City Bus">Eda City Bus</option>
-            <option value="Liquor License">Liquor License</option>
-            <option value="Building">Building</option>
-            <option value="Development Control & Physical Planning">
-              Development Control & Physical Planning
-            </option>
-            <option value="Enforcement">Enforcement</option>
-            <option value="Streetlights & Traffic Management">
-              Streetlights & Traffic Management
-            </option>
-            <option value="Road Furniture & Road Signs">
-              Road Furniture & Road Signs
-            </option>
-            <option value="Potholes & Drainage">Potholes & Drainage</option>
-            <option value="Strategic Planning">Strategic Planning</option>
-          </select>
-
+  id="issueTypeFilter"
+  className="bg-gray-700 text-sm p-2 rounded-md"
+  value={issueTypeFilter}
+  onChange={(e) => setIssueTypeFilter(e.target.value)}
+>
+  <option value="" disabled className="text-gray-500">
+    Filter by Issue Type
+  </option>
+  {getIssueTypesForRole(role).map((issueType) => (
+    <option key={issueType} value={issueType}>
+      {issueType}
+    </option>
+  ))}
+</select>
           <div className="relative">
             <input
               type="text"
@@ -300,7 +330,7 @@ const TicketTable = ({
         </div>
         <div className="flex items-center space-x-6">
           <button className=" bounce-effect  text-sm bg-gray-700 p-2 rounded-md">
-            Import request
+            Import Ticket(s)
           </button>
           <button
             className=" bounce-effect  text-sm bg-gray-700 p-2 rounded-md flex items-center space-x-2"

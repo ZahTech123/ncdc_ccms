@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import "../../../styles/scrollbar.css"; // Import the scrollbar CSS
+import { usePermissions } from "../../../context/PermissionsContext";
+import "../../../styles/scrollbar.css";
 
 // Mapping of Directorates to their respective issue types
 const directorateIssueTypeMapping = {
@@ -11,7 +12,12 @@ const directorateIssueTypeMapping = {
     "Parks & Gardens",
     "Eda City Bus",
   ],
-  Compliance: ["Liquor License", "Building", "Development Control & Physical Planning", "Enforcement"],
+  "Compliance": [
+    "Liquor License",
+    "Building",
+    "Development Control & Physical Planning",
+    "Enforcement",
+  ],
   "City Planning & Infrastructure": [
     "Streetlights & Traffic Management",
     "Road Furniture & Road Signs",
@@ -20,13 +26,26 @@ const directorateIssueTypeMapping = {
   ],
 };
 
-// Combined list of issue types from all directorates
-const allIssueTypes = [
-  "All",
-  ...directorateIssueTypeMapping["Sustainability & Lifestyle"],
-  ...directorateIssueTypeMapping.Compliance,
-  ...directorateIssueTypeMapping["City Planning & Infrastructure"],
-];
+// Role to Directorate mapping
+const roleToDirectorateMapping = {
+  // Compliance roles
+  "bU_adminC": "Compliance",
+  "bU_supervisorC": "Compliance",
+  "bU_managerC": "Compliance",
+  "bU_directorC": "Compliance",
+  
+  // Sustainability & Lifestyle roles
+  "bU_adminS_L": "Sustainability & Lifestyle",
+  "bU_supervisorS_L": "Sustainability & Lifestyle",
+  "bU_managerS_L": "Sustainability & Lifestyle",
+  "bU_directorS_L": "Sustainability & Lifestyle",
+  
+  // City Planning & Infrastructure roles
+  "bU_adminCPI": "City Planning & Infrastructure",
+  "bU_supervisorCPI": "City Planning & Infrastructure",
+  "bU_managerCPI": "City Planning & Infrastructure",
+  "bU_directorCPI": "City Planning & Infrastructure",
+};
 
 const FullscreenFilters = ({
   isOpen,
@@ -47,50 +66,86 @@ const FullscreenFilters = ({
   manualZoomOut,
   markerClicked,
   toggleFilters,
-  showStats, // Added showStats prop
+  showStats,
 }) => {
+  const { userPermissions } = usePermissions();
+  const role = userPermissions?.role;
+
+  // Set default directorate based on role when component mounts
+  useEffect(() => {
+    if (role && roleToDirectorateMapping[role] && !selectedDirectorate) {
+      const defaultDirectorate = roleToDirectorateMapping[role];
+      setSelectedDirectorate(defaultDirectorate);
+    }
+    // Set category to empty string (shows all) initially
+    if (category === undefined) {
+      setCategory("");
+    }
+  }, [role, selectedDirectorate, category, setSelectedDirectorate, setCategory]);
+
   // Get issue types based on selected directorate
   const getFilteredIssueTypes = () => {
     if (!selectedDirectorate) {
-      return allIssueTypes;
+      // Return all issue types EXCEPT "All" when no directorate is selected
+      return [
+        ...directorateIssueTypeMapping["Sustainability & Lifestyle"],
+        ...directorateIssueTypeMapping.Compliance,
+        ...directorateIssueTypeMapping["City Planning & Infrastructure"],
+      ];
     }
+    return directorateIssueTypeMapping[selectedDirectorate] || [];
+  };
 
-    return directorateIssueTypeMapping[selectedDirectorate] || allIssueTypes;
+  // Get directorate options based on role
+  const getDirectorateOptions = () => {
+    if (!role) return ["All", "Sustainability & Lifestyle", "Compliance", "City Planning & Infrastructure"];
+    
+    const userDirectorate = roleToDirectorateMapping[role];
+    if (userDirectorate) {
+      // For BU-specific roles, only show their directorate
+      return ["All", userDirectorate];
+    }
+    
+    // For admin/operator/supervisor, show all options
+    return ["All", "Sustainability & Lifestyle", "Compliance", "City Planning & Infrastructure"];
+  };
+
+  // Handle directorate change
+  const handleDirectorateChange = (e) => {
+    const value = e.target.value === "All" ? "" : e.target.value;
+    setSelectedDirectorate(value);
+    // Reset category to empty string (shows all) when directorate changes
+    setCategory("");
   };
 
   // Trigger zoom bounds whenever filters change, but ONLY if no marker is clicked
   useEffect(() => {
-    // Skip auto-zooming if a marker is clicked
     if (markerClicked) return;
-    
-    // Small delay to allow markers to update first
     const timer = setTimeout(() => {
       zoomToBounds();
     }, 200);
-    
     return () => clearTimeout(timer);
   }, [selectedCity, category, date, locationKeyword, priority, selectedDirectorate, zoomToBounds, markerClicked]);
 
-  // Single handler for reset button
   const handleReset = () => {
     resetFiltersAndZoom();
+    // After reset, set the defaults based on role again
+    if (role && roleToDirectorateMapping[role]) {
+      const defaultDirectorate = roleToDirectorateMapping[role];
+      setSelectedDirectorate(defaultDirectorate);
+    }
+    // Reset category to empty string (shows all)
+    setCategory("");
   };
 
-  // Handler for closing the filter panel - with safety check for toggleFilters
   const handleCloseFilters = () => {
-    // Use the provided toggleFilters if it's a function
     if (typeof toggleFilters === 'function') {
-      toggleFilters(); // Close the filter panel
-    } else {
-      console.warn('toggleFilters prop is not a function or not provided');
-      // Fallback to manualZoomOut if available
-      if (typeof manualZoomOut === 'function') {
-        manualZoomOut();
-      }
+      toggleFilters();
+    } else if (typeof manualZoomOut === 'function') {
+      manualZoomOut();
     }
   };
 
-  // Calculate the height based on whether stats are shown
   const getFilterHeight = () => {
     return showStats ? 'calc(68vh - 4rem)' : 'calc(95vh - 4rem)';
   };
@@ -111,7 +166,6 @@ const FullscreenFilters = ({
         </div>
       </div>
 
-      {/* Added scrollable container with custom-scrollbar class */}
       <div className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
         <div className="space-y-5">
           {/* City Dropdown */}
@@ -129,22 +183,24 @@ const FullscreenFilters = ({
             </select>
           </div>
 
-          {/* Directorate Dropdown */}
+          {/* Directorate Dropdown - now filtered based on role */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">Select Directorate:</label>
             <select
-              value={selectedDirectorate}
-              onChange={(e) => setSelectedDirectorate(e.target.value)}
+              value={selectedDirectorate || "All"}
+              onChange={handleDirectorateChange}
               className="w-full p-3 border border-gray-300 rounded-md bg-white text-gray-800 shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+              disabled={role && roleToDirectorateMapping[role]} // Disable if user has a BU-specific role
             >
-              <option value="">All</option>
-              <option value="Sustainability & Lifestyle">Sustainability & Lifestyle</option>
-              <option value="Compliance">Compliance</option>
-              <option value="City Planning & Infrastructure">City Planning & Infrastructure</option>
+              {getDirectorateOptions().map((directorate) => (
+                <option key={directorate} value={directorate}>
+                  {directorate}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Category Dropdown */}
+          {/* Category Dropdown - shows only relevant issue types */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">Issue Type:</label>
             <select
@@ -152,7 +208,7 @@ const FullscreenFilters = ({
               onChange={(e) => setCategory(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md bg-white text-gray-800 shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
             >
-              <option value="">Select Issue Type</option>
+              <option value="">All</option>
               {getFilteredIssueTypes().map((type) => (
                 <option key={type} value={type}>
                   {type}
@@ -199,7 +255,7 @@ const FullscreenFilters = ({
             />
           </div>
 
-          {/* Reset Button - Changed to Yellow */}
+          {/* Reset Button */}
           <button
             onClick={handleReset}
             className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-md transition-colors shadow-md mt-4"

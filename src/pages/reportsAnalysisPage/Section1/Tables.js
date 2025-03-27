@@ -1,6 +1,97 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useTickets } from "../../../context/TicketsContext";
+import { usePermissions } from "../../../context/PermissionsContext";
+import { filterTicketsRoles } from "../../../utils/ticketFilters";
 
-const Tables = ({ labels, ticketCounts }) => {
+const Tables = () => {
+  const { filteredTickets } = useTickets();
+  const { userPermissions } = usePermissions();
+  const { role } = userPermissions;
+
+  // Define labels and issue type mappings for each BU
+  const getLabelsAndMappings = (role) => {
+    // Compliance Directorate
+    if (role.startsWith('bU_') && role.endsWith('C')) {
+      return {
+        labels: {
+          totalTickets: "Liquor License",
+          totalNew: "Building",
+          totalInProgress: "Development Control",
+          totalResolved: "Enforcement",
+          totalOverdue: "Total Overdue",
+          totalHighPriority: "Total High Priority",
+          totalMediumPriority: "Total Medium Priority",
+          totalLowPriority: "Total Low Priority",
+        },
+        issueTypeMappings: {
+          totalTickets: "Liquor License",
+          totalNew: "Building",
+          totalInProgress: "Development Control & Physical Planning",
+          totalResolved: "Enforcement"
+        }
+      };
+    }
+    // Sustainability & Lifestyle Directorate
+    else if (role.startsWith('bU_') && role.endsWith('S_L')) {
+      return {
+        labels: {
+          totalTickets: "Urban Safety",
+          totalNew: "Waste Management",
+          totalInProgress: "Markets",
+          totalResolved: "Parks & Gardens",
+          totalOverdue: "Eda City Bus",
+          totalHighPriority: "Total High Priority",
+          totalMediumPriority: "Total Medium Priority",
+          totalLowPriority: "Total Low Priority",
+        },
+        issueTypeMappings: {
+          totalTickets: "Urban Safety",
+          totalNew: "Waste Management",
+          totalInProgress: "Markets",
+          totalResolved: "Parks & Gardens",
+          totalOverdue: "Eda City Bus"
+        }
+      };
+    }
+    // City Planning & Infrastructure Directorate
+    else if (role.startsWith('bU_') && role.endsWith('CPI')) {
+      return {
+        labels: {
+          totalTickets: "Streetlights & Traffic",
+          totalNew: "Road Furniture & Signs",
+          totalInProgress: "Potholes & Drainage",
+          totalResolved: "Strategic Planning",
+          totalOverdue: "Total Overdue",
+          totalHighPriority: "Total High Priority",
+          totalMediumPriority: "Total Medium Priority",
+          totalLowPriority: "Total Low Priority",
+        },
+        issueTypeMappings: {
+          totalTickets: "Streetlights & Traffic Management",
+          totalNew: "Road Furniture & Road Signs",
+          totalInProgress: "Potholes & Drainage",
+          totalResolved: "Strategic Planning"
+        }
+      };
+    }
+    // Default (non-BU roles)
+    return {
+      labels: {
+        totalTickets: "Total Tickets",
+        totalNew: "Total New",
+        totalInProgress: "Total In Progress",
+        totalResolved: "Total Resolved",
+        totalOverdue: "Total Overdue",
+        totalHighPriority: "Total High Priority",
+        totalMediumPriority: "Total Medium Priority",
+        totalLowPriority: "Total Low Priority",
+      },
+      issueTypeMappings: null // No specific issue type mapping for default roles
+    };
+  };
+
+  const { labels, issueTypeMappings } = getLabelsAndMappings(role);
+
   // Define colors for each circle
   const colors = {
     gray600: "#4B5563",
@@ -12,6 +103,42 @@ const Tables = ({ labels, ticketCounts }) => {
     yellow500: "#EAB308",
     teal500: "#14B8A6",
   };
+
+  // Apply role-based filtering
+  const roleFilteredTickets = useMemo(() => {
+    return filterTicketsRoles(filteredTickets, role);
+  }, [filteredTickets, role]);
+
+  // Calculate ticket counts based on filtered tickets
+  const ticketCounts = useMemo(() => {
+    if (!issueTypeMappings) {
+      // Default counts for non-BU roles
+      return {
+        totalTickets: roleFilteredTickets.length,
+        totalNew: roleFilteredTickets.filter(t => t.status === 'New').length,
+        totalInProgress: roleFilteredTickets.filter(t => t.status === 'In Progress').length,
+        totalResolved: roleFilteredTickets.filter(t => t.status === 'Resolved').length,
+        totalOverdue: roleFilteredTickets.filter(t => t.status === 'Overdue').length,
+        totalHighPriority: roleFilteredTickets.filter(t => t.priority === 'High').length,
+        totalMediumPriority: roleFilteredTickets.filter(t => t.priority === 'Medium').length,
+        totalLowPriority: roleFilteredTickets.filter(t => t.priority === 'Low').length,
+      };
+    }
+
+    // BU-specific counts based on issue types
+    return {
+      totalTickets: roleFilteredTickets.filter(t => t.issueType === issueTypeMappings.totalTickets).length,
+      totalNew: roleFilteredTickets.filter(t => t.issueType === issueTypeMappings.totalNew).length,
+      totalInProgress: roleFilteredTickets.filter(t => t.issueType === issueTypeMappings.totalInProgress).length,
+      totalResolved: roleFilteredTickets.filter(t => t.issueType === issueTypeMappings.totalResolved).length,
+      totalOverdue: roleFilteredTickets.filter(t => (
+        Object.values(issueTypeMappings).includes(t.issueType) && t.status === 'Overdue'
+      )).length, // Fixed: Added missing closing parenthesis and removed erroneous closing bracket
+      totalHighPriority: roleFilteredTickets.filter(t => t.priority === 'High').length,
+      totalMediumPriority: roleFilteredTickets.filter(t => t.priority === 'Medium').length,
+      totalLowPriority: roleFilteredTickets.filter(t => t.priority === 'Low').length,
+    };
+  }, [roleFilteredTickets, issueTypeMappings]);
 
   return (
     <div className="flex space-x-6">

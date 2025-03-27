@@ -14,6 +14,11 @@ const BarChart = () => {
   const { userPermissions } = usePermissions();
   const { role } = userPermissions;
 
+  // Check if role should see Invalid status
+  const shouldShowInvalid = useMemo(() => {
+    return ['supervisor', 'operator', 'admin'].includes(role);
+  }, [role]);
+
   // Apply role-based filtering
   const roleFilteredTickets = useMemo(() => {
     return filterTicketsRoles(filteredTickets, role);
@@ -27,12 +32,16 @@ const BarChart = () => {
       Resolved: 0,
       Overdue: 0,
       Closed: 0,
-      Invalid: 0,
+      ...(shouldShowInvalid && { Invalid: 0 }), // Conditionally include Invalid
       Verified: 0
     };
 
     if (roleFilteredTickets && Array.isArray(roleFilteredTickets)) {
       roleFilteredTickets.forEach(ticket => {
+        // Skip counting if status is Invalid and shouldn't be shown
+        if (ticket.status === 'Invalid' && !shouldShowInvalid) {
+          return;
+        }
         if (counts.hasOwnProperty(ticket.status)) {
           counts[ticket.status]++;
         }
@@ -40,7 +49,7 @@ const BarChart = () => {
     }
 
     return counts;
-  }, [roleFilteredTickets]);
+  }, [roleFilteredTickets, shouldShowInvalid]);
 
   const chartData = useMemo(() => ({
     labels: Object.keys(statusCounts),

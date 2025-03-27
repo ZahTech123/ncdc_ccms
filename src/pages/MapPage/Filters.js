@@ -19,12 +19,7 @@ const directorateIssueTypeMapping = {
 };
 
 // Combined list of issue types from all directorates
-const allIssueTypes = [
-  "All",
-  ...directorateIssueTypeMapping["Sustainability & Lifestyle"],
-  ...directorateIssueTypeMapping.Compliance,
-  ...directorateIssueTypeMapping["City Planning & Infrastructure"],
-];
+
 
 const Filters = ({
   selectedCity,
@@ -46,10 +41,14 @@ const Filters = ({
   // Get issue types based on selected directorate
   const getFilteredIssueTypes = () => {
     if (!selectedDirectorate) {
-      return allIssueTypes;
+      // Return all issue types EXCEPT "All" when no directorate is selected
+      return [
+        ...directorateIssueTypeMapping["Sustainability & Lifestyle"],
+        ...directorateIssueTypeMapping.Compliance,
+        ...directorateIssueTypeMapping["City Planning & Infrastructure"],
+      ];
     }
-
-    return directorateIssueTypeMapping[selectedDirectorate] || allIssueTypes;
+    return directorateIssueTypeMapping[selectedDirectorate] || [];
   };
 
   // Trigger zoom bounds whenever filters change, but ONLY if no marker is clicked
@@ -120,17 +119,17 @@ const Filters = ({
       <div className="space-y-2">
         <label className="text-sm text-white">Issue Type:</label>
         <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full p-2 rounded-md bg-gray-600 text-white"
-        >
-          <option value="">Select Issue Type</option>
-          {getFilteredIssueTypes().map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
+  value={category}
+  onChange={(e) => setCategory(e.target.value)}
+  className="w-full p-2 rounded-md bg-gray-600 text-white"
+>
+  <option value="">All</option> {/* This is now your "show all" option */}
+  {getFilteredIssueTypes().map((type) => (
+    <option key={type} value={type}>
+      {type}
+    </option>
+  ))}
+</select>
       </div>
 
       {/* Priority Dropdown */}
