@@ -1,10 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useTickets } from "../../../../../context/TicketsContext";
+import { usePermissions } from "../../../../../context/PermissionsContext";
+import { filterTicketsRoles } from "../../../../../utils/dataFilters";
 
 const DistrictCard = () => {
   const { filteredTickets } = useTickets();
+  const { userPermissions } = usePermissions();
+  const { role } = userPermissions;
+  
   const [activeDistrict, setActiveDistrict] = useState('northwest');
   const [isDistrictMenuOpen, setIsDistrictMenuOpen] = useState(false);
+
+  // Apply role-based filtering using filterTicketsRoles
+  const roleFilteredTickets = useMemo(() => {
+    return filterTicketsRoles(filteredTickets, role);
+  }, [filteredTickets, role]);
 
   // Move districtMapping inside useMemo or wrap it in its own useMemo
   const districtMapping = useMemo(() => ({
@@ -16,11 +26,11 @@ const DistrictCard = () => {
   // Process tickets data for the selected district
   const districtTickets = useMemo(() => {
     const electorate = districtMapping[activeDistrict];
-    const filtered = filteredTickets.filter(ticket => 
+    const filtered = roleFilteredTickets.filter(ticket => 
       ticket.electorate === electorate
     );
     return filtered;
-  }, [filteredTickets, activeDistrict, districtMapping]);
+  }, [roleFilteredTickets, activeDistrict, districtMapping]);
 
   // Calculate statistics
   const districtStats = useMemo(() => {
@@ -29,7 +39,9 @@ const DistrictCard = () => {
     const resolvedPercentage = totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0;
 
     // Calculate the percentage of total tickets for the selected district out of all tickets
-    const totalTicketsPercentage = filteredTickets.length > 0 ? Math.round((totalTickets / filteredTickets.length) * 100) : 0;
+    const totalTicketsPercentage = roleFilteredTickets.length > 0 
+      ? Math.round((totalTickets / roleFilteredTickets.length) * 100) 
+      : 0;
 
     return {
       totalTickets,
@@ -37,7 +49,7 @@ const DistrictCard = () => {
       resolvedPercentage,
       totalTicketsPercentage
     };
-  }, [districtTickets, filteredTickets]);
+  }, [districtTickets, roleFilteredTickets]);
 
   // Define districts with dynamic data
   const districts = {
@@ -70,10 +82,10 @@ const DistrictCard = () => {
   // Active district data
   const activeDistrictData = {
     ...districts[activeDistrict],
-    count: districtStats.totalTickets, // Total tickets for the district
-    percentage: `${districtStats.totalTicketsPercentage}%`, // Percentage of total tickets out of all tickets
-    totalComplaints: districtStats.totalTickets, // Total tickets for the district
-    resolvedPercentage: `${districtStats.resolvedPercentage}%` // Resolved percentage
+    count: districtStats.totalTickets,
+    percentage: `${districtStats.totalTicketsPercentage}%`,
+    totalComplaints: districtStats.totalTickets,
+    resolvedPercentage: `${districtStats.resolvedPercentage}%`
   };
 
   const toggleDistrictMenu = () => {

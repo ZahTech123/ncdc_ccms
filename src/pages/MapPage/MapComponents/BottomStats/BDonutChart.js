@@ -2,13 +2,22 @@ import React, { useRef, useEffect, useMemo } from "react";
 import { Chart, DoughnutController, ArcElement, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { useTickets } from "../../../../context/TicketsContext";
+import { usePermissions } from "../../../../context/PermissionsContext";
+import { filterTicketsRoles } from "../../../../utils/ticketFilters";
 
 Chart.register(DoughnutController, ArcElement, Tooltip, Legend, ChartDataLabels);
 
 const DonutChart = ({ COLORS }) => {
   const { filteredTickets } = useTickets();
+  const { userPermissions } = usePermissions();
+  const { role } = userPermissions;
   const donutChartRef = useRef(null);
   const donutChartInstance = useRef(null);
+
+  // Apply role-based filtering
+  const roleFilteredTickets = useMemo(() => {
+    return filterTicketsRoles(filteredTickets, role);
+  }, [filteredTickets, role]);
 
   // Process tickets data by priority
   const priorityData = useMemo(() => {
@@ -18,7 +27,7 @@ const DonutChart = ({ COLORS }) => {
       Low: 0
     };
 
-    filteredTickets.forEach(ticket => {
+    roleFilteredTickets.forEach(ticket => {
       if (counts.hasOwnProperty(ticket.priority)) {
         counts[ticket.priority]++;
       }
@@ -31,7 +40,7 @@ const DonutChart = ({ COLORS }) => {
     ];
 
     return processedData;
-  }, [filteredTickets]);
+  }, [roleFilteredTickets]);
 
   useEffect(() => {
     if (!donutChartRef.current) return;

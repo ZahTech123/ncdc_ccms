@@ -11,7 +11,8 @@ export const sendEmail = async (ticket) => {
    
 
     await emailjs.send("service_0lequ6f", "template_iagffxk", {
-      to_email:  "benjaminb@ncdc.gov.pg",
+      to_email:  "sarwomjohn@gmail.com",
+      //to_email:  "benjaminb@ncdc.gov.pg",
       recipient_name: ticket.name || "Recipient", // Use dynamic data if available
       cc_email: "heni.sarwom@qrfpng.com", 
       issue_type: ticket.issueType,

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { usePermissions } from "../../../context/PermissionsContext";
 import { useNotifications } from "../../../context/NotificationsContext";
-import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions
-import { db } from "../../../firebaseConfig"; // Import Firestore instance
-
+import { doc, setDoc } from "firebase/firestore";
+import { db, auth } from "../../../firebaseConfig";
+import { signOut } from "firebase/auth"; // Import signOut
 const NavbarTopRight = ({
   toggleMapStyle,
   currentStyleIndex,
@@ -20,27 +20,45 @@ const NavbarTopRight = ({
   const { name, role } = userPermissions;
   const { newTickets, unreadCount } = useNotifications();
 
-  // Add state for modals
+  // State for modals
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   // Function to toggle message modal
   const toggleMessageModal = () => {
     setIsMessageModalOpen(!isMessageModalOpen);
-    // Close notification modal if open
     if (isNotificationModalOpen) setIsNotificationModalOpen(false);
+    if (isUserDropdownOpen) setIsUserDropdownOpen(false);
+  };
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        // Logout successful
+        console.log("User signed out successfully");
+        setIsUserDropdownOpen(false); // Close the dropdown
+      })
+      .catch((error) => {
+        console.error("Logout error:", error);
+      });
   };
 
   // Function to toggle notification modal
   const handleNotificationClick = () => {
     setIsNotificationModalOpen(!isNotificationModalOpen);
-    // Close message modal if open
     if (isMessageModalOpen) setIsMessageModalOpen(false);
+    if (isUserDropdownOpen) setIsUserDropdownOpen(false);
 
-    // Also call the original notification handler if it exists
     if (typeof toggleNotification === "function") {
       toggleNotification();
     }
+  };
+
+  // Function to toggle user dropdown
+  const toggleUserDropdown = () => {
+    setIsUserDropdownOpen(!isUserDropdownOpen);
+    if (isMessageModalOpen) setIsMessageModalOpen(false);
+    if (isNotificationModalOpen) setIsNotificationModalOpen(false);
   };
 
   // Calculate unread notifications for the current role
@@ -55,11 +73,11 @@ const NavbarTopRight = ({
           ticketRef,
           {
             isRead: {
-              ...ticket.isRead, // Preserve existing values
-              [role]: true, // Update the current role's isRead to true
+              ...ticket.isRead,
+              [role]: true,
             },
           },
-          { merge: true } // Merge with existing data
+          { merge: true }
         );
         console.log(`Ticket ${ticket.id} marked as read for role: ${role}`);
       } catch (error) {
@@ -71,12 +89,10 @@ const NavbarTopRight = ({
   // Filter and sort tickets
   const sortedTickets = newTickets
     .filter((ticket) => {
-      // Add safety check for isRead
       if (!ticket.isRead || typeof ticket.isRead !== "object") {
-        return true; // Treat as unread if isRead is missing or invalid
+        return true;
       }
 
-      // Check if the current role is bU_adminC
       if (role === "bU_adminC") {
         return (
           ticket.directorate === "Compliance" &&
@@ -84,9 +100,9 @@ const NavbarTopRight = ({
         );
       }
 
-      return !ticket.isRead[role]; // Return true if the ticket is unread for the current role
+      return !ticket.isRead[role];
     })
-    .sort((a, b) => new Date(b.dateSubmitted) - new Date(a.dateSubmitted)); // Sort by date in descending order (most recent first)
+    .sort((a, b) => new Date(b.dateSubmitted) - new Date(a.dateSubmitted));
 
   // Function to parse the description into its components
   const parseDescription = (description) => {
@@ -99,13 +115,9 @@ const NavbarTopRight = ({
       };
     }
 
-    // Split the description into individual entries
     const entries = description.split("|");
-
-    // Group the entries into chunks of 4 (handler, timestamp, status, comment)
     const groupedEntries = [];
     for (let i = 0; i < entries.length; i += 4) {
-      // Ensure we don't go out of bounds
       if (i + 3 < entries.length) {
         groupedEntries.push({
           handler: entries[i].trim(),
@@ -116,8 +128,7 @@ const NavbarTopRight = ({
       }
     }
 
-    // Find the most recent entry based on the timestamp
-    let mostRecentEntry = groupedEntries[0]; // Default to the first entry
+    let mostRecentEntry = groupedEntries[0];
     for (const entry of groupedEntries) {
       if (new Date(entry.timestamp) > new Date(mostRecentEntry.timestamp)) {
         mostRecentEntry = entry;
@@ -189,14 +200,10 @@ const NavbarTopRight = ({
   // Get button background color based on style
   const getButtonStyle = () => {
     switch (currentStyleIndex) {
-      case 0: // streets
-        return "bg-white";
-      case 1: // dark
-        return "bg-gray-800";
-      case 2: // satellite
-        return "bg-blue-800";
-      default:
-        return "bg-white";
+      case 0: return "bg-white";
+      case 1: return "bg-gray-800";
+      case 2: return "bg-blue-800";
+      default: return "bg-white";
     }
   };
 
@@ -219,7 +226,7 @@ const NavbarTopRight = ({
   const isAnyTabOpen = allTabsVisible || isFiltersOpen || isSidebarOpen;
   const toggleAllButtonTitle = isAnyTabOpen ? "Hide all tabs" : "Show all tabs";
 
-  // Modal Component - Shared component for both message and notification modals
+  // Modal Component
   const Modal = ({ title, content, isOpen, onClose, position = "right-12" }) => {
     if (!isOpen) return null;
 
@@ -253,8 +260,8 @@ const NavbarTopRight = ({
   };
 
   return (
-    <div className="flex items-center bg-transparent ">
-      <div className="relative flex items-center space-x-4 ">
+    <div className="flex items-center bg-transparent">
+      <div className="relative flex items-center space-x-4">
         {/* Map Switch Icon (Outside Navbar) */}
         <button
           onClick={toggleMapStyle}
@@ -310,7 +317,6 @@ const NavbarTopRight = ({
                 d="M15 17h5l-1.405-1.405C18.835 14.21 19 13.105 19 12V8a7 7 0 10-14 0v4c0 1.105.165 2.21.405 3.595L4 17h5m6 0a3 3 0 11-6 0m6 0H9"
               />
             </svg>
-            {/* Show badge only if there are unread notifications for the current role */}
             {currentRoleUnreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">
                 {currentRoleUnreadCount}
@@ -343,25 +349,65 @@ const NavbarTopRight = ({
             </span>
           </button>
 
-          {/* Profile Icon with User Name */}
-          <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center">
+          {/* Profile Icon with User Name and Dropdown */}
+          <div className="relative">
+            <button
+              className="flex items-center space-x-2 focus:outline-none"
+              onClick={toggleUserDropdown}
+              aria-label="User menu"
+            >
+              <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="white"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5.121 17.804A4 4 0 018.914 15h6.172a4 4 0 013.793 2.804M12 11a4 4 0 100-8 4 4 0 000 8z"
+                  />
+                </svg>
+              </div>
+              <span className="text-gray-500 font-medium">{name}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="white"
-                className="w-5 h-5"
+                className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+                  isUserDropdownOpen ? "transform rotate-180" : ""
+                }`}
+                viewBox="0 0 20 20"
+                fill="currentColor"
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5.121 17.804A4 4 0 018.914 15h6.172a4 4 0 013.793 2.804M12 11a4 4 0 100-8 4 4 0 000 8z"
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
                 />
               </svg>
-            </div>
-            <span className="text-gray-500 font-medium">{name}</span>
+            </button>
+
+            {/* User Dropdown Menu */}
+            {isUserDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                <div className="px-4 py-2 border-b">
+                  <p className="text-sm font-medium text-gray-700">{name}</p>
+                  <p className="text-xs text-gray-500">{role}</p>
+                </div>
+                <button
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => {
+                    handleLogout();
+                    console.log("Logout clicked");
+                    setIsUserDropdownOpen(false);
+                  }}
+                >
+                  Log Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -377,7 +423,7 @@ const NavbarTopRight = ({
 
       {/* Render Notification Modal */}
       <Modal
-        title="Notifications" className ="text-gray"
+        title="Notifications"
         content={
           <div className="text-left">
             {sortedTickets.length > 0 ? (

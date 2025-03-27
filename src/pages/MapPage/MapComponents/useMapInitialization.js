@@ -55,6 +55,7 @@ export const useMapInitialization = (mapContainerRef, setMap, setIsFullscreen, i
       zoom: 16,
       pitch: 45,
       bearing: 30,
+      preserveDrawingBuffer: true, // Add this line
       navigationControl: false
     });
     

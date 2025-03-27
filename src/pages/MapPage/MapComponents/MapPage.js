@@ -487,7 +487,14 @@ const { markersRef, updateMarkers, zoomToBounds, zoomToMarker } = useMapMarkers(
         )}
 
         {/* Live Data Feed */}
-        {isFullscreen && <LiveDataFeed />}
+        {isFullscreen &&     <LiveDataFeed
+      searchedComplaints={searchedComplaints}
+      role={role}
+      isFullscreen={isFullscreen}
+      // Pass any other props you need:
+      markersRef={markersRef}
+      flyToLocation={handleCardClick}
+    />}
 
         {/* Sidebar */}
         {isFullscreen && (
