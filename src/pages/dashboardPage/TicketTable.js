@@ -524,26 +524,36 @@ const getIssueTypesForRole = (role) => {
       </td>
       <td className="p-2">{ticket.currentHandler}</td>
       <td className="p-2">
-        {(() => {
-          let dateString =
-            ticket.dateSubmitted || ticket.submissionDate;
-          if (dateString && !dateString.includes("T")) {
-            const [day, month, year] = dateString.split("/");
-            dateString = `20${year}-${month}-${day}`;
-          }
-          const date = new Date(dateString);
-          if (isNaN(date.getTime())) return "Invalid Date";
-          return `${date
-            .getDate()
-            .toString()
-            .padStart(2, "0")}/${(date.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}/${date
-            .getFullYear()
-            .toString()
-            .slice(2, 4)}`;
-        })()}
-      </td>
+  {(() => {
+    // First check if the date exists
+    let dateString = ticket.dateSubmitted || ticket.submissionDate;
+    
+    // Make sure dateString is a string before using string methods
+    if (!dateString) return "No date";
+    
+    // Convert to string if it's not already
+    dateString = String(dateString);
+    
+    // Now we can safely use string methods
+    if (dateString && !dateString.includes("T")) {
+      const [day, month, year] = dateString.split("/");
+      dateString = `20${year}-${month}-${day}`;
+    }
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    
+    return `${date
+      .getDate()
+      .toString()
+      .padStart(2, "0")}/${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}/${date
+      .getFullYear()
+      .toString()
+      .slice(2, 4)}`;
+  })()}
+</td>
       {/* New Columns */}
       {isTableExpanded && (
         <>

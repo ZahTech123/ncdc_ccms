@@ -1,0 +1,9 @@
+.center-number {
+    pointer-events: none; /* Allow clicks to pass through */
+    z-index: 1; /* Ensure it stays above the chart but doesn't block legends */
+  }
+  
+  .center-label {
+    pointer-events: none; /* Allow clicks to pass through */
+    z-index: 1; /* Ensure it stays above the chart but doesn't block legends */
+  }

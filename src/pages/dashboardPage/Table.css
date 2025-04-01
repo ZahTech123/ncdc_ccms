@@ -1,0 +1,29 @@
+/* Add this to your CSS file */
+.table-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow-y: auto; /* Enable vertical scrolling */
+  }
+  
+  .table-container table {
+    width: 100%;
+  }
+  
+  /* Optional: Style the scrollbar */
+  .table-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .table-container::-webkit-scrollbar-track {
+    background: #2d3748; /* Match your table's background color */
+  }
+  
+  .table-container::-webkit-scrollbar-thumb {
+    background: #4a5568; /* Scrollbar color */
+    border-radius: 4px;
+  }
+  
+  .table-container::-webkit-scrollbar-thumb:hover {
+    background: #718096; /* Scrollbar color on hover */
+  }

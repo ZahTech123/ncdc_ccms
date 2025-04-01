@@ -9,7 +9,7 @@ import { usePermissions } from "../../context/PermissionsContext";
 import emailjs from "emailjs-com";
 import { useTickets } from "../../context/TicketsContext";
 import { filterTickets, filterUnreadTickets } from "../../utils/ticketFilters"; // Import the filtering functions
-import { monitorTicketsForEscalation } from './emailEscalation1';
+import { monitorTicketEscalations } from './emailEscalation1';
 
 
 const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissionsCount }) => {
@@ -62,7 +62,7 @@ const Dashboard = ({ onSubmit, setNewTickets, updateTicketAsRead, setSubmissions
 
 
   useEffect(() => {
-    monitorTicketsForEscalation(tickets, role, updateTicket);
+    monitorTicketEscalations(tickets);
   }, [tickets, role, updateTicket]);
   // Log unread tickets when they change
   useEffect(() => {

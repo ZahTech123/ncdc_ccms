@@ -13,7 +13,8 @@ const MapControls = ({
   toggleFilters,
   isFiltersOpen,
   fullscreenTopOffset = 120, // Default value if not provided
-  normalTopOffset = 65 // Default value if not provided
+  normalTopOffset = 65, // Default value if not provided
+  showStatsButton = true // Default to showing the stats button
 }) => {
   // Base position from top - now dynamic based on screen mode
   const controlsTopOffset = isFullscreen ? fullscreenTopOffset : normalTopOffset;
@@ -93,7 +94,7 @@ const MapControls = ({
   // Calculate the right position based on whether filters are open
   const getRightPosition = () => {
     if (!isFullscreen) return '34px';
-    return isFiltersOpen ? '360px' : '20px'; // Increased from 310px to 360px to account for the increased filter panel margin
+    return isFiltersOpen ? '360px' : '20px';
   };
 
   const rightPosition = getRightPosition();
@@ -155,8 +156,8 @@ const MapControls = ({
     };
   };
 
-  // Define the control buttons with their respective handlers
-  const controlButtons = [
+  // Define the base control buttons with their respective handlers
+  let controlButtons = [
     {
       icon: isFullscreen ? <FiMinimize className="w-4 h-4" /> : <FiMaximize className="w-4 h-4" />,
       onClick: toggleFullScreen,
@@ -224,18 +225,27 @@ const MapControls = ({
       icon: <FiArrowRight className="w-4 h-4" />,
       onClick: handleNextMarker,
       className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-    },
-    {
-      icon: <FaChartLine className="w-4 h-4" />,
-      onClick: toggleStats,
-      className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
-    },
-    {
+    }
+  ];
+  
+  // Only add these buttons in fullscreen mode
+  if (isFullscreen) {
+    // Add stats button only in fullscreen mode if showStatsButton is true
+    if (showStatsButton) {
+      controlButtons.push({
+        icon: <FaChartLine className="w-4 h-4" />,
+        onClick: toggleStats,
+        className: "absolute z-50 bg-white p-2 rounded-lg shadow-lg flex items-center justify-center"
+      });
+    }
+    
+    // Add filter button only in fullscreen mode
+    controlButtons.push({
       icon: <FiFilter className="w-4 h-4" />,
       onClick: toggleFilters,
       className: `absolute z-50 p-2 rounded-lg shadow-lg flex items-center justify-center ${isFiltersOpen ? 'bg-yellow-500 text-white' : 'bg-white text-black'}`
-    }
-  ];
+    });
+  }
 
   return (
     <>

@@ -11,8 +11,7 @@ const ModalMap = () => {
   const [longitude, setLongitude] = useState(null);
 
   useEffect(() => {
-    mapboxgl.accessToken =
-      "pk.eyJ1Ijoiam9obnNraXBvbGkiLCJhIjoiY201c3BzcDYxMG9neDJscTZqeXQ4MGk4YSJ9.afrO8Lq1P6mIUbSyQ6VCsQ";
+    mapboxgl.accessToken ="pk.eyJ1Ijoiam9obnNraXBvbGkiLCJhIjoiY201c3BzcDYxMG9neDJscTZqeXQ4MGk4YSJ9.afrO8Lq1P6mIUbSyQ6VCsQ";
 
     const map = new mapboxgl.Map({
       container: "map",
